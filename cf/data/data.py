@@ -1778,43 +1778,35 @@ x.__repr__() <==> repr(x)
             for iaxis, shift in roll.items():
                 self.roll(iaxis, -shift, inplace=True)
     #--- End: def
-    
+
     def _flag_partitions_for_processing(self, parallelise=True):
         '''
         '''
         if mpi_on and parallelise:
             # Add a flag `_process_partition` to each partition defining
             # whether this partition will be processed on this process
+
             n_partitions = self.partitions.size
             x = n_partitions // mpi_size
             if n_partitions < mpi_size:
-                for i, partition in enumerate(self.partitions.matrix.flat):
-                    if i == mpi_rank:
-                        partition._process_partition = True
-                    else:
-                        partition._process_partition = False
-                    #--- End: if
-                #--- End: for
+                f = lambda i : i
                 self._max_partitions_per_process = 1
             elif n_partitions % mpi_size == 0:
-                for i, partition in enumerate(self.partitions.matrix.flat):
-                    if i // x == mpi_rank:
-                        partition._process_partition = True
-                    else:
-                        partition._process_partition = False
-                    #--- End: if
-                #--- End: for
+                f = lambda i : i // x
                 self._max_partitions_per_process = x
             else:
-                for i, partition in enumerate(self.partitions.matrix.flat):
-                    if i // (x + 1) == mpi_rank:
-                        partition._process_partition = True
-                    else:
-                        partition._process_partition = False
-                    #--- End: if
-                #--- End: for
+                f = lambda i : i // (x + 1)
                 self._max_partitions_per_process = x + 1
             #--- End: if
+
+            for i, partition in enumerate(self.partitions.matrix.flat):
+                if f(i) == mpi_rank:
+                    partition._process_partition = True
+                else:
+                    partition._process_partition = False
+                #--- End: if
+            #--- End: for
+            
         else:
             # Flag all partitions for processing on all processes
             for partition in self.partitions.matrix.flat:
