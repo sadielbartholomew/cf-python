@@ -1799,14 +1799,83 @@ x.__repr__() <==> repr(x)
                 self._max_partitions_per_process = x + 1
             #--- End: if
 
+            src_ranks = {}
+            src_props = {}
+            dst_ranks = {}
+
             for i, partition in enumerate(self.partitions.matrix.flat):
+                # If the subarray is a numpy array, collect data about
+                # it so that it can be sent and received
+                if isinstance(partition._subarray, numpy_ndarray):
+                    subarray_in_memory = True
+                    subarray = partition._subarray
+                    subarray_props = {}
+                    subarray_props{'dtype'} = subarray.dtype
+                    subarray_props{'shape'} = subarray.shape
+                    subarray_props{'isMA'} = numpy_ma_isMA(subarray)
+                    if subarray_props{'isMA'}:
+                        subarray_props{'is_masked'} = not subarray.mask is numpy_ma_nomask
+                    else:
+                        subarray_props{'is_masked'} = False
+                    #--- End: if
+                else:
+                    subarray_in_memory = False
+                #--- End: if
+
                 if f(i) == mpi_rank:
                     partition._process_partition = True
                 else:
                     partition._process_partition = False
                 #--- End: if
+                if subarray_in_memory and not partition._process_partition:
+                    src_ranks[i] = mpi_rank
+                    src_props[i] = subarray_props
+                elif partition._process_partition and not subarray_in_memory:
+                    dst_ranks[i] = mpi_rank
+                #--- End: if
             #--- End: for
-            
+
+            # Share the source and destination ranks across all processes
+            src_ranks_list = mpi_comm.allgather(src_ranks)
+            dst_ranks_list = mpi_comm.allgather(dst_ranks)
+
+            src_ranks = {}
+            for item in src_ranks_list:
+                src_ranks.update(item)
+            #--- End: for
+
+            dst_ranks = {}
+            for item in dst_ranks_list:
+                dst_ranks.update(item)
+            #--- End: for
+
+            # Share the subarray properties across all processes
+            src_props_list = mpi_comm.allgather(src_props)
+
+            src_props = {}
+            for item in src_props_list:
+                src_props.update(item)
+            #--- End: for
+
+            # Redistribute the data across the processes
+            for i, partition in enumerate(self.partition.matrix.flat):
+                src_rank = src_ranks.get(i, None)
+                dst_rank = dst_ranks.get(i, None)
+                if src_rank is not None and dst_rank is not None:
+                    subarray_props = src_props[i]
+                    if mpi_rank == src_rank:
+                        # Send data to destination rank
+                        # TODO
+                        pass
+                    elif mpi_rank == dst_rank:
+                        # Receive data from source rank
+                        # TODO
+                        pass
+                    #--- End: if
+                else:
+                    assert dst_rank is not None, 'Data is not present on partition {} on rank {} and no source data is found'.format(i, dst_rank)
+                #--- End: if
+            #--- End: for
         else:
             # Flag all partitions for processing on all processes
             for partition in self.partitions.matrix.flat:
