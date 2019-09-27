@@ -1800,37 +1800,20 @@ x.__repr__() <==> repr(x)
             #--- End: if
 
             src_ranks = {}
-            src_props = {}
             dst_ranks = {}
 
             for i, partition in enumerate(self.partitions.matrix.flat):
-                # If the subarray is a numpy array, collect data about
-                # it so that it can be sent and received
-                if isinstance(partition._subarray, numpy_ndarray):
-                    subarray_in_memory = True
-                    subarray = partition._subarray
-                    subarray_props = {}
-                    subarray_props{'dtype'} = subarray.dtype
-                    subarray_props{'shape'} = subarray.shape
-                    subarray_props{'isMA'} = numpy_ma_isMA(subarray)
-                    if subarray_props{'isMA'}:
-                        subarray_props{'is_masked'} = not subarray.mask is numpy_ma_nomask
-                    else:
-                        subarray_props{'is_masked'} = False
-                    #--- End: if
-                else:
-                    subarray_in_memory = False
-                #--- End: if
-
+                data_on_partition = getattr(partition._process_partition, True)
+                
                 if f(i) == mpi_rank:
                     partition._process_partition = True
                 else:
                     partition._process_partition = False
                 #--- End: if
-                if subarray_in_memory and not partition._process_partition:
+                
+                if data_on_partition and not partition._process_partition:
                     src_ranks[i] = mpi_rank
-                    src_props[i] = subarray_props
-                elif partition._process_partition and not subarray_in_memory:
+                elif partition._process_partition and not data_on_partition:
                     dst_ranks[i] = mpi_rank
                 #--- End: if
             #--- End: for
@@ -1849,31 +1832,76 @@ x.__repr__() <==> repr(x)
                 dst_ranks.update(item)
             #--- End: for
 
-            # Share the subarray properties across all processes
-            src_props_list = mpi_comm.allgather(src_props)
-
-            src_props = {}
-            for item in src_props_list:
-                src_props.update(item)
-            #--- End: for
-
             # Redistribute the data across the processes
             for i, partition in enumerate(self.partition.matrix.flat):
                 src_rank = src_ranks.get(i, None)
                 dst_rank = dst_ranks.get(i, None)
                 if src_rank is not None and dst_rank is not None:
-                    subarray_props = src_props[i]
                     if mpi_rank == src_rank:
+                        if isinstance(partition._subarray, numpy_ndarray):
+                            # If the subarray is a numpy array, swap it
+                            # out before broadcasting the partition
+                            subarray = partition._subarray
+                            partition._subarray = None
+                            partition._subarray_is_in_memory = True
+                            partition._subarray_dtype = subarray.dtype
+                            partition._subarray_shape = subarray.shape
+                            partition._subarray_isMA = numpy_ma_isMA(subarray)
+                            if partition._subarray_isMA:
+                                partition._subarray_is_masked = not subarray.mask is numpy_ma_nomask
+                            else:
+                                partition._subarray_is_masked = False
+                            #--- End: if
+                        else:
+                            partition._subarray_is_in_memory = False
+                        #--- End: if
+
                         # Send data to destination rank
-                        # TODO
-                        pass
+                        comm.ssend(partition, dest=dst_rank)
+
+                        if partition._subarray_is_in_memory:
+                            if partition._subarray_isMA:
+                                mpi_comm.Ssend(subarray.data, dest=dst_rank)
+                                if partition._subarray_is_masked:
+                                    mpi_comm.Ssend(subarray.mask, dest=dst_rank)
+                                #--- End: if
+                            else:
+                                mpi_comm.Ssend(subarray, dest=dst_rank)
+                            #--- End: if
+                        #--- End: if
                     elif mpi_rank == dst_rank:
                         # Receive data from source rank
-                        # TODO
-                        pass
+                        partition.update_inplace_from(comm.recv(source=src_rank))
+
+                        if partition._subarray_is_in_memory:
+                            if partition._subarray_isMA::
+                                if partition._subarray_is_masked:
+                                    subarray = numpy_ma_masked_all(partition._subarray_shape,
+                                                                   dtype=partition._subarray_dtype)
+                                else:
+                                    subarray = numpy_ma_empty(partition._subarray_shape,
+                                                              partition._subarray_dtype)
+                                #--- End: if
+                                mpi_comm.Recv(subarray.data, source=src_rank)
+                                if partition._subarray_is_masked:
+                                    mpi_comm.Recv(subarray.mask, source=src_rank)
+                                #--- End: if
+                            #--- End: if
+                        #--- End: if
                     #--- End: if
-                else:
-                    assert dst_rank is not None, 'Data is not present on partition {} on rank {} and no source data is found'.format(i, dst_rank)
+
+                    if mpi_rank == src_rank or mpi_rank == dst_rank:
+                        # Put the subarray back into the partition
+                        partition._subarray = subarray
+                        # Clean up temporary attributes
+                        if partition._subarray_is_in_memory:
+                            del partition._subarray_dtype
+                            del partition._subarray_shape
+                            del partition._subarray_isMA
+                            del partition._subarray_is_masked
+                        #--- End: if
+                        del partition._subarray_is_in_memory
+                    #--- End: if
                 #--- End: if
             #--- End: for
         else:
