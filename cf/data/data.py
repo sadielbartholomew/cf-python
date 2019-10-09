@@ -5300,8 +5300,9 @@ dimensions.
 
         # Flag which partitions will be processed on this rank. If
         # _parallelise_collapse_subspace is False then all partitions
-        # will be flagged for processing.
-        data._flag_partitions_for_processing(_parallelise_collapse_subspace)
+        # will be flagged for processing. Move data to the flagged
+        # partitions if necessary.
+        data._prepare_partitions_for_processing(_parallelise_collapse_subspace)
 
         for i, partition in enumerate(data.partitions.matrix.flat):
             if partition._process_partition:
