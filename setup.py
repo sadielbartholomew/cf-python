@@ -3,7 +3,6 @@ from distutils.command.build import build
 import os
 import fnmatch
 import sys
-import imp
 import re
 import subprocess
 
@@ -99,10 +98,6 @@ Adpated from https://github.com/Turbo87/py-xcsoar/blob/master/setup.py
 
 
 long_description="""
-DEVELOPMENT VERSION FOR ``PYTHON 3`` - LIABLE TO CHANGE WITHOUT NOTICE UNTIL THE STABLE RELEASE DATE: ``2019-10-01``
-====================================================================================================================
-
-
 CF Python
 =========
 
@@ -244,10 +239,11 @@ setup(name = "cf-python",
                           'cfdm>=1.7.5',
                           'psutil>=0.6.0',
                           'cfunits>=3.2.0'
-#                          'scipy>=1.3.0',
+#                          'scipy>=1.1.0',
 #                          'matplotlib>=3.0.0',
 #                          'mpi4py>=3.0.0',
 #                          'ESMF>=7.1',
+#                          'udunits2==2.2.25',                          
                       ],
       cmdclass     = {'build': build_umread}, #https://docs.python.org/2/distutils/apiref.html
   )

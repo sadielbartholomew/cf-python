@@ -10,18 +10,27 @@
 
 Version |release| for version |version| of the CF conventions.
 
+All of the Python code in this tutorial is available in an executable
+script (:download:`download <../source/tutorial.py>`, 36kB).
+
 .. https://stackoverflow.com/questions/24129481/how-to-include-a-local-table-of-contents-into-sphinx-doc
 
 .. http://docutils.sourceforge.net/docs/ref/rst/directives.html#table-of-contents
 
 .. http://docutils.sourceforge.net/docs/ref/rst/directives.html#list-table
   
-
-.. note:: **This version of cf is for Python 3 only**, and there are
+.. note:: **This version of cf is for Python 3 only** and there are
           :ref:`incompatible differences between versions 2.x and 3.x
-          <2_to_3_changes>`. For version 2.x documentation, see the
-          `documentation archive
-          <https://cfpython.bitbucket.io/docs/archive.html>`_.
+          <two-to-three-changes>` of cf.
+
+	  Scripts written for version 2.x but running under version
+          3.x should either work as expected, or provide informative
+          error messages on the new API usage. However, it is advised
+          that the outputs of older scripts be checked when running
+          with Python 3 versions of the cf library.
+
+	  For version 2.x documentation, see the :ref:`older releases
+	  <Older-releases>` page.
 
 .. contents::
    :local:
@@ -61,10 +70,6 @@ the directory that also contains the sample files.
 The tutorial files may be also found in the `downloads directory
 <https://github.com/NCAS-CMS/cf-python/tree/master/docs/_downloads>`_
 of the on-line code repository.
-
-All of the Python code in this tutorial is available in an executable
-script (:download:`download <../source/tutorial.py>`, 36kB).
-
 
 ----
 
@@ -325,7 +330,7 @@ arrays:
                    : grid_longitude(9) = [-4.7, ..., -1.18] degrees
    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
-                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., kappa]
+                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., 'kappa']
    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
    Coord references: atmosphere_hybrid_height_coordinate
                    : rotated_latitude_longitude
@@ -442,7 +447,7 @@ components, and shows the first and last values of all data arrays:
    
    Auxiliary coordinate: long_name=Grid latitude name
        long_name = 'Grid latitude name'
-       Data(grid_latitude(10)) = [--, ..., kappa]
+       Data(grid_latitude(10)) = [--, ..., 'kappa']
    
    Domain ancillary: ncvar%a
        units = 'm'
@@ -521,21 +526,21 @@ files <External-variables-with-cfa>`.
 -----------------
 
 Powerful, flexible, and very simple to produce visualizations of field
-constructs are available with the `cfplot package
+constructs are available with the `cf-plot package
 <http://ajheaps.github.io/cf-plot>`_ (that needs to be installed
 separately to cf).
 
 .. figure:: images/cfplot_example.png
 
-   *Example output of cfplot displaying a cf field construct.*
+   *Example output of cf-plot displaying a cf field construct.*
 
-See the `cfplot gallery
+See the `cf-plot gallery
 <http://ajheaps.github.io/cf-plot/gallery.html>`_ for the wide range
 of plotting possibilities, with example code. These include, but are
 not limited to:
 
 * Cylindrical, polar stereographic and other plane projections
-* Latitude or longitude vs. height
+* Latitude or longitude vs. height or pressure
 * Hovmuller
 * Vectors
 * Stipples
@@ -597,7 +602,7 @@ operations, such as indexing, iteration, and methods like
 
 The field list also has some additional methods for :ref:`copying
 <Field-list-copying>`, :ref:`testing equality <Field-list-equality>`,
-:ref:`sorting and filtering <Filtering-and-sorting-field-lists>`.
+:ref:`sorting and selection <Sorting-and-selecting-from-field-lists>`.
 
 ----
      
@@ -692,8 +697,9 @@ method.
 
 A field construct's identity may be any one of the following
 
-* The value of the "standard_name" property, e.g. ``'air_temperature'``,
-* The value of the "id" attribute, preceeded by ``'id%='``,
+* The value of the `~Field.standard_name` property,
+  e.g. ``'air_temperature'``,
+* The value of the `~Field.id` attribute, preceeded by ``'id%='``,
 * The value of any property, preceded by the property name and an
   equals, e.g. ``'long_name=Air Temperature'``, ``'foo=bar'``, etc.,
 * The netCDF variable name, preceded by "ncvar%", e.g. ``'ncvar%tas'``
@@ -1181,8 +1187,9 @@ the only differences being:
 ..
 
 * For a dimension that is :ref:`cyclic <Cyclic-domain-axes>`, a range
-  of indices specified by a `slice` is assumed to "wrap" around the
-  edges of the data.
+  of indices specified by a `slice` that spans the edges of the data
+  (such as ``-2:3`` or ``3:-2:-1``) is assumed to "wrap" around,
+  rather then producing a null result.
   
 .. code-block:: python
   :caption: *Create a new field construct whose domain spans the first
@@ -1213,7 +1220,7 @@ the only differences being:
    :caption: *Create new field constructs with a variety of indexing
              techniques.*
 
-   >>> q
+   >>> t
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>
    >>> t[:, :, 1]
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(1)) K>
@@ -1225,6 +1232,8 @@ the only differences being:
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(3), grid_longitude(2)) K>
    >>> t[0, :, -2]
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(1)) K>
+   >>> t[..., [True, False, True, True, False, False, True, False, False]]
+   <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(4)) K>
 
 
 .. code-block:: python
@@ -1289,8 +1298,9 @@ the only difference being:
 ..
 
 * For a dimension that is :ref:`cyclic <Cyclic-domain-axes>`, a range
-  of indices specified by a `slice` is assumed to "wrap" around the
-  edges of the data.
+  of indices specified by a `slice` that spans the edges of the data
+  (such as ``-2:3`` or ``3:-2:-1``) is assumed to "wrap" around,
+  rather then producing a null result.
 
 A single value may be assigned to any number of elements.
   
@@ -1315,8 +1325,8 @@ A single value may be assigned to any number of elements.
      [276.4  -2.0 276.3 266.1 276.1 268.1 277.0 273.4 269.7]]]
 
 An array of values can be assigned, as long as it is broadcastable to
-the shape defined by the indices, using the `numpy broadcasting rules
-<https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html>`_.
+the shape defined by the indices, using the `numpy broadcasting
+rules`_.
 
 .. code-block:: python
    :caption: *Assigning arrays of values.*
@@ -1690,8 +1700,8 @@ latitude name'``.
 
 A construct's identity may be any one of the following
 
-* The value of the "standard_name" property, e.g. ``'air_temperature'``,
-* The value of the "id" attribute, preceeded by ``'id%='``,
+* The value of the `!standard_name` property, e.g. ``'air_temperature'``,
+* The value of the `!id` attribute, preceeded by ``'id%='``,
 * The physical nature of the construct denoted by ``'X'``, ``'Y'``,
   ``'Z'`` or ``'T'``, denoting longitude (or x-projection), latitude
   (or y-projection), vertical and temporal constructs respectively,
@@ -1723,7 +1733,7 @@ A construct's identity may be any one of the following
                    : grid_longitude(9) = [-4.7, ..., -1.18] degrees
    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
-                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., kappa]
+                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., 'kappa']
    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
    Coord references: atmosphere_hybrid_height_coordinate
                    : rotated_latitude_longitude
@@ -2168,7 +2178,7 @@ construct.
                    : time(1) = [2019-01-01 00:00:00]
    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
-                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., kappa]
+                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., 'kappa']
    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
    Coord references: atmosphere_hybrid_height_coordinate
                    : rotated_latitude_longitude
@@ -2693,8 +2703,8 @@ Subspace criteria may be provided for size 1 domain axes that are not
 spanned by the field construct's data.
 
 Explicit indices may also be assigned to a domain axis identified by a
-metadata construct, with either a Python `slice` object or a sequence
-of integers.
+metadata construct, with either a Python `slice` object, or a sequence
+of integers or booleans.
 
 .. code-block:: python
    :caption: *Create a new field construct whose domain spans the 2nd,
@@ -2803,12 +2813,12 @@ date-time objects.
 Subspace mode
 ^^^^^^^^^^^^^
 
-The `~Field.subspace` has three modes of operation, each of which
-provides a different type of subspace:
+There are three modes of operation, each of which provides a different
+type of subspace:
 
 
-* **compress mode**. This is the default mode. Unselected indices are
-  removed to create the returned subspace:
+* **compress mode**. This is the default mode. Unselected locations
+  are removed to create the returned subspace:
 
   .. code-block:: python
      :caption: *Create TODO*
@@ -2920,7 +2930,7 @@ constructs.
                    : grid_longitude(9) = [-4.7, ..., -1.18] degrees
    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
-                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., kappa]
+                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., 'kappa']
    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
    Coord references: atmosphere_hybrid_height_coordinate
                    : rotated_latitude_longitude
@@ -2953,24 +2963,46 @@ case in this example.
 
 ----
 
-.. _Filtering-and-sorting-field-lists:
+.. _Sorting-and-selecting-from-field-lists:
 
-**Filtering and sorting field lists**
--------------------------------------
+**Sorting and selecting from field lists**
+------------------------------------------
 
-A :ref:`field list <Field-lists>` has filtering methods for selecting
-field constructs that meet various criteria:
+A :ref:`field list <Field-lists>` may be sorted in-place using the
+same syntax as a Python `list`. By default the field list is sorted by
+the values of the field constructs identities, but any sorting
+criteria are possible.
+
+.. code-block:: python
+   :caption: *Sort a field list by the field construct identities, and
+             by field construct units.*
+
+   >>> fl = cf.read('file.nc')                                                                        
+   >>> fl
+   [<CF Field: specific_humidity(latitude(5), longitude(8)) 1>,
+    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>]   
+   >>> fl.sort()                                                                                      
+   >>> fl
+   [<CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>,
+    <CF Field: specific_humidity(latitude(5), longitude(8)) 1>]   
+   >>> fl.sort(key=lambda f: f.units)                                                                 
+   >>> fl
+   [<CF Field: specific_humidity(latitude(5), longitude(8)) 1>,
+    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>]
+
+A field list has methods for selecting field constructs that meet
+various criteria:
 
 ================================  ==========================================================================  
 Method                            Filter criteria                                                              
 ================================  ==========================================================================  
-`~FieldList.filter_by_identity`   Field construct identity
-`~FieldList.filter_by_property`   Property values                                     
-`~FieldList.filter_by_units`      Units values.
-`~FieldList.filter_by_rank`       The total number of domain axis constructs in the domain
-`~FieldList.filter_by_naxes`      The number of domain axis constructs spanned by the data
-`~FieldList.filter_by_construct`  Existence and values of metadata constructs
-`~FieldList.filter_by_ncvar`      NetCDF variable name (see the :ref:`netCDF interface <NetCDF-interface>`)
+`~FieldList.select_by_identity`   Field construct identity
+`~FieldList.select_by_property`   Property values                                     
+`~FieldList.select_by_units`      Units values.
+`~FieldList.select_by_rank`       The total number of domain axis constructs in the domain
+`~FieldList.select_by_naxes`      The number of domain axis constructs spanned by the data
+`~FieldList.select_by_construct`  Existence and values of metadata constructs
+`~FieldList.select_by_ncvar`      NetCDF variable name (see the :ref:`netCDF interface <NetCDF-interface>`)
 ================================  ==========================================================================  
 
 Each of these methods returns a new (possibly empty) field list that
@@ -2990,47 +3022,29 @@ contains the selected field constructs.
     <CF Field: air_potential_temperature(time(120), latitude(5), longitude(8)) K>,
     <CF Field: precipitation_flux(time(2), latitude(4), longitude(5)) kg m2 s-1>,
     <CF Field: precipitation_flux(time(1), latitude(64), longitude(128)) kg m-2 day-1>]
-   >>> fl.filter_by_identity('precipitation_flux')
+   >>> fl.select_by_identity('precipitation_flux')
    [<CF Field: precipitation_flux(time(2), latitude(4), longitude(5)) kg m2 s-1>,
     <CF Field: precipitation_flux(time(1), latitude(64), longitude(128)) kg m-2 day-1>]
    >>> import re
-   >>> fl.filter_by_identity(re.compile('.*potential.*'))
+   >>> fl.select_by_identity(re.compile('.*potential.*'))
    [<CF Field: air_potential_temperature(time(120), latitude(5), longitude(8)) K>]
-   >>> fl.filter_by_identity('relative_humidity')
+   >>> fl.select_by_identity('relative_humidity')
    []
 
-As a further convenience, selection by field construct identity is
-also possible by providing identities to a call of a field list
-itself.
+As a convenience, selection by field construct identity is also
+possible by providing identities to a call of a field list itself, or
+to its `~FieldList.select` method.
 
 .. code-block:: python
    :caption: *Get field constructs by their identity by calling the
-             instance directly.*
+             instance directly, or with the 'select' method.*
 
    >>> fl('air_temperature')
    [<CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>,
     <CF Field: air_temperature(time(2), latitude(73), longitude(96)) K>]
-
-A field list may be sorted in-place using the same syntax as a Python
-`list`. By default the field list is sorted by the values of the field
-constructs identities, but any sorting criteria are possible.
-
-.. code-block:: python
-   :caption: *Sort a field list by the field construct identities, and
-             by field construct units.*
-
-   >>> fl = cf.read('file.nc')                                                                        
-   >>> fl
-   [<CF Field: specific_humidity(latitude(5), longitude(8)) 1>,
-    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>]   
-   >>> fl.sort()                                                                                      
-   >>> fl
+   >>> fl.select('air_temperature')
    [<CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>,
-    <CF Field: specific_humidity(latitude(5), longitude(8)) 1>]   
-   >>> fl.sort(key=lambda f: f.units)                                                                 
-   >>> fl
-   [<CF Field: specific_humidity(latitude(5), longitude(8)) 1>,
-    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>]
+    <CF Field: air_temperature(time(2), latitude(73), longitude(96)) K>]
 
 
 .. _Testing-criteria-on-a-field-construct:
@@ -3072,7 +3086,7 @@ the given criteria, or else `False`.
                    : time(1) = [2019-01-01 00:00:00]
    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
-                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., b'kappa']
+                   : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., 'kappa']
    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
    Coord references: grid_mapping_name:rotated_latitude_longitude
                    : standard_name:atmosphere_hybrid_height_coordinate
@@ -4540,7 +4554,7 @@ attribute from the file.
 
 NetCDF global attributes defined with the *file_descriptors* keyword
 of the `cf.write` function will always be written as requested,
-independently of the netCDF data variable attributes, and superceding
+independently of the netCDF data variable attributes, and superseding
 any global attributes that may have been defined with the
 *global_attributes* keyword, or set on the individual field
 constructs.
@@ -5095,11 +5109,11 @@ the axes to be weighted must be identified with the *weights* keyword.
 
 Weights are either derived from the field construct's metadata (such
 as cell sizes), or may be provided explicitly in the form of other
-field constructs containing data of weights values. In either case, the
-weights actually used are those derived by the `~Field.weights` method
-of the field construct with the same *weights* keyword
+field constructs containing data of weights values. In either case,
+the weights actually used are those derived by the `~Field.weights`
+method of the field construct called with the same *weights* keyword
 value. Collapsed axes that are not identified by the *weights* keyword
-are un-weighted during the collapse operation.
+are unweighted during the collapse operation.
 
 .. code-block:: python
    :caption: *Create a weighted time average.*
@@ -5491,6 +5505,8 @@ method constructs.
                    : longitude(8) = [22.5, ..., 337.5] degrees_east
                    : air_pressure(1) = [850.0] hPa
 
+
+		   
 ----
 
 .. _Regridding:
@@ -5749,7 +5765,7 @@ will produce similar results to using using spherical regridding.
                    : height(1) = [2.0] m
 
 
-Cartesian regridding to the dimesion of another field construct is
+Cartesian regridding to the dimension of another field construct is
 also possible, similarly to spherical regridding.
 
 
@@ -5838,8 +5854,10 @@ construct key.
 **Mathematical operations**
 ---------------------------
 
-Arithmetic
-^^^^^^^^^^
+.. _Arithmetical-operations:
+
+Arithmetical operations
+^^^^^^^^^^^^^^^^^^^^^^^
 
 A field construct may be arithmetically combined with another field
 construct, or any other object that is broadcastable to its data. See
@@ -5881,7 +5899,7 @@ during operations.
    <CF Data(): 258.0 K>
    >>> (2 + t).min()
    <CF Data(): 262.0 K>
-   >>> (t * list(range(9))).min()                                                                    
+   >>> (t * list(range(9))).min()
    <CF Data(): 0.0 K>
    >>> (t + cf.Data(numpy.arange(20, 29), '0.1 K')).min()          
    <CF Data(): 262.6 K>
@@ -5889,7 +5907,7 @@ during operations.
 .. code-block:: python
   :caption: *TODO*
 
-   >>> u = t.copy()                                                                                  
+   >>> u = t.copy()
    >>> u.transpose(inplace=True)
    >>> u.Units -= 273.15
    >>> u[0]                         
@@ -5897,11 +5915,34 @@ during operations.
    >>> t + u[0]
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>
 
-   
+If the physical nature of the result differs from both operands, then
+the "standard_name" and "long_name" properties are removed. This is
+the case if the units of the result differ from bother operands, or if
+they have different standard names.
+
+.. code-block:: python
+  :caption: *TODO*
+
+   >>> t.identities()
+   ['air_temperature',
+    'Conventions=CF-1.7',
+    'project=research',
+    'units=K',
+    'standard_name=air_temperature',
+    'ncvar%ta']
+   >>> u = t * cf.Data(10, 'ms-1')
+   >>> u.identities()
+   ['Conventions=CF-1.7',
+    'project=research',
+    'units=1000 s-1.K',
+    'ncvar%ta']
+
+.. _Unary-operations:
+
 Unary operations
 ^^^^^^^^^^^^^^^^
 
-Pythion unary operators also work on the field construct's data,
+Python unary operators also work on the field construct's data,
 returning a new field construct with modified data values. See the
 :ref:`comprehensive list of available unary operations
 <Field-unary-arithmetic>`.
@@ -5930,6 +5971,8 @@ returning a new field construct with modified data values. See the
     [0.006 0.036 0.019 0.035 0.018 0.037 0.034 0.013]]
 
     
+.. _Relational-operations:
+
 Relational operations
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -5969,7 +6012,7 @@ during operations.
     [ True  True  True  True  True  True  True  True]
     [ True  True  True  True  True  True  True  True]
     [ True  True  True  True  True  True  True  True]]
-   >>> print((q < 0.05).array)                                                                      
+   >>> print((q < 0.05).array)
    [[ True  True  True  True  True  True  True  True]
     [ True  True  True False  True False  True False]
     [False False False False False False False  True]
@@ -5982,6 +6025,87 @@ during operations.
     [ True  True  True  True  True  True False False]
     [False  True  True  True  True  True  True False]]
 
+The "standard_name" and "long_name" properties are removed from the
+result, which also has no units.
+
+.. code-block:: python
+  :caption: *TODO*
+
+   >>> q.identities()
+   ['specific_humidity',
+    'Conventions=CF-1.7',
+    'project=research',
+    'units=1',
+    'standard_name=specific_humidity',
+    'ncvar%q']
+   >>> r = q > q.mean()
+   >>> r.identities()
+   ['Conventions=CF-1.7',
+    'project=research',
+    'units=',
+    'ncvar%q']
+
+
+Arithmetical and relational operations with insufficient metadata
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If both operands of an :ref:`arithmetical <Arithmetical-operations>`
+or :ref:`relational <Relational-operations>` operation are field
+constructs with insufficient metadata to create a mapping of physically
+compatible dimensions, there are various techniques that allow the
+operation the operation procede.
+
+* **Option 1:** The operation may applied to the field constructs'
+  data instead. See below for more details.
+
+* **Option 2:** If the mapping is not possible due to the absence of
+  `!standard_name` properties (or `!id` attributes) on metadata
+  constructs that are known to correspond, then setting "relaxed
+  identities" with the `cf.RELAXED_IDENTITIES` function may help.
+
+* **Option 3:** Add more metadata to the field and metadata constructs.
+
+For **Option 1** the resulting data may then be inserted into a copy
+of one of the field constructs, either with the `~cf.Field.set_data`
+method of the field construct, or with :ref:`indexed assignment
+<Assignment-by-index>`. The former technique is faster and more memory
+efficient, but the latter technique allows broadcasting.
+
+Note that it is assumed, and not checked, that the dimensions of both
+`~cf.Data` instance operands are already in the correct order for
+physically meaningful broadcasting to occur.
+
+.. code-block:: python
+   :caption: *Operate on the data and use 'set_data' to put the
+             resulting data into the new field construct.*
+	    
+   >>> t.min()
+   <CF Data(): 260.0 K>
+   >>> u = t.copy()
+   >>> new_data = t.data + t.data
+   >>> u.set_data(new_data)
+   >>> u       
+   <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>
+   >>> u.min()
+   <CF Data(): 520.0 K>
+
+.. code-block:: python
+  :caption: *Update the data with indexed assignment*
+
+   >>> u[...] = new_data
+   >>> u.min()
+   <CF Data(): 520.0 K>
+
+For augmented assignments, the field construct data may be changed
+in-place.
+   
+.. code-block:: python
+  :caption: *An example of augmented assignment involving the data of
+            two field constructs.*
+
+   >>> t.data -= t.data
+   >>> t.min()
+   <CF Data(): 0.0 K>
     
 Trigonometrical functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -6002,6 +6126,9 @@ changing the construct's units.
    >>> sin_lat.data
    <CF Data(5): [-0.9659258262890683, ..., 0.9659258262890683] 1>
 
+The "standard_name" and "long_name" properties are removed from the
+result.
+       
 Exponential and logarithmic functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -6025,6 +6152,9 @@ metadata but changing the construct's units where required.
    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) lg(re 1 K)>
    >>> t.exp()                                                # Raises Exception
    ValueError: Can't take exponential of dimensional quantities: <Units: K>
+
+The "standard_name" and "long_name" properties are removed from the
+result.
 
 Rounding and truncation
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -6208,6 +6338,53 @@ wrap around, or a one-sided difference is calculated at the edges. If
 the longitudinal axis is :ref:`cyclic <Cyclic-domain-axes>` then the
 derivative wraps around by default.
 
+.. _Cumulative-sums:
+
+Cumulative sums
+^^^^^^^^^^^^^^^
+
+The `~Field.cumsum` method of the field construct calculates the
+cumulative sum of elements along a given axis. The cell bounds of of
+the axis are updated to describe the range over which the sum applies,
+and a new "sum" cell method construct is added to the resulting field
+construct.
+
+
+.. code-block:: python
+   :caption: *Calculate cumulative sums along the "T" axis, showing
+             the cell bounds before and after the operation.*
+   
+   >>> a = cf.read('timeseries.nc')[0]
+   >>> print(a)
+   Field: air_potential_temperature (ncvar%air_potential_temperature)
+   ------------------------------------------------------------------
+   Data            : air_potential_temperature(time(120), latitude(5), longitude(8)) K
+   Cell methods    : area: mean
+   Dimension coords: time(120) = [1959-12-16 12:00:00, ..., 1969-11-16 00:00:00]
+                   : latitude(5) = [-75.0, ..., 75.0] degrees_north
+                   : longitude(8) = [22.5, ..., 337.5] degrees_east
+                   : air_pressure(1) = [850.0] hPa
+   >>> b = a.cumsum('T')
+   >>> print(b)
+   Field: air_potential_temperature (ncvar%air_potential_temperature)
+   ------------------------------------------------------------------
+   Data            : air_potential_temperature(time(120), latitude(5), longitude(8)) K
+   Cell methods    : area: mean time(120): sum
+   Dimension coords: time(120) = [1959-12-16 12:00:00, ..., 1969-11-16 00:00:00]
+                   : latitude(5) = [-75.0, ..., 75.0] degrees_north
+                   : longitude(8) = [22.5, ..., 337.5] degrees_east
+                   : air_pressure(1) = [850.0] hPa
+   >>> print(a.coordinate('T').bounds[-1].dtarray)
+   [[cftime.DatetimeGregorian(1969-11-01 00:00:00)
+     cftime.DatetimeGregorian(1969-12-01 00:00:00))]]
+   >>> print(b.coordinate('T').bounds[-1].dtarray)
+   [[cftime.DatetimeGregorian(1959-11-01 00:00:00)
+     cftime.DatetimeGregorian(1969-12-01 00:00:00))]]
+
+The treatment of missing values can be specified, as well as the
+positioning of coordinate values in the summed axis of the returned
+field construct.
+
 ----
   
 .. _Aggregation:
@@ -6229,7 +6406,7 @@ constructs in memory with the `cf.aggregate` function.
 .. code-block:: python
    :caption: *Demonstrate that the aggregation applied by 'cf.read' is
              equivalent to that carried by 'cf.aggregate'. This is
-             done by spliting a field up into parts, writing those to
+             done by splitting a field up into parts, writing those to
              disk, and then reading those parts and aggregating them.*
 
    >>> a = cf.read('air_temperature.nc')[0]
@@ -6813,7 +6990,7 @@ fields files of any endian-ness can be read. In nearly all cases the
 file format is auto-detected from the first 64 bits in the file, but
 for the few occasions when this is not possible [#um]_, the *um*
 keyword of `cf.read` allows the format to be specified, as well as the
-UM version (if the latter is not inferrable from the PP or lookup
+UM version (if the latter is not inferable from the PP or lookup
 header information).
 
 Note that 2-d "slices" within a single file are always combined, where
@@ -6967,8 +7144,10 @@ is straight forward with the `cf.load_stash2standard_name` function.
 
 .. External links
 
-.. _Tripolar:                         https://doi.org/10.1007%2FBF00211684
-		  
+.. _Tripolar:                 https://doi.org/10.1007%2FBF00211684
+.. _numpy broadcasting rules: https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html
+
+
 .. External links to the CF conventions (will need updating with new versions of CF)
    
 .. _External variables:               http://cfconventions.org/Data/cf-conventions/cf-conventions-1.7/cf-conventions.html#external-variables

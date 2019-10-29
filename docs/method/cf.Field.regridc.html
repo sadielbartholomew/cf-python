@@ -32,7 +32,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h3><b><a href="../index.html">cf 3.0.0b12</a></b></h3>
+<h3><b><a href="../index.html">cf 3.0.1</a></b></h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cf_data_model.html"><strong>CF data model</strong></a></li>
@@ -90,7 +90,7 @@
 <h1>cf.Field.regridc<a class="headerlink" href="#cf-field-regridc" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="cf.Field.regridc">
-<code class="descclassname">Field.</code><code class="descname">regridc</code><span class="sig-paren">(</span><em>dst</em>, <em>axes</em>, <em>method</em>, <em>use_src_mask=True</em>, <em>use_dst_mask=False</em>, <em>fracfield=False</em>, <em>axis_order=None</em>, <em>ignore_degenerate=True</em>, <em>inplace=False</em>, <em>i=False</em>, <em>_compute_field_mass=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf/blob/v3.0.0b12/cf/field.py#L12710"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cf.Field.regridc" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Field.</code><code class="descname">regridc</code><span class="sig-paren">(</span><em>dst</em>, <em>axes</em>, <em>method</em>, <em>use_src_mask=True</em>, <em>use_dst_mask=False</em>, <em>fracfield=False</em>, <em>axis_order=None</em>, <em>ignore_degenerate=True</em>, <em>inplace=False</em>, <em>i=False</em>, <em>_compute_field_mass=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.0.1/cf/field.py#L12959"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cf.Field.regridc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the field with the specified Cartesian axes regridded onto a
 new grid.</p>
 <p>Between 1 and 3 dimensions may be regridded.</p>
@@ -113,14 +113,15 @@ to the memory limit on a machine. It is only available in
 source to destination is particularly useful for regridding
 integer fields such as land use.</p>
 <p><strong>Metadata</strong></p>
-<p>The field’s domain must have axes matching those specified in
-<em>src_axes</em>. The same is true for the destination grid, if it
-provided as part of another field. Optionally the axes to use from
-the destination grid may be specified separately in <em>dst_axes</em>.</p>
-<p>The output field’s coordinate objects which span the specified
-axes are replaced with those from the destination grid. Any fields
-contained in coordinate reference objects will also be regridded,
-if possible.</p>
+<p>The field construct’s domain must have axes matching those
+specified in <em>src_axes</em>. The same is true for the destination
+grid, if it provided as part of another field. Optionally the axes
+to use from the destination grid may be specified separately in
+<em>dst_axes</em>.</p>
+<p>The output field construct’s coordinate objects which span the
+specified axes are replaced with those from the destination
+grid. Any fields contained in coordinate reference objects will
+also be regridded, if possible.</p>
 <p><strong>Mask</strong></p>
 <p>The data array mask of the field is automatically taken into
 account, such that the regridded data array will be masked in
@@ -136,7 +137,7 @@ Python interface to the Earth System Modeling Framework (ESMF)
 regridding utility.</p>
 <p><strong>Logging</strong></p>
 <p>Whether ESMF logging is enabled or not is determined by
-<a class="reference internal" href="../generated/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>. If it is logging takes place after every
+<a class="reference internal" href="../function/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>. If it is logging takes place after every
 call. By default logging is disabled.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -244,7 +245,7 @@ conservative regridding.  Other methods always skip
 degenerate cells.</p>
 </dd>
 <dt>inplace: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt>
-<dd><p class="first last">If <a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a> then do the operation in-place and return <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+<dd><p class="first last">If True then do the operation in-place and return <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </dd>
 <dt>i: deprecated at version 3.0.0</dt>
 <dd><p class="first last">Use the <em>inplace</em> parameter instead.</p>
@@ -254,10 +255,11 @@ degenerate cells.</p>
 source and destination fields are computed and returned
 within the dictionary. The keys of the dictionary
 indicates the lat/long slice of the field and the
-corresponding value is a tuple containing the source
-field’s mass and the destination field’s mass. The
-calculation is only done if conservative regridding is
-being performed. This is for debugging purposes.</p>
+corresponding value is a tuple containing the source field
+construct’s mass and the destination field construct’s
+mass. The calculation is only done if conservative
+regridding is being performed. This is for debugging
+purposes.</p>
 </dd>
 </dl>
 </td>

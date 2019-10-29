@@ -65,7 +65,7 @@ class CellMethodTest(unittest.TestCase):
             self.assertTrue(t == s, '{!r} != {!r}'.format(t, s))
             for cm in cms:
                 _ = repr(cm)
-    #--- End: def
+
 
     def test_CellMethod_equals(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -75,7 +75,7 @@ class CellMethodTest(unittest.TestCase):
             cms = cf.CellMethod.create(s)
             for cm in cms:                
                 self.assertTrue(cm.equals(cm.copy(), verbose=True))
-    #--- End: def
+
 
     def test_CellMethod_equivalent(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -118,7 +118,7 @@ class CellMethodTest(unittest.TestCase):
                 self.assertTrue(cm0.equivalent(cm1, verbose=True),
                                 '{0!r} not equivalent to {1!r}'.format(cm0, cm1))
         #--- End: for
-    #--- End: def
+
 
     def test_CellMethod_get_set_delete(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -127,15 +127,15 @@ class CellMethodTest(unittest.TestCase):
         cm0, cm1 = cf.CellMethod.create('time: minimum within days time: sum over years')
 
         self.assertTrue(cm0.within == 'days')
-        self.assertTrue(cm1.get_qualifier('within', None) == None)
-        self.assertTrue(cm0.get_qualifier('where', None) == None)
-        self.assertTrue(cm0.get_qualifier('over', None) == None)
+        self.assertTrue(cm1.get_qualifier('within', None) is None)
+        self.assertTrue(cm0.get_qualifier('where', None) is None)
+        self.assertTrue(cm0.get_qualifier('over', None) is None)
         self.assertTrue(cm1.over == 'years')
         self.assertTrue(cm0.method == 'minimum')
         self.assertTrue(cm1.method == 'sum')
         self.assertTrue(cm0.axes == ('time',))
         self.assertTrue(cm1.axes == ('time',))
-    #--- End: def
+
 
 #--- End: class
 

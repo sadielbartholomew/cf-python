@@ -32,7 +32,7 @@
     
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h3><b><a href="../index.html">cf 3.0.0b12</a></b></h3>
+<h3><b><a href="../index.html">cf 3.0.1</a></b></h3>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cf_data_model.html"><strong>CF data model</strong></a></li>
@@ -90,7 +90,7 @@
 <h1>cf.Field.regrids<a class="headerlink" href="#cf-field-regrids" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="cf.Field.regrids">
-<code class="descclassname">Field.</code><code class="descname">regrids</code><span class="sig-paren">(</span><em>dst</em>, <em>method</em>, <em>src_cyclic=None</em>, <em>dst_cyclic=None</em>, <em>use_src_mask=True</em>, <em>use_dst_mask=False</em>, <em>fracfield=False</em>, <em>src_axes=None</em>, <em>dst_axes=None</em>, <em>axis_order=None</em>, <em>ignore_degenerate=True</em>, <em>inplace=False</em>, <em>i=False</em>, <em>_compute_field_mass=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf/blob/v3.0.0b12/cf/field.py#L12122"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cf.Field.regrids" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">Field.</code><code class="descname">regrids</code><span class="sig-paren">(</span><em>dst</em>, <em>method</em>, <em>src_cyclic=None</em>, <em>dst_cyclic=None</em>, <em>use_src_mask=True</em>, <em>use_dst_mask=False</em>, <em>fracfield=False</em>, <em>src_axes=None</em>, <em>dst_axes=None</em>, <em>axis_order=None</em>, <em>ignore_degenerate=True</em>, <em>inplace=False</em>, <em>i=False</em>, <em>_compute_field_mass=None</em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.0.1/cf/field.py#L12367"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cf.Field.regrids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the field regridded onto a new latitude-longitude grid.</p>
 <p>Regridding, also called remapping or interpolation, is the process
 of changing the grid underneath field data values while preserving
@@ -102,7 +102,7 @@ interpolation. Bilinear interpolation is available. The latter
 method is particular useful for cases when the latitude and
 longitude coordinate cell boundaries are not known nor
 inferrable. Higher order patch recovery is available as an
-alternative to bilinear interpolation.  This typically results in
+alternative to bilinear interpolation. This typically results in
 better approximations to values and derivatives compared to the
 latter, but the weight matrix can be larger than the bilinear
 matrix, which can be an issue when regridding close to the memory
@@ -110,9 +110,9 @@ limit on a machine. Nearest neighbour interpolation is also
 available. Nearest source to destination is particularly useful
 for regridding integer fields such as land use.</p>
 <p><strong>Metadata</strong></p>
-<p>The field’s domain must have well defined X and Y axes with
-latitude and longitude coordinate values, which may be stored as
-dimension coordinate objects or two dimensional auxiliary
+<p>The field construct’s domain must have well defined X and Y axes
+with latitude and longitude coordinate values, which may be stored
+as dimension coordinate objects or two dimensional auxiliary
 coordinate objects. If the latitude and longitude coordinates are
 two dimensional then the X and Y axes must be defined by dimension
 coordinates if present or by the netCDF dimensions. In the latter
@@ -127,10 +127,10 @@ not registered as such by its parent field (see
 dimensional latitude and longitude dimension coordinates without
 bounds it will be necessary to specify <em>src_cyclic</em> or
 <em>dst_cyclic</em> manually if the field is global.</p>
-<p>The output field’s coordinate objects which span the X and/or Y
-axes are replaced with those from the destination grid. Any fields
-contained in coordinate reference objects will also be regridded,
-if possible.</p>
+<p>The output field construct’s coordinate objects which span the X
+and/or Y axes are replaced with those from the destination
+grid. Any fields contained in coordinate reference objects will
+also be regridded, if possible.</p>
 <p><strong>Mask</strong></p>
 <p>The data array mask of the field is automatically taken into
 account, such that the regridded data array will be masked in
@@ -145,7 +145,7 @@ Python interface to the Earth System Modeling Framework (ESMF)
 regridding utility.</p>
 <p><strong>Logging</strong></p>
 <p>Whether ESMF logging is enabled or not is determined by
-<a class="reference internal" href="../generated/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>. If it is logging takes place after every
+<a class="reference internal" href="../function/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>. If it is logging takes place after every
 call. By default logging is disabled.</p>
 <p><strong>Latitude-Longitude Grid</strong></p>
 <p>The canonical grid with independent latitude and longitude
@@ -268,12 +268,15 @@ True. Otherwise this is ignored.</p>
 </dd>
 <dt>src_axes: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</dt>
 <dd><p class="first">A dictionary specifying the axes of the 2D latitude and
-longitude coordinates of the source field when no
+longitude coordinates of the source field when no 1D
 dimension coordinates are present. It must have keys ‘X’
-and ‘Y’.</p>
+and ‘Y’. TODO</p>
 <dl class="last docutils">
 <dt><em>Parameter example:</em></dt>
 <dd><p class="first last"><code class="docutils literal notranslate"><span class="pre">src_axes={'X':</span> <span class="pre">'ncdim%x',</span> <span class="pre">'Y':</span> <span class="pre">'ncdim%y'}</span></code></p>
+</dd>
+<dt><em>Parameter example:</em></dt>
+<dd><p class="first last"><code class="docutils literal notranslate"><span class="pre">src_axes={'X':</span> <span class="pre">1,</span> <span class="pre">'Y':</span> <span class="pre">0}</span></code></p>
 </dd>
 </dl>
 </dd>
@@ -304,13 +307,13 @@ cells when checking the grids for errors. Regridding will
 proceed and degenerate cells will be skipped, not
 producing a result, when set to True. Otherwise an error
 will be produced if degenerate cells are found. This will
-be present in the ESMPy log files if <a class="reference internal" href="../generated/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>
+be present in the ESMPy log files if <a class="reference internal" href="../function/cf.REGRID_LOGGING.html#cf.REGRID_LOGGING" title="cf.REGRID_LOGGING"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.REGRID_LOGGING</span></code></a>
 is set to True. As of ESMF 7.0.0 this only applies to
 conservative regridding.  Other methods always skip
 degenerate cells.</p>
 </dd>
 <dt>inplace: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt>
-<dd><p class="first last">If <a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a> then do the operation in-place and return <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+<dd><p class="first last">If True then do the operation in-place and return <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.7)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </dd>
 <dt>i: deprecated at version 3.0.0</dt>
 <dd><p class="first last">Use the <em>inplace</em> parameter instead.</p>
@@ -319,18 +322,19 @@ degenerate cells.</p>
 <dd><p class="first last">If this is a dictionary then the field masses of the
 source and destination fields are computed and returned
 within the dictionary. The keys of the dictionary
-indicates the lat/long slice of the field and the
-corresponding value is a tuple containing the source
-field’s mass and the destination field’s mass. The
-calculation is only done if conservative regridding is
-being performed. This is for debugging purposes.</p>
+indicates the lat-long slice of the field and the
+corresponding value is a tuple containing the source field
+construct’s mass and the destination field construct’s
+mass. The calculation is only done if conservative
+regridding is being performed. This is for debugging
+purposes.</p>
 </dd>
 </dl>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
 <dt><a class="reference internal" href="../classes/cf.Field.html#cf.Field" title="cf.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Field</span></code></a></dt>
-<dd><p class="first last">The regridded field.</p>
+<dd><p class="first last">The regridded field construct.</p>
 </dd>
 </dl>
 </td>
@@ -338,8 +342,8 @@ being performed. This is for debugging purposes.</p>
 </tbody>
 </table>
 <p><strong>Examples:</strong></p>
-<p>Regrid field <code class="docutils literal notranslate"><span class="pre">f</span></code> conservatively onto a grid contained in field
-<code class="docutils literal notranslate"><span class="pre">g</span></code>:</p>
+<p>Regrid field construct <code class="docutils literal notranslate"><span class="pre">f</span></code> conservatively onto a grid contained
+in field construct <code class="docutils literal notranslate"><span class="pre">g</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">regrids</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="s1">&#39;conservative&#39;</span><span class="p">)</span>
 </pre></div>
 </div>

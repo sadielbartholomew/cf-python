@@ -1,9 +1,7 @@
-from collections import OrderedDict
-from copy        import deepcopy
+from collections import namedtuple
 from functools   import reduce
 from operator    import mul as operator_mul
 from operator    import itemgetter
-import warnings
 
 try:
     from scipy.ndimage.filters import convolve1d
@@ -25,13 +23,14 @@ from numpy import finfo       as numpy_finfo
 from numpy import isnan       as numpy_isnan
 from numpy import nan         as numpy_nan
 from numpy import ndarray     as numpy_ndarray
+from numpy import prod        as numpy_prod
+from numpy import reshape     as numpy_reshape
 from numpy import shape       as numpy_shape
 from numpy import size        as numpy_size
 from numpy import squeeze     as numpy_squeeze
 from numpy import tile        as numpy_tile
 from numpy import unique      as numpy_unique
 from numpy import where       as numpy_where
-from numpy import zeros       as numpy_zeros
 
 from numpy.ma import is_masked   as numpy_ma_is_masked
 from numpy.ma import isMA        as numpy_ma_isMA
@@ -41,6 +40,7 @@ from numpy.ma import masked_invalid as numpy_ma_masked_invalid
 
 import cfdm
 
+from . import AuxiliaryCoordinate
 from . import Bounds
 from . import CellMethod
 from . import DimensionCoordinate
@@ -54,15 +54,15 @@ from . import FieldList
 from .constants import masked as cf_masked
 
 from .functions import (parse_indices, CHUNKSIZE, equals,
-                        RELAXED_IDENTITIES, IGNORE_IDENTITIES,
-                        _section)
-from .functions       import inspect as cf_inspect
-from .query           import Query, ge, gt, le, lt, ne, eq, wi
+                        RELAXED_IDENTITIES, _section)
+from .query           import Query, ge, gt, le, lt, eq
 from .regrid          import Regrid
 from .timeduration    import TimeDuration
 from .units           import Units
+from .subspacefield   import SubspaceField
 
 from .functions import (_DEPRECATION_ERROR,
+                        _DEPRECATION_ERROR_ARG,
                         _DEPRECATION_ERROR_KWARGS,
                         _DEPRECATION_ERROR_METHOD,
                         _DEPRECATION_ERROR_ATTRIBUTE,
@@ -72,6 +72,7 @@ from .functions import (_DEPRECATION_ERROR,
 from .data.data import Data
 
 from . import mixin
+
 
 _debug = False
 
@@ -87,49 +88,58 @@ _units_metres  = Units('m')
 # assumed to have a corresponding Data method with the same name.
 # --------------------------------------------------------------------
 _collapse_methods = {
-    'mean'              : 'mean',
-    'avg'               : 'mean',
-    'average'           : 'mean',
-    'max'               : 'max',
-    'maximum'           : 'max',
-    'min'               : 'min',
-    'minimum'           : 'min',
-    'mid_range'         : 'mid_range',
-    'range'             : 'range',
-    'standard_deviation': 'sd',
-    'sd'                : 'sd',
-    'sum'               : 'sum',
-    'variance'          : 'var',
-    'var'               : 'var',
-    'sample_size'       : 'sample_size', 
-    'sum_of_weights'    : 'sum_of_weights',
-    'sum_of_weights2'   : 'sum_of_weights2',
+    'mean'                  : 'mean',
+    'avg'                   : 'mean',
+    'average'               : 'mean',
+    'max'                   : 'max',
+    'maximum'               : 'max',
+    'maximum_absolute_value': 'maximum_absolute_value',
+    'min'                   : 'min',
+    'minimum'               : 'min',
+    'minimum_absolute_value': 'minimum_absolute_value',
+    'mid_range'             : 'mid_range',
+    'range'                 : 'range',
+    'standard_deviation'    : 'sd',
+    'sd'                    : 'sd',
+    'sum'                   : 'sum',
+    'sum_of_squares'        : 'sum_of_squares',
+    'integral'              : 'integral',
+    'root_mean_square'      : 'root_mean_square',
+    'variance'              : 'var',
+    'var'                   : 'var',
+    'sample_size'           : 'sample_size', 
+    'sum_of_weights'        : 'sum_of_weights',
+    'sum_of_weights2'       : 'sum_of_weights2',
 }
 
 # --------------------------------------------------------------------
-# Map each allowed input collapse method name to its corresponding
-# Data method. Input collapse methods not in this sictionary are
-# assumed to have a corresponding Data method with the same name.
+# Map each allowed input collapse method name to its corresponding CF
+# cell method.
 # --------------------------------------------------------------------
 _collapse_cell_methods = {
-    'point'             : 'point',
-    'mean'              : 'mean',
-    'avg'               : 'mean',
-    'average'           : 'mean',
-    'max'               : 'maximum',
-    'maximum'           : 'maximum',
-    'min'               : 'minimum',
-    'minimum'           : 'minimum',
-    'mid_range'         : 'mid_range',
-    'range'             : 'range',
-    'standard_deviation': 'standard_deviation',
-    'sd'                : 'standard_deviation',
-    'sum'               : 'sum',
-    'variance'          : 'variance',
-    'var'               : 'variance',
-    'sample_size'       : None,
-    'sum_of_weights'    : None,
-    'sum_of_weights2'   : None,
+    'point'                 : 'point',
+    'mean'                  : 'mean',
+    'avg'                   : 'mean',
+    'average'               : 'mean',
+    'max'                   : 'maximum',
+    'maximum'               : 'maximum',
+    'maximum_absolute_value': 'maximum_absolute_value',
+    'min'                   : 'minimum',
+    'minimum'               : 'minimum',
+    'minimum_absolute_value': 'minimum_absolute_value',
+    'mid_range'             : 'mid_range',
+    'range'                 : 'range',
+    'standard_deviation'    : 'standard_deviation',
+    'sd'                    : 'standard_deviation',
+    'sum'                   : 'sum',
+    'integral'              : 'sum',
+    'root_mean_square'      : 'root_mean_square',
+    'sum_of_squares'        : 'sum_of_squares',
+    'variance'              : 'variance',
+    'var'                   : 'variance',
+    'sample_size'           : 'point',
+    'sum_of_weights'        : 'sum',
+    'sum_of_weights2'       : 'sum',
 }
 
 # --------------------------------------------------------------------
@@ -153,6 +163,8 @@ _collapse_weighted_methods = set(('mean',
                                   'variance',
                                   'sum_of_weights',
                                   'sum_of_weights2',
+                                  'integral',
+                                  'root_mean_square',
                                   ))
 
 # --------------------------------------------------------------------
@@ -162,15 +174,13 @@ _collapse_ddof_methods = set(('sd',
                               'var',
                               ))
 
-#class DeprecationError(Exception):
- ##   '''Exception for removed methods'''
-#    pass
+_earth_radius = Data(6371229.0, 'm')
 
-# ====================================================================
-#
-# Field object
-#
-# ====================================================================
+_relational_methods = ('__eq__', '__ne__', '__lt__', '__le__', '__gt__', '__ge__')
+
+
+_xxx = namedtuple('data_dimension', ['size', 'axis', 'key', 'coord', 'coord_type', 'scalar'])
+
 
 class Field(mixin.PropertiesData,
             cfdm.Field):
@@ -227,97 +237,88 @@ may be accessed with the `nc_global_attributes`,
                  _use_data=True):
         '''**Initialization**
 
-:Parameters:
-
-    properties: `dict`, optional
-        Set descriptive properties. The dictionary keys are
-        property names, with corresponding values. Ignored if the
-        *source* parameter is set.
-
-        *Parameter example:*
-          ``properties={'standard_name': 'air_temperature'}``
-        
-        Properties may also be set after initialisation with the
-        `set_properties` and `set_property` methods.
-
-    source: optional
-        Initialize the properties, data and metadata constructs
-        from those of *source*.
-        
-    copy: `bool`, optional
-        If `False` then do not deep copy input parameters prior to
-        initialization. By default arguments are deep copied.
+    :Parameters:
+    
+        properties: `dict`, optional
+            Set descriptive properties. The dictionary keys are
+            property names, with corresponding values. Ignored if the
+            *source* parameter is set.
+    
+            *Parameter example:*
+              ``properties={'standard_name': 'air_temperature'}``
+            
+            Properties may also be set after initialisation with the
+            `set_properties` and `set_property` methods.
+    
+        source: optional
+            Initialize the properties, data and metadata constructs
+            from those of *source*.
+            
+        copy: `bool`, optional
+            If False then do not deep copy input parameters prior to
+            initialization. By default arguments are deep copied.
 
         '''
         super().__init__(properties=properties, source=source,
                          copy=copy, _use_data=_use_data)
-        
-#        if auto_cyclic and source is None:
-#            self.autocyclic()
 
+        if source:
+            flags = getattr(source, 'Flags', None)
+            if flags is not None:
+                self.Flags = flags.copy()
+        #--- End: if
+                
 
     def __getitem__(self, indices):
         '''Return a subspace of the field construct defined by indices.
 
     f.__getitem__(indices) <==> f[indices]
 
-    Subspacing by axis indices uses an extended Python slicing syntax,
-    which is similar to :ref:`numpy array indexing
-    <numpy:arrays.indexing>`. There are extensions to the numpy
-    indexing functionality:
+    Subspacing by indexing uses rules that are very similar to the
+    numpy indexing rules, the only differences being:
+
+    * An integer index i specified for a dimension reduces the size of
+      this dimension to unity, taking just the i-th element, but keeps
+      the dimension itself, so that the rank of the array is not
+      reduced.
+
+    * When two or more dimensions’ indices are sequences of integers
+      then these indices work independently along each dimension
+      (similar to the way vector subscripts work in Fortran). This is
+      the same indexing behaviour as on a Variable object of the
+      netCDF4 package.
+
+    * For a dimension that is cyclic, a range of indices specified by
+      a `slice` that spans the edges of the data (such as ``-2:3`` or
+      ``3:-2:-1``) is assumed to "wrap" around, rather then producing
+      a null result.  
+
+    .. seealso:: `indices`, `squeeze`, `subspace`, `where`
     
-    * Size 1 axes are never removed.
+    **Examples:**
+
+    >>> f.shape
+    (12, 73, 96)
+    >>> f[0].shape
+    (1, 73, 96)
+    >>> f[3, slice(10, 0, -2), 95:93:-1].shape
+    (1, 5, 2)
     
-      An integer index *i* takes the *i*-th element but does not
-      reduce the rank of the output array by one:
-    
-      >>> f.shape
-      (12, 73, 96)
-      >>> f[0].shape
-      (1, 73, 96)
-      >>> f[3, slice(10, 0, -2), 95:93:-1].shape
-      (1, 5, 2)
-    
-    * When more than one axis's slice is a 1-d boolean sequence or 1-d
-      sequence of integers, then these indices work independently
-      along each axis (similar to the way vector subscripts work in
-      Fortran), rather than by their elements:
-    
-      >>> f.shape
-      (12, 73, 96)
-      >>> f[:, [0, 72], [5, 4, 3]].shape
-      (12, 2, 3)
-    
-      Note that the indices of the last example would raise an error
-      when given to a numpy array.
-    
-    * Boolean indices may be any object which exposes the numpy array
-      interface, such as the field's coordinate objects:
-    
-      >>> f[:, f.coord('latitude')<0].shape
-      (12, 36, 96)
-    
-    .. seealso `subspace`
+    >>> f.shape
+    (12, 73, 96)
+    >>> f[:, [0, 72], [5, 4, 3]].shape
+    (12, 2, 3)
     
     >>> f.shape
     (12, 73, 96)
     >>> f[...].shape
     (12, 73, 96)
     >>> f[slice(0, 12), :, 10:0:-2].shape
-    (12, 73, 5)
-    >>> f[..., f.coord('longitude')<180].shape
-    (12, 73, 48)
-    
-    .. versionadded:: 2.0
-    
-    :Returns:
-    
-        `Field`
-            The subspaced field construct.
-    
-    **Examples:**
-    
-    >>> g = f[..., 0, :6, 9:1:-2, [1, 3, 4]]
+    (12, 73, 5)    
+    >>> f[[True, True, False, True, True, False, False, True, True, True, True, True]].shape
+    (9, 64, 128)
+    >>> f[..., :6, 9:1:-2, [1, 3, 4]].shape
+    (6, 4, 3)
 
         '''
         if _debug:
@@ -363,7 +364,7 @@ may be accessed with the `nc_global_attributes`,
             new = self.copy()
 
         # ------------------------------------------------------------
-        # Subspace the field's data
+        # Subspace the field construct's data
         # ------------------------------------------------------------
         if auxiliary_mask:
             auxiliary_mask = list(auxiliary_mask)
@@ -469,9 +470,9 @@ may be accessed with the `nc_global_attributes`,
 
     def __setitem__(self, indices, value):
         '''Called to implement assignment to x[indices]=value
-
+        
     x.__setitem__(indices, value) <==> x[indices]=value
-
+        
     .. versionadded:: 2.0
 
         '''
@@ -489,8 +490,9 @@ may be accessed with the `nc_global_attributes`,
             pass
         else:
             if data is None:
-                raise ValueError("Can't assign a {!r} with no data to a {}".format(
-                    value.__class__.__name__, self.__class__.__name__))
+                raise ValueError(
+                    "Can't assign to a {} from a {!r} with no data}".format(
+                        self.__class__.__name__, value.__class__.__name__))
 
             value = data
         
@@ -644,24 +646,49 @@ may be accessed with the `nc_global_attributes`,
                 key = dims.key()
                 dim = dims.value()
 
-                identity = None
-                if relaxed_identities:
-                    identities = dim.identities()
-                    if identities:
-                        identity = identities[0]
-                else:
-                    identity = dim.identity()
-
-                if not identity:
-                   # Dimension coordinate has no identity, but it may
+                identity = dim.identity(strict=True, default=None)
+                if identity is None:
+                    # Dimension coordinate has no identity, but it may
                     # have a recognised axis.
                     for ctype in ('T', 'X', 'Y', 'Z'):
-                        if getattr(dim, ctype):
+                        if getattr(dim, ctype, False):
                             identity = ctype
                             break
                 #--- End: if
+                    
+                if identity is None and relaxed_identities:
+                    identity = dim.identity(relaxed=True, default=None)
+                    
+                    
+#                identity = None
+#                identity = dim.identity(strict=(not relaxed_identities),
+#                                        relaxed=relaxed_identities,
+#                                        default=None)
+#
+#                identity = dim.identity(strict=True, default=None)
+#                if not identity and relaxed_identities:
+#                    identity = dim.identity(relaxed=True, default=None)
+#                
+##                if relaxed_identities:
+##                    identity = dim.identity(strict=False)
+##                    identities = dim.identities()
+##                    print ('P', identities)
+##                    if identities:
+##                        identity = identities[0]
+##                else:
+##                    identity = dim.identity(strict=True)
+##                    identity = dim.identity()
+#
+#                if not identity:
+#                    # Dimension coordinate has no identity, but it may
+#                    # have a recognised axis.
+#                    for ctype in ('T', 'X', 'Y', 'Z'):
+#                        if getattr(dim, ctype, False):
+#                            identity = ctype
+#                            break
+#                #--- End: if
 
-                if identity: # and dim.has_data():
+                if identity:
                     if identity in id_to_axis:
                         warnings.append(
                             "Field has multiple {!r} axes".format(identity))
@@ -673,7 +700,7 @@ may be accessed with the `nc_global_attributes`,
                     axis_to_dim[axis]     = key
                     id_to_dim[identity]   = key
                     continue
-
+                
             else:
                 auxs = self.auxiliary_coordinates.filter_by_axis('exact', axis)
                 if len(auxs) == 1:                
@@ -682,13 +709,18 @@ may be accessed with the `nc_global_attributes`,
                     # one 1-d auxiliary coordinate, so that will do.
                     key, aux = dict(auxs).popitem()
                     
-                    identity = None
-                    if relaxed_identities:
-                        identities = aux.identities()
-                        if identities:
-                            identity = identities[0]
-                    else:
-                        identity = aux.identity()
+#                    identity = None
+#                    if relaxed_identities:
+#                        identities = aux.identities()
+#                        if identities:
+#                            identity = identities[0]
+#                    else:
+#                        identity = aux.identity()
+
+                    identity = aux.identity(strict=True, default=None)
+                    
+                    if identity is None and relaxed_identities:
+                        identity = aux.identity(relaxed=True, default=None)
                     
                     if identity and aux.has_data():
                         if identity in id_to_axis:
@@ -768,7 +800,7 @@ may be accessed with the `nc_global_attributes`,
         return True
         
 
-    def _binary_operation(self, other, method):
+    def _binary_operation_old(self, other, method):
         '''Implement binary arithmetic and comparison operations on the master
     data array with metadata-aware broadcasting.
     
@@ -778,7 +810,7 @@ may be accessed with the `nc_global_attributes`,
     
     :Parameters:
     
-        other: standard Python scalar object, `Field` or `Query` or `Data`
+        other: `Field` or `Query` or any object that broadcasts to the field construct's data
     
         method: `str`
             The binary arithmetic or comparison method name (such as
@@ -800,62 +832,48 @@ may be accessed with the `nc_global_attributes`,
         '''        
         _debug = False
 
-#        if IGNORE_IDENTITIES():
-#            inplace = method[2] == 'i'
-#            data = self.data._binary_operation(other, method)
-#            if self.shape != data.shape:
-#                pass
-#        
-#            if inplace:
-#                out = self
-#            else:
-#                out = self.copy()
-#
-#            out.set_data(data, axes=None, copy=False)
-##  What?
-#            return out
-#
-        if (isinstance(other, (float, int, bool, str)) or
-            other is self):
-            # ========================================================
-            # CASE 1a: No changes to the field's items are required so
-            #          can use the metadata-unaware parent method
-            # ========================================================
-            return super()._binary_operation(other, method)
-
-        if isinstance(other, Data) and other.size == 1:
-            # ========================================================
-            # CASE 1b: No changes to the field's items are required
-            #          so can use the metadata-unaware parent method
-            # ========================================================
-            if other.ndim > 0:
-                other = other.squeeze()
-
-            return super()._binary_operation(other, method)
-
         if isinstance(other, Query):
-            # ========================================================
-            # CASE 2: Combine the field with a Query object
-            # ========================================================
+            # --------------------------------------------------------
+            # Combine the field with a Query object
+            # --------------------------------------------------------
             return NotImplemented
 
-#        if not isinstance(other, self.__class__):
-#            raise ValueError(
-#                "Can't combine {!r} with {!r}".format(
-#                    self.__class__.__name__, other.__class__.__name__))
-
         if not isinstance(other, self.__class__):
+            # --------------------------------------------------------
+            # Combine the field with anything other than a Query
+            # object or another field construct
+            # --------------------------------------------------------
+            if numpy_size(other) == 1:
+                # ----------------------------------------------------
+                # No changes to the field metadata constructs are
+                # required so can use the metadata-unaware parent
+                # method
+                # ----------------------------------------------------
+                other = Data(other)
+                if other.ndim > 0:
+                    other.squeeze(inplace=True)
+
+                return super()._binary_operation(other, method)
+
             if self._is_broadcastable(numpy_shape(other)):
                 return super()._binary_operation(other, method)
             
             raise ValueError(
-                "Can't combine {!r} with {!r} (incompatible shapes)".format(
-                    self.__class__.__name__, other.__class__.__name__))
+                "Can't combine {!r} with {!r} due to incompatible data shapes: {}, {})".format(
+                    self.__class__.__name__, other.__class__.__name__,
+                    self.shape, numpy_shape(other)))
 
         # ============================================================
         # Still here? Then combine the field with another field
         # ============================================================
 
+        units = self.Units
+        sn = self.get_property('standard_name', None)
+        ln = self.get_property('long_name', None)
+
+        other_sn = other.get_property('standard_name', None)
+        other_ln = other.get_property('long_name', None)
+            
         # ------------------------------------------------------------
         # Analyse each domain
         # ------------------------------------------------------------
@@ -864,11 +882,11 @@ may be accessed with the `nc_global_attributes`,
         v = other.analyse_items(relaxed_identities=relaxed_identities)
 
         if _debug:
-            print(s) # pragma: no cover
-            print() # pragma: no cover
-            print(v) # pragma: no cover
-            print(v) # pragma: no cover
-            print(self) # pragma: no cover
+            print(s)     # pragma: no cover
+            print()      # pragma: no cover
+            print(v)     # pragma: no cover
+            print(v)     # pragma: no cover
+            print(self)  # pragma: no cover
             print(other) # pragma: no cover
             
         if s['warnings'] or v['warnings']:
@@ -878,9 +896,11 @@ may be accessed with the `nc_global_attributes`,
         # Check that at most one field has undefined axes
         if s['undefined_axes'] and v['undefined_axes']:
             raise ValueError(
-                "Can't combine fields: Both fields have undefined axes: {!r}, {!r}".format(
-                    tuple(self.constructs.domain_axis_identity(a) for a in s['undefined_axes']),
-                    tuple(other.constructs.domain_axis_identity(a) for a in v['undefined_axes'])))
+                "Can't combine fields: Both fields have not-strictly-defined axes: {!r}, {!r}. Consider setting cf.RELAXED_IDENTITIES(True)".format(
+                    tuple(self.constructs.domain_axis_identity(a)
+                          for a in s['undefined_axes']),
+                    tuple(other.constructs.domain_axis_identity(a)
+                          for a in v['undefined_axes'])))
         #--- End: if
         
         # Find the axis names which are present in both fields
@@ -888,7 +908,7 @@ may be accessed with the `nc_global_attributes`,
         if _debug:
             print("s['id_to_axis'] =", s['id_to_axis']) # pragma: no cover
             print("v['id_to_axis'] =", v['id_to_axis']) # pragma: no cover
-            print('matching_ids    =', matching_ids) # pragma: no cover
+            print('matching_ids    =', matching_ids)    # pragma: no cover
         
         # Check that any matching axes defined by an auxiliary
         # coordinate are done so in both fields.
@@ -1016,7 +1036,6 @@ may be accessed with the `nc_global_attributes`,
 
                 nrefs = len(refs0)
                 if nrefs > 1 or nrefs != len(refs1):
-                    print ('arse')
                     # The defining coordinate are associated with
                     # different numbers of coordinate references
                     equivalent_refs = False
@@ -1069,8 +1088,8 @@ may be accessed with the `nc_global_attributes`,
                     # The defining coordinates have non-equivalent
                     # data arrays and are both of size > 1
                     raise ValueError(
-"Can't combine fields: Incompatible {!r} coordinate values: {}, {}".format(
-    identity, coord0.data, coord1.data))
+                        "Can't combine fields: Incompatible {!r} coordinate values: {}, {}".format(
+                            identity, coord0.data, coord1.data))
                 else:
                     # The defining coordinates have non-equivalent
                     # data arrays and are both size 1 => this axis to
@@ -1084,6 +1103,10 @@ may be accessed with the `nc_global_attributes`,
 
         matching_axis1_to_axis0 = axis1_to_axis0.copy()
         matching_axis0_to_axis1 = axis0_to_axis1.copy()
+
+        if _debug:
+            print("1: axis1_to_axis0 =", axis1_to_axis0) # pragma: no cover
+            print("1: axis0_to_axis1 =", axis0_to_axis1) # pragma: no cover
 
         # ------------------------------------------------------------
         # Still here? Then the two fields are combinable!
@@ -1133,6 +1156,7 @@ may be accessed with the `nc_global_attributes`,
         if _debug:
             print('2: axes_unD, axes_unM , axes0_M =', axes_unD , axes_unM , axes0_M) # pragma: no cover
 
+#        print ('uuuu' , axes_unD + axes_unM + axes0_M)
         field0.transpose(axes_unD + axes_unM + axes0_M, inplace=True)
 
         end_of_undefined0   = len(axes_unD)
@@ -1141,7 +1165,7 @@ may be accessed with the `nc_global_attributes`,
         if _debug: 
             print('2: end_of_undefined0   =', end_of_undefined0   ) # pragma: no cover
             print('2: start_of_unmatched0 =', start_of_unmatched0 ) # pragma: no cover
-            print('2: start_of_matched0   =', start_of_matched0  ) # pragma: no cover
+            print('2: start_of_matched0   =', start_of_matched0  )  # pragma: no cover
 
         # ------------------------------------------------------------
         # Permute the axes of the data array of field1 so that:
@@ -1158,7 +1182,7 @@ may be accessed with the `nc_global_attributes`,
         axes_unD = []
         axes_unM = []
         axes1_M  = [axis0_to_axis1[axis0] for axis0 in axes0_M]
-        for  axis1 in data_axes1:          
+        for axis1 in data_axes1:          
             if axis1 in axes1_M:
                 pass
             elif axis1 in axis1_to_axis0:
@@ -1174,6 +1198,7 @@ may be accessed with the `nc_global_attributes`,
         if _debug:
             print('2: axes_unD , axes_unM , axes0_M =',axes_unD , axes_unM , axes0_M) # pragma: no cover
 
+#        print ('rrrr', axes_unD + axes_unM + axes1_M)
         field1.transpose(axes_unD + axes_unM + axes1_M, inplace=True)
 
         start_of_unmatched1 = len(axes_unD)
@@ -1293,18 +1318,16 @@ may be accessed with the `nc_global_attributes`,
         #
         # Note that, by now, field0.ndim >= field1.ndim.
         # ============================================================
-#dch        field0.Data = getattr(field0.Data, method)(field1.Data)
         if _debug:
-            print() # pragma: no cover
             print('3: repr(field0) =', repr(field0)) # pragma: no cover
             print('3: repr(field1) =', repr(field1)) # pragma: no cover
 
         new_data0 = field0.data._binary_operation(field1.data, method)
-        
-#        field0 = super(Field, field0)._binary_operation(field1, method)
+#        new_data0 = super(Field, field0)._binary_operation(field1, method).data
 
         if _debug:
-            print('3: field0.shape =', field0.shape) # pragma: no cover
+            print('3: new_data0.shape =', new_data0.shape) # pragma: no cover
+            print('3: field0.shape =', field0.data.shape) # pragma: no cover
             print('3: repr(field0) =', repr(field0)) # pragma: no cover
 
         # ============================================================
@@ -1328,7 +1351,6 @@ may be accessed with the `nc_global_attributes`,
 
         #AND HEREIN LIES THE PROBLEM            TODO
         for size1_axis in remove_size1_axes0:
-#            field0.remove_axis(size1_axis)
             field0.del_construct(size1_axis)
 
         # ------------------------------------------------------------
@@ -1375,7 +1397,6 @@ may be accessed with the `nc_global_attributes`,
 
             # Remove all field0 auxiliary coordinates and domain
             # ancillaries which span this axis
-#            remove_items.update(field0.Items(role='ac', axes=set((axis0,))))
             c = field0.constructs.filter_by_type('auxiliary_coordinate', 'domain_ancillary')
             remove_items.update(c.filter_by_axis('and', axis0))
 
@@ -1388,8 +1409,6 @@ may be accessed with the `nc_global_attributes`,
                     remove_items.add(key0)
                     remove_items.update(field0.domain_ancillaries(
                         *tuple(ref0.coordinate_conversion.domain_ancillaries().values())))
-#                    remove_items.update(field0.Items(ref0.ancillaries.values(), 
-#                                                     exact=True, role='c'))
             #--- End: for
         #--- End: for
 
@@ -1504,7 +1523,6 @@ may be accessed with the `nc_global_attributes`,
 
         for key1, axes0 in insert_dim.items():
             try:
-#                key0 = field0.insert_dim(field1.Items[key1], axes=axes0)
                 key0 = field0.set_construct(field1.dimension_coordinates[key1],
                                             axes=axes0)
             except ValueError:
@@ -1520,7 +1538,6 @@ may be accessed with the `nc_global_attributes`,
                 
         for key1, axes0 in insert_aux.items():
             try:
-#                key0 = field0.insert_aux(field1.Items[key1], axes=axes0)
                 key0 = field0.set_construct(field1.auxiliary_coordinates[key1],
                                             axes=axes0)
             except ValueError:
@@ -1536,7 +1553,6 @@ may be accessed with the `nc_global_attributes`,
                 
         for key1, axes0 in insert_domain_anc.items():
             try:
-#                key0 = field0.insert_domain_anc(field1.constructs[key1], axes=axes0)
                 key0 = field0.set_construct(field1.domain_ancillaries[key1], axes=axes0)
             except ValueError as error:
                 # There was some sort of problem with the insertion, so
@@ -1558,7 +1574,6 @@ may be accessed with the `nc_global_attributes`,
                 print(sorted(field0.constructs.keys())) # pragma: no cover
                 print('Removing {!r} from field0'.format(sorted(remove_items))) # pragma: no cover
 
-#            field0.remove_items(remove_items, role='facdmr')
             for key in remove_items:
                 field0.del_construct(key, default=None)
 
@@ -1575,16 +1590,563 @@ may be accessed with the `nc_global_attributes`,
                                                                  'axuiliary_coordinate',
                                                                  'domain_ancillary'))
             for key1, item1 in identity_map.copy().items():
-#                identity_map[key1] = key1_to_key0.get(key1, None)
                 identity_map[key1] = key1_to_key0.get(key1, item1.identity())
 
             new_ref0 = ref1.change_identifiers(identity_map, strict=True)
             
-#            field0.insert_ref(new_ref0, copy=False)
             field0.set_construct(new_ref0, copy=False)
         
         field0.set_data(new_data0, set_axes=False, copy=False)
+
+        # ------------------------------------------------------------
+        # Remove misleading identities
+        # ------------------------------------------------------------
+        # Warning: This code is replicated in PropertiesData
+        if sn != other_sn:
+            if sn is not None and other_sn is not None:
+                field0.del_property('standard_name', None)
+                field0.del_property('long_name', None)
+            elif other_sn is not None:
+                field0.set_property('standard_name', other_sn)
+                if other_ln is None:
+                    field0.del_property('long_name', None)
+                else:
+                    field0.set_property('long_name', other_ln)
+        elif ln is None and other_ln is not None:
+            field0.set_property('long_name', other_ln)
+
+        # Warning: This code is replicated in PropertiesData
+        new_units = field0.Units
+        if (method in _relational_methods or
+            not units.equivalent(new_units) and
+            not (units.isreftime and new_units.isreftime)):
+            field0.del_property('standard_name', None)
+            field0.del_property('long_name', None)   
+
+
+        if method in _relational_methods:
+            field0.override_units(Units(), inplace=True)
+            
+        return field0
+
+    def _binary_operation(self, other, method):
+        '''Implement binary arithmetic and comparison operations on the master
+    data array with metadata-aware broadcasting.
+    
+    It is intended to be called by the binary arithmetic and
+    comparison methods, such as `__sub__`, `__imul__`, `__rdiv__`,
+    `__lt__`, etc.
+    
+    :Parameters:
+    
+        other: `Field` or `Query` or any object that broadcasts to the field construct's data
+    
+        method: `str`
+            The binary arithmetic or comparison method name (such as
+            ``'__idiv__'`` or ``'__ge__'``).
+    
+    :Returns:
+    
+        `Field`
+            The new field, or the same field if the operation was an
+            in place augmented arithmetic assignment.
+    
+    **Examples:**
+    
+    >>> h = f._binary_operation(g, '__add__')
+    >>> h = f._binary_operation(g, '__ge__')
+    >>> f._binary_operation(g, '__isub__')
+    >>> f._binary_operation(g, '__rdiv__')
+
+        '''        
+        verbose = False # True
         
+        if isinstance(other, Query):
+            # --------------------------------------------------------
+            # Combine the field with a Query object
+            # --------------------------------------------------------
+            return NotImplemented
+
+        if not isinstance(other, self.__class__):
+            # --------------------------------------------------------
+            # Combine the field with anything other than a Query
+            # object or another field construct
+            # --------------------------------------------------------
+            if numpy_size(other) == 1:
+                # ----------------------------------------------------
+                # No changes to the field metadata constructs are
+                # required so can use the metadata-unaware parent
+                # method
+                # ----------------------------------------------------
+                other = Data(other)
+                if other.ndim > 0:
+                    other.squeeze(inplace=True)
+
+                return super()._binary_operation(other, method)
+
+            if self._is_broadcastable(numpy_shape(other)):
+                return super()._binary_operation(other, method)
+            
+            raise ValueError(
+                "Can't combine {!r} with {!r} due to incompatible data shapes: {}, {})".format(
+                    self.__class__.__name__, other.__class__.__name__,
+                    self.shape, numpy_shape(other)))
+
+        # ============================================================
+        # Still here? Then combine the field with another field
+        # ============================================================
+        relaxed_identities = RELAXED_IDENTITIES()
+        
+        units = self.Units
+        sn = self.get_property('standard_name', None)
+        ln = self.get_property('long_name', None)
+
+        other_sn = other.get_property('standard_name', None)
+        other_ln = other.get_property('long_name', None)
+            
+
+        field1 = other.copy()
+
+        inplace = method[2] == 'i'
+        if not inplace:
+            field0 = self.copy()
+        else:
+            field0 = self
+
+        # Analyse the two fields' data array dimensions
+        out0 = {}
+        out1 = {}
+        for i, (f, out) in enumerate(zip((field0, field1),
+                                         (out0  , out1))):
+
+            data_axes = f.get_data_axes()
+            
+            for axis in f.domain_axes:
+                identity   = None
+                key        = None
+                coord      = None
+                coord_type = None
+
+                coords = f.dimension_coordinates.filter_by_axis('exact', axis)
+                if len(coords) == 1:
+                    # This axis of the domain has a dimension coordinate
+                    key   = coords.key()
+                    coord = coords.value()
+                    
+                    identity = coord.identity(strict=True, default=None)
+                    if identity is None:
+                        # Dimension coordinate has no identity, but it may
+                        # have a recognised axis.
+                        for ctype in ('T', 'X', 'Y', 'Z'):
+                            if getattr(coord, ctype, False):
+                                identity = ctype
+                                break
+                    #--- End: if
+                            
+                    if identity is None and relaxed_identities:
+                        identity = coord.identity(relaxed=True, default=None)
+                else:
+                    coords = f.auxiliary_coordinates.filter_by_axis('exact', axis)
+                    if len(coords) == 1:                
+                        # This axis of the domain does not have a
+                        # dimension coordinate but it does have exactly
+                        # one 1-d auxiliary coordinate, so that will do.
+                        key   = coords.key()
+                        coord = coords.value()
+                        
+                        identity = coord.identity(strict=True, default=None)
+                        
+                        if identity is None and relaxed_identities:
+                            identity = coord.identity(relaxed=True, default=None)
+                #--- End: if
+
+                if identity is None:
+                    identity = i
+                else:
+                    coord_type = coord.construct_type
+
+                out[identity] = _xxx(size=f.domain_axis(axis).get_size(),
+                                     axis=axis,
+                                     key=key,
+                                     coord=coord,
+                                     coord_type=coord_type,
+                                     scalar=(axis not in data_axes))
+        #--- End: for
+
+        for identity, y in tuple(out1.items()):
+            asdas = True
+            if y.scalar and identity in out0 and isinstance(identity, str):
+                a = out0[identity]
+                if a.size > 1:
+                    field1.insert_dimension(y.axis, position=0, inplace=True)
+                    asdas = False
+
+            if y.scalar and asdas:
+                del out1[identity]
+        #--- End: for
+                        
+        for identity, a in tuple(out0.items()):
+            asdas = True
+            if a.scalar and identity in out1 and isinstance(identity, str):
+                y = out1[identity]
+                if y.size > 1:
+                    field0.insert_dimension(a.axis, position=0, inplace=True)
+                    asdas = False
+
+            if a.scalar and asdas:
+                del out0[identity]
+        #--- End: for
+
+        if verbose:
+            print ()
+            print ('out0', out0)
+            print ()
+            print ('out1', out1)
+               
+        squeeze1 = []
+        insert0  = []
+
+        # List of axes that will have been added to field0 as new
+        # trailing dimensions. E.g. ['domainaxis1']
+        axes_added_from_field1 = []
+        
+        # Dictionary of size > 1 axes from field1 which will replace
+        # matching size 1 axes in field0. E.g. {'domainaxis1':
+        #   data_dimension(size=8,
+        #                  axis='domainaxis1',
+        #                  key='dimensioncoordinate1',
+        #                  coord=<CF DimensionCoordinate: longitude(8) degrees_east>,
+        #                  coord_type='dimension_coordinate',
+        #                  scalar=False)}
+        axes_to_replace_from_field1 = {}
+        
+        # List of field1 coordinate reference constucts which will
+        # be added to field0. E.g.        
+        #  [<CF CoordinateReference: grid_mapping_name:rotated_latitude_longitude>]
+        refs_to_add_from_field1 = []
+        
+        # Check that the two fields are combinable
+        for i, (identity, y) in enumerate(tuple(out1.items())):
+           
+            if isinstance(identity, int):
+                if y.size == 1:
+                    del out1[identity]
+                    squeeze1.append(i)
+                else:
+                    insert0.append(y.axis)            
+            elif identity not in out0:
+                insert0.append(y.axis)
+#            else:                
+#                a = out0[identity]
+#
+#                if y.size == 1:
+#                    pass
+#                elif y.size > 1 and a.size == 1:
+#                    axes_to_replace_from_field1[y.axis] = y                    
+#                else:
+#                    pass
+#                
+#                    if y.size != a.size:
+#                        raise  ValueError(
+#                            "Can't broadcast size {} {!r} axis to size {} {!r} axis".format(
+#                                y.size, identity, a.size, identity))
+#                    
+#                    # Ensure matching axis directions
+#                    if y.coord.direction() != a.coord.direction():
+#                        other.flip(y.axis, inplace=True)
+#                    
+#                    # Check for matching coordinate values
+#                    if not y.coord._equivalent_data(a.coord, verbose=verbose):
+#                        raise  ValueError(
+#                            "Can't combine {!r} axes with different coordinate values".format(
+#                                identity))
+#
+#                    # Check coord refs
+#                    refs0 = field0.get_coordinate_reference(construct=a.key)
+#                    refs1 = field1.get_coordinate_reference(construct=y.key)
+#                    print (y.coord)
+#                    print(refs0,refs1)
+#                    pass
+        #--- End: for        
+
+        # Make sure that both data ararys have the same number of
+        # dimensions
+        if squeeze1:
+            field1.squeeze(squeeze, inplace=True)
+
+        for axis1 in insert0:
+            new_axis0 = field0.set_construct(DomainAxis(1))
+            field0.insert_dimension(new_axis0, position=field0.ndim, inplace=True)
+            axes_added_from_field1.append(axis1)
+            
+        while field1.ndim < field0.ndim:
+            new_axis = field1.set_construct(DomainAxis(1))
+            field1.insert_dimension(new_axis, position=0, inplace=True)
+
+        while field0.ndim < field1.ndim:
+            new_axis = field0.set_construct(DomainAxis(1))
+            field0.insert_dimension(new_axis, position=field0.ndim, inplace=True)
+
+        # Make sure that the dimensions in data1 are in the same order
+        # as the dimensions in data0
+        for identity, y in out1.items():
+            if verbose:
+                print ('\n',identity, y)
+            if isinstance(identity, int) or identity not in out0:                
+                field1.swapaxes(field1.get_data_axes().index(y.axis), -1,
+                                inplace=True)
+            else:
+                # This identity is also in out0
+                a = out0[identity]
+                if verbose:
+                    print (identity, y.axis, a.axis)
+                    print (a, field0.get_data_axes(), field1.get_data_axes(),
+                           field1.get_data_axes().index(y.axis),
+                           field0.get_data_axes().index(a.axis))
+                    
+                field1.swapaxes(field1.get_data_axes().index(y.axis),
+                                field0.get_data_axes().index(a.axis),
+                                inplace=True)
+        #--- End: for
+
+        axis_map = {axis1: axis0 for axis1, axis0 in zip(field1.get_data_axes(),
+                                                         field0.get_data_axes())}
+                
+#        axis_map_0_to_1 = {axis0: axis1 for axis1, axis0 in zip(field1.get_data_axes(),
+#                                                                field0.get_data_axes())}
+                
+        if verbose:
+            print ('axis_map=', axis_map, '\n')
+            print (repr(field0))
+            print (repr(field1))
+
+        # ------------------------------------------------------------
+        # Check that the two fields have compatible metadata
+        # ------------------------------------------------------------
+        for i, (identity, y) in enumerate(tuple(out1.items())):
+            if isinstance(identity, int) or identity not in out0:
+                continue
+
+            a = out0[identity]
+            
+            if y.size == 1:
+                continue
+
+            if y.size > 1 and a.size == 1:
+                axes_to_replace_from_field1[y.axis] = y
+                continue                
+
+            if y.size != a.size:
+                raise  ValueError(
+                    "Can't broadcast size {} {!r} axis to size {} {!r} axis".format(
+                        y.size, identity, a.size, identity))
+
+            # Ensure matching axis directions
+            if y.coord.direction() != a.coord.direction():
+                other.flip(y.axis, inplace=True)
+            
+            # Check for matching coordinate values
+            if not y.coord._equivalent_data(a.coord, verbose=verbose):
+                raise  ValueError(
+                    "Can't combine {!r} axes with different coordinate values".format(
+                        identity))
+
+            # Check coord refs
+            refs1 = field1.get_coordinate_reference(construct=y.key, key=True)
+            refs0 = field0.get_coordinate_reference(construct=a.key, key=True)
+
+            n_refs = len(refs1)
+            
+            if n_refs != len(refs0):
+                raise  ValueError("TODO")
+                
+            n_equivalent_refs = 0
+            for ref1 in refs1:
+                for ref0 in refs0[:]:
+                    if field1._equivalent_coordinate_references(
+                            field0, key0=ref1, key1=ref0, verbose=verbose,
+                            axis_map=axis_map):
+                        n_equivalent_refs += 1
+                        refs0.remove(ref0)
+                        break
+            #--- End: for
+            
+            if n_equivalent_refs != n_refs:
+                raise  ValueError("TODO")
+        #--- End: for
+            
+        # Change the domain axis sizes in field0 so that they match
+        # the broadcasted result data
+        for identity, y in out1.items():
+            if identity in out0 and isinstance(identity, str):
+                a = out0[identity]
+                if y.size > 1 and a.size == 1:
+                    for key0, c in tuple(field0.constructs.filter_by_axis('or', a.axis).items()):
+                        removed_refs0 = field0.del_coordinate_reference(construct=key0,
+                                                                        default=None)
+                        if removed_refs0 and c.construct_type in ('dimension_coordinate',
+                                                                  'auxiliary_coordinate'):
+                            for ref in removed_refs0:
+                                for key0 in ref.coordinates():
+                                    field0.del_construct(key0, default=None)
+
+                        field0.del_construct(key0, default=None)
+                    
+                    field0.domain_axis(a.axis).set_size(y.size)
+            elif y.size > 1:
+                axis0 = axis_map[y.axis]
+                field0.domain_axis(axis0).set_size(y.size)
+        #--- End: for
+        if verbose:
+            print ()
+            print (repr(field0))
+            print (repr(field1))
+            print (repr(field0.data))
+            print (repr(field1.data))
+            
+        # ------------------------------------------------------------
+        # Operate on the data
+        # ------------------------------------------------------------
+        new_data = field0.data._binary_operation(field1.data, method)
+
+        field0.set_data(new_data, set_axes=False, copy=False)
+        if verbose:
+            print (field0)
+            print (field0.array)
+            print ()
+            print ('axes_added_from_field1=', axes_added_from_field1)
+            print ()
+            print ('axes_to_replace_from_field1=', axes_to_replace_from_field1)
+
+        already_copied = {}
+
+        # ------------------------------------------------------------
+        # Copy over coordinate and cell meausure constructs from
+        # field1
+        # ------------------------------------------------------------
+ #       if axes_added_from_field1:
+ #           constructs = field1.constructs.filter_by_type('dimension_coordinate',
+ #                                                         'auxiliary_coordinate',
+ #                                                         'cell_measure')
+##            constructs = constructs.filter_by_axis('subset', *axes_added_from_field1)
+#            
+#            for key1, c in constructs.items():
+#                axes = [axis_map[axis1] for axis1 in field1.get_data_axes(key1)]
+#                key0 = field0.set_construct(c, axes=axes, copy=False)
+#                already_copied[key1] = key0
+#        #--- End: if
+            
+#        for axis1, y in axes_to_replace_from_field1.items():
+#            axis0 = axis_map[axis1]
+        new_axes = set(axes_added_from_field1).union(axes_to_replace_from_field1)
+        
+        if new_axes:
+            constructs = field1.constructs.filter_by_type('dimension_coordinate',
+                                                          'auxiliary_coordinate',
+                                                          'cell_measure')        
+            constructs = constructs.filter_by_axis('subset', *new_axes)
+            
+            for key, c in constructs.items():
+                axes = [axis_map[axis1] for axis1 in axes_to_replace_from_field1]
+                key0 = field0.set_construct(c, axes=axes, copy=False)
+                already_copied[key] = key0
+        #--- End: if
+            
+#        for axis1, y in axes_to_replace_from_field1.items():
+#            axis0 = axis_map[axis1]
+#            for c in field1.coordinates.filter_by_axis('exact', axis1).values():
+#                key0 = field0.set_construct(c, axes=axis0, copy=False)
+#                already_copied[y.key] = key0
+#        #--- End: for
+            
+        # ------------------------------------------------------------
+        # Copy over coordinate reference constructs from field1,
+        # including their domain ancillary constructs.
+        # ------------------------------------------------------------
+        for key, ref in field1.coordinate_references.items():
+            axes = field1._coordinate_reference_axes(key)
+            if axes.issubset(new_axes):
+                refs_to_add_from_field1.append(ref)
+            elif axes.intersection(axes_to_replace_from_field1):
+                refs_to_add_from_field1.append(ref)
+        #--- End: for
+        
+        if verbose:
+            print ()
+            print ('refs_to_add_from_field1=', refs_to_add_from_field1)
+
+        for ref in refs_to_add_from_field1:
+            # Copy coordinates
+            coords = []
+            for key1 in ref.coordinates():
+                if key1 not in already_copied:
+                    c = field1.constructs.get(key1, None)
+                    if c is None:
+                        already_copied[key1] = None
+                    else:
+                        axes = [axis_map[axis] for axis in field1.get_data_axes(key1)]
+                        key0 = field0.set_construct(c, axes=axes, copy=False)
+                        already_copied[key1] = key0
+                #--- End: if
+                
+                key0 = already_copied[key1]
+                if key0 is not None:
+                    coords.append(key0)
+            #--- End: for
+            
+            ref.clear_coordinates()
+            ref.set_coordinates(coords)
+
+            # Copy domain ancillaries to field0
+            for term, key1 in ref.coordinate_conversion.domain_ancillaries().items():
+                if key1 not in already_copied:
+                    c = field1.constructs.get(key1, None)
+                    if c is None:
+                        already_copied[key1] = None
+                    else:
+                        axes = [axis_map[axis] for axis in field1.get_data_axes(key1)]
+                        key0 = field0.set_construct(c, axes=axes, copy=False)
+                        already_copied[key1] = key0
+                #--- End: if
+                
+                key0 = already_copied[key1]
+                ref.coordinate_conversion.set_domain_ancillary(term, key0)                
+
+            # Copy coordinate reference to field0
+            field0.set_construct(ref, copy=False)
+        #--- End: for
+            
+        # ------------------------------------------------------------
+        # Remove misleading identities
+        # ------------------------------------------------------------
+        # Warning: This block of code is replicated in PropertiesData
+        if sn != other_sn:
+            if sn is not None and other_sn is not None:
+                field0.del_property('standard_name', None)
+                field0.del_property('long_name', None)
+            elif other_sn is not None:
+                field0.set_property('standard_name', other_sn)
+                if other_ln is None:
+                    field0.del_property('long_name', None)
+                else:
+                    field0.set_property('long_name', other_ln)
+        elif ln is None and other_ln is not None:
+            field0.set_property('long_name', other_ln)
+
+        # Warning: This block of code is replicated in PropertiesData
+        new_units = field0.Units
+        if (method in _relational_methods or
+            not units.equivalent(new_units) and
+            not (units.isreftime and new_units.isreftime)):
+            field0.del_property('standard_name', None)
+            field0.del_property('long_name', None)   
+
+        if method in _relational_methods:
+            field0.override_units(Units(), inplace=True)
+
+        # ------------------------------------------------------------
+        # Return the result field
+        # ------------------------------------------------------------        
         return field0
 
 
@@ -1604,7 +2166,7 @@ may be accessed with the `nc_global_attributes`,
     
     **Examples:**
     
-    >>> f._conform_coordinate_references('aucxiliarycoordinate1')
+    >>> f._conform_coordinate_references('auxiliarycoordinate1')
 
         '''
         identity = self.constructs[key].identity(strict=True)
@@ -1616,6 +2178,35 @@ may be accessed with the `nc_global_attributes`,
             if identity in ref._coordinate_identities:
                 ref.set_coordinate(key)
 
+    def _coordinate_reference_axes(self, key):
+        '''TODO
+
+    :Parameters:
+    
+        key: `str`
+            Coordinate reference construct key.
+    
+    :Returns:
+    
+        `set`
+    
+    **Examples:**
+    
+    >>> f._coordinate_reference_axes('coordinatereference0')
+
+        '''
+        ref = self.constructs[key]
+
+        axes = []
+        
+        for c_key in ref.coordinates():
+            axes.extend(self.get_data_axes(c_key))
+            
+        for da_key in ref.coordinate_conversion.domain_ancillaries().values():
+            axes.extend(self.get_data_axes(da_key))
+            
+        return set(axes)
+    
 
     def _conform_cell_methods(self):
         '''TODO
@@ -1651,7 +2242,8 @@ may be accessed with the `nc_global_attributes`,
     def _equivalent_coordinate_references(self, field1, key0, key1,
                                           atol=None, rtol=None,
                                           s=None, t=None,
-                                          verbose=False):
+                                          verbose=False,
+                                          axis_map=None):
         '''TODO
 
     Two real numbers ``x`` and ``y`` are considered equal if
@@ -1696,9 +2288,12 @@ may be accessed with the `nc_global_attributes`,
             key1 = field1.domain_ancillaries.filter_by_key(identifier1).key()
 
             if not self._equivalent_construct_data(field1, key0=key0,
-                                                   key1=key1, rtol=rtol,
-                                                   atol=atol, s=s, t=t,
-                                                   verbose=verbose):
+                                                   key1=key1,
+                                                   rtol=rtol,
+                                                   atol=atol, s=s,
+                                                   t=t,
+                                                   verbose=verbose,
+                                                   axis_map=axis_map):
                 # add traceback TODO
                 return False
         #--- End: for
@@ -1800,7 +2395,7 @@ may be accessed with the `nc_global_attributes`,
         return axes
 
 
-    def _conform_for_assignment(self, other):
+    def _conform_for_assignment(self, other, check_coordinates=False):
         '''Conform *other* so that it is ready for metadata-unaware assignment
     broadcasting across *self*.
 
@@ -1818,13 +2413,15 @@ may be accessed with the `nc_global_attributes`,
     
     **Examples:**
     
-    >>> g = _conform_for_assignment(f)
+    >>> h = f._conform_for_assignment(g)
 
         '''
+        _debug = False
+        
         # Analyse each domain
         s = self.analyse_items()
         v = other.analyse_items()
-    
+
         if s['warnings'] or v['warnings']:
             raise ValueError(
                 "Can't setitem: {0}".format(s['warnings'] or v['warnings']))
@@ -1903,7 +2500,7 @@ may be accessed with the `nc_global_attributes`,
                     transpose_axes1.append(axis1)
         #--- End: for
         
-        if transpose_axes1 != data_axes1: 
+        if transpose_axes1 != data_axes1:
             if not copied:
                 other = other.copy()
                 copied = True
@@ -1949,7 +2546,7 @@ may be accessed with the `nc_global_attributes`,
             axis0 = s['id_to_axis'][identity]
             if other.direction(axis1) != self.direction(axis0):
                 flip_axes1.append(axis1)
-         #--- End: for
+        #--- End: for
 
         if flip_axes1:
             if not copied:
@@ -1958,15 +2555,105 @@ may be accessed with the `nc_global_attributes`,
 
             other.flip(flip_axes1, inplace=True)
 
+        # Find the axis names which are present in both fields
+        if not check_coordinates:
+            return other
+
+        # Still here?
+        matching_ids = set(s['id_to_axis']).intersection(v['id_to_axis'])
+        
+        for identity in matching_ids:
+            key0 = s['id_to_coord'][identity]
+            key1 = v['id_to_coord'][identity]
+
+            coord0 = self.constructs[key0]
+            coord1 = other.constructs[key1]
+
+            # Check the sizes of the defining coordinates
+            size0 = coord0.size
+            size1 = coord1.size
+            if size0 != size1:
+                if size0 == 1 or size1 == 1:
+                    continue
+                
+                raise ValueError(
+                    "Can't broadcast {!r} axes with sizes {} and {}".format(
+                        identity, size0, size1))
+            
+            # Check that equally sized defining coordinate data arrays
+            # are compatible
+            if not coord0._equivalent_data(coord1, verbose=_debug):
+                raise ValueError(
+                    "Matching {!r} coordinate constructs have different data".format(
+                        identity))
+
+            # If the defining coordinates are attached to
+            # coordinate references then check that those
+            # coordinate references are equivalent
+            
+            # For each field, find the coordinate references which
+            # contain the defining coordinate.
+            refs0 = [key for key, ref in self.coordinate_references.items()
+                     if key0 in ref.coordinates()]
+            refs1 = [key for key, ref in other.coordinate_references.items()
+                     if key1 in ref.coordinates()]
+            
+            nrefs = len(refs0)
+            if nrefs > 1 or nrefs != len(refs1):
+                raise ValueError("TODO")
+
+            if nrefs and not self._equivalent_coordinate_references(
+                    other, key0=refs0[0], key1=refs1[0], s=s, t=v,
+                    verbose=_debug):
+                raise ValueError("TODO")
+        #--- End: for
+            
+        return other
+
+    
+    def _conform_for_data_broadcasting(self, other):
+        '''TODO
+
+    Note that *other* is not changed in-place.
+    
+    :Parameters:
+    
+        other: `Field`
+            The field to conform.
+    
+    :Returns:
+    
+        `Field`
+            The conformed version of *other*.
+    
+    **Examples:**
+    
+    >>> h = f._conform_for_data_broadcasting(g)
+
+        '''
+
+        other = self._conform_for_assignment(other, check_coordinates=True)
+        
+        # Remove leading size one dimensions
+        ndiff = other.ndim - self.ndim
+        if ndiff > 0 and set(other.shape[:ndiff]) == set((1,)):
+            for i in range(ndiff):
+                other = other.squeeze(0)
+        #--- End: if
+
+#        if not self._is_broadcastable(other.shape):
+#            raise ValueError(                    
+#                "Can't transform field {!r} to be broadcastable to {!r}.".format(
+#                    other, self))
+
         return other
 
 
     def _equivalent_construct_data(self, field1, key0=None, key1=None,
-                                   s=None, t=None,
-                                   atol=None, rtol=None,
-                                   verbose=False):
+                                   s=None, t=None, atol=None,
+                                   rtol=None, verbose=False,
+                                   axis_map=None):
         '''TODO
-
 
     Two real numbers ``x`` and ``y`` are considered equal if
     ``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
@@ -1996,13 +2683,10 @@ may be accessed with the `nc_global_attributes`,
             numbers. The default value is set by the `RTOL` function.
     
         traceback: `bool`, optional
-            If `True` then print a traceback highlighting where the two
+            If True then print a traceback highlighting where the two
             items differ.
 
         '''
-#        self_Items = self.Items
-#        field1_Items = field1.Items
-
         item0 = self.constructs[key0]
         item1 = field1.constructs[key1]
        
@@ -2018,7 +2702,7 @@ may be accessed with the `nc_global_attributes`,
 
         if item0.size != item1.size:
             if verbose:
-                print("{}: Different data array sizes ({}, {})".format(
+                print("{}: Different metadata construct data array size: {} != {}".format(
                     self.__class__.__name__, item0.size, item1.size)) # pragma: no cover
             return False
 
@@ -2036,19 +2720,28 @@ may be accessed with the `nc_global_attributes`,
         if t is None:
             t = field1.analyse_items()
 
-#        axis_map = self.constructs.equals(field1.constructs,
-#                                          _return_axis_map=True)
-
         transpose_axes = []
-        for axis0 in axes0:
-            axis1 = t['id_to_axis'].get(s['axis_to_id'][axis0], None)
-            if axis1 is None:
-                if verbose:
-                    print("%s: TTTTTTTTTTT w2345nb34589*D*& TODO" % self.__class__.__name__) # pragma: no cover
-                return False
-
-            transpose_axes.append(axes1.index(axis1))
-
+        if axis_map is None:
+            for axis0 in axes0:
+                axis1 = t['id_to_axis'].get(s['axis_to_id'][axis0], None)
+                if axis1 is None:
+                    if verbose:
+                        print("%s: TTTTTTTTTTT w2345nb34589*D*& TODO" % self.__class__.__name__) # pragma: no cover
+                    return False
+    
+                transpose_axes.append(axes1.index(axis1))
+        else:
+            for axis0 in axes0:
+                axis1 = axis_map.get(axis0)
+                if axis1 is None:
+                    if verbose:
+                        print("%s: ****** 56 xdcv f7y edc TODO" % self.__class__.__name__) # pragma: no cover
+                    return False
+    
+                transpose_axes.append(axes1.index(axis1))
+        #--- End: if
+            
+            
 #        transpose_axes = []
 #        for axis0 in axes0:
 #            axis1 = axis_map.get(axis0)
@@ -2123,6 +2816,12 @@ may be accessed with the `nc_global_attributes`,
             A dictionary specifying the X and Y axes, with keys 'X' and
             'Y'.
     
+            *Parameter example:*
+              ``axes={'X': 'ncdim%x', 'Y': 'ncdim%y'}``
+
+            *Parameter example:*
+              ``axes={'X': 1, 'Y': 0}``
+
     :Returns:
     
         axis_keys: `list`
@@ -2145,7 +2844,7 @@ may be accessed with the `nc_global_attributes`,
 
         '''
         if axes is None:
-            # Retrieve the field's X and Y dimension coordinates
+            # Retrieve the field construct's X and Y dimension coordinates
             xdims = self.dimension_coordinates('X')
             len_x = len(xdims)
             if not len_x:
@@ -2191,29 +2890,53 @@ may be accessed with the `nc_global_attributes`,
             x_size = x.size
             y_size = y.size
         else:
-            try:
-                x_axis = self.domain_axis(axes['X'], key=True, default=None)
-            except KeyError:
-                raise ValueError("Key 'X' must be specified for axes of " +
-                                 name + " field.")
+            # --------------------------------------------------------
+            # Source axes have been provided
+            # --------------------------------------------------------
+            for key in ('X', 'Y'):
+                if key not in axes:
+                    raise ValueError(
+                        "Key {!r} must be specified for axes of {} field.".format(
+                            key, name))
+            #--- End: for            
+            
+            if axes['X'] in (1, 0) and axes['Y'] in (0, 1):
+                # Axes specified by integer position in dimensions of
+                # lat and lon 2-d coordinates
+                if axes['X'] == axes['Y']:
+                    raise ValueError("TODO")
 
-            if x_axis is None:
-                raise ValueError('X axis specified for ' + name +
-                                 ' field not found.')
+                x = self.auxiliary_coordinates('X').filter_by_naxes(2)
+                y = self.auxiliary_coordinates('Y').filter_by_naxes(2)
+                if len(x) != 1:
+                    raise ValueError("TODO")
+                if len(y) != 1:
+                    raise ValueError("TODO")
 
-            try:
-                y_axis = self.domain_axis(axes['Y'], key=True, default=None)
-            except KeyError:
-                raise ValueError("Key 'Y' must be specified for axes of " +
-                                 name + " field.")
+                lon_key, lon = tuple(x.items())[0]
+                lat_key, lat = tuple(y.items())[0]
+                 
+                if lat.shape != lon.shape:
+                    raise ValueError("TODO")
 
-            if y_axis is None:
-                raise ValueError('Y axis specified for ' + name +
-                                 ' field not found.')
+                lon_axes = self.get_data_axes(lon_key)
+                lat_axes = self.get_data_axes(lat_key)
+                if lat_axes != lon_axes:
+                    raise ValueError("TODO")
+
+                x_axis = self.domain_axis(lon_axes[axes['X']], key=True,
+                                          default=ValueError("'X' axis specified for {} field not found.".format(name)))
+                y_axis = self.domain_axis(lat_axes[axes['Y']], key=True,
+                                          default=ValueError("'Y' axis specified for {} field not found.".format(name)))
+            else:                                            
+                x_axis = self.domain_axis(axes['X'], key=True,
+                                          default=ValueError("'X' axis specified for {} field not found.".format(name)))
+                
+                y_axis = self.domain_axis(axes['Y'], key=True,
+                                          default=ValueError("'Y' axis specified for {} field not found.".format(name)))
 
             x_size = self.domain_axes[x_axis].get_size()
             y_size = self.domain_axes[y_axis].get_size()
-        #--- End: if
 
         axis_keys  = [x_axis, y_axis]
         axis_sizes = [x_size, y_size]
@@ -2601,7 +3324,7 @@ may be accessed with the `nc_global_attributes`,
         # Reorder keys correspondingly if required
         if axis_indices:
             section_keys = sorted(sections.keys(),
-                                  key=operator_itemgetter(*axis_indices))
+                                  key=itemgetter(*axis_indices))
         else:
             section_keys = sections.keys()
         
@@ -3361,8 +4084,6 @@ may be accessed with the `nc_global_attributes`,
     
     .. versionadded:: 2.0
     
-    .. seealso:: `DSG` TODO
-    
     **Examples:**
     
     >>> f.featureType = 'trajectoryProfile'
@@ -3543,7 +4264,7 @@ may be accessed with the `nc_global_attributes`,
     # ----------------------------------------------------------------
     # Methods
     # ----------------------------------------------------------------
-    def cell_area(self, radius=None, insert=False, force=False):
+    def cell_area(self, radius='earth', insert=False, force=False):
         '''Return a field containing horizontal cell areas.
 
     .. versionadded:: 1.0
@@ -3553,16 +4274,13 @@ may be accessed with the `nc_global_attributes`,
     :Parameters:
     
         radius: optional
-            The radius used for calculating spherical surface areas
-            when both of the horizontal axes are part of a spherical
-            polar coordinate system. May be any numeric scalar object
-            that can be converted to a `Data` object (which includes
-            `numpy` and `Data` objects). If unset then the radius is
-            either taken from the "earth_radius" parameter(s) of any
-            coordinate reference construct datums, or, if no such
-            parameter exisits, set to 6371229.0 metres (approximating
-            the radius if Earth). If units are not specified then
-            units of metres are assumed.
+            The radius used for calculating the areas of cells defined
+            in spherical polar coordinates. By default (or if *radius*
+            is ``'earth'``) the radius taken as 6371229 metres,
+            representing the radius of the Earth. May be set to any
+            numeric scalar object, including `numpy` and `Data`
+            objects. The units of the radius are assumed to be metres,
+            unless specified by a `Data` object.
     
             *Parameter example:*         
               Five equivalent ways to set a radius of 6371200 metres:
@@ -3571,15 +4289,16 @@ may be accessed with the `nc_global_attributes`,
               'm')``, ``radius=cf.Data(6371.2, 'km')``.
     
         insert: `bool`, optional
-            If `True` then the calculated cell areas are also inserted
-            in place as an area cell measure object. An existing area
-            cell measure object for the horizontal axes will not be
-            overwritten.
+            If True then calculated cell areas are also inserted in
+            place as an "area" cell measure construct, unless there is
+            already an existing area cell measure construct for the
+            horizontal axes.
     
         force: `bool`, optional
-            If `True` the always calculate the cell areas. By default if
-            there is already an area cell measure object for the
-            horizontal axes then it will provide the area values.
+            If True the always calculate the cell areas. By default,
+            if there is already an "area" cell measure construct for
+            the horizontal axes then it will be used provide the area
+            values.
             
     :Returns:
     
@@ -3591,6 +4310,7 @@ may be accessed with the `nc_global_attributes`,
     >>> a = f.cell_area()
     >>> a = f.cell_area(force=True)
     >>> a = f.cell_area(radius=cf.Data(3389.5, 'km'))
+    >>> a = f.cell_area(insert=True)
 
         '''
         if insert:
@@ -3615,62 +4335,81 @@ may be accessed with the `nc_global_attributes`,
             
             # Got x and y coordinates in radians, so we can calculate.
     
-            # Parse the radius of the planet
-            if radius is None:
-                default_radius = Data(6371229.0, 'm')
-                
-                radii = []
-                for cr in self.coordinate_references.values():
-                    r = cr.datum.get_parameter('earth_radius', None)
-                    if r is not None:
-                        r = Data.asdata(r)
-                        if not r.Units:
-                            r.override_units('m', inplace=True)
-    
-                        get = False
-                        for _ in radii:
-                            if r == _:
-                                got = True
-                                break
-                        #--- End: for
-    
-                        if not got:
-                            radii.append(r)
-                #--- End: for
-    
-                if len(radii) > 1:
-                    raise ValueError(
-                        "Multiple radii found in coordinate reference constructs: {!r}".format(
-                            radii))
-                
-                if len(radii) == 1:
-                    radius = radii[0]                    
-                else:
-                    radius = default_radius
-            #--- End: if
-                
-            radius = Data.asdata(radius).squeeze()
-            radius.dtype = float
-            if radius.size != 1:
-                raise ValueError("Multiple radii: radius={!r}".format(radius))
-
-            if not radius.Units:
-                radius.override_units(_units_metres, inplace=True)
-            elif not radius.Units.equivalent(_units_metres):
-                raise ValueError(
-                    "Invalid units for radius: {!r}".format(radius.Units))
-
+            # Parse the radius of the sphere
+            radius = self.radius(default=radius)
+            
             w = self.weights('area')
             radius **= 2
             w *= radius
             w.override_units(radius.Units, inplace=True)
         #--- End: if               
 
-        w.standard_name = 'area'
+        w.set_property('standard_name', 'cell_area')
         
         return w
 
 
+    def radius(self, default=None):
+        '''TODO
+
+    :Parameters:
+        
+        default: optional
+
+    :Returns:
+
+        `Data`
+
+    **Examples:**
+
+    TODO
+
+        '''
+        
+        
+        radii = []
+        for cr in self.coordinate_references.values():
+            r = cr.datum.get_parameter('earth_radius', None)
+            if r is not None:
+                r = Data.asdata(r)
+                if not r.Units:
+                    r.override_units('m', inplace=True)
+    
+                get = False
+                for _ in radii:
+                    if r == _:
+                        got = True
+                        break
+                #--- End: for
+            
+                if not got:
+                    radii.append(r)
+        #--- End: for
+
+        if len(radii) > 1:
+            raise ValueError(
+                "Multiple radii found in coordinate reference constructs: {!r}".format(
+                    radii))
+
+        if not radii:
+            if default is None:
+                raise ValueError("TODO")
+
+            if default == 'earth':
+                return _earth_radius.copy()
+        
+            r = Data.asdata(default).squeeze()
+        else:
+            r = Data.asdata(radii[0]).squeeze()
+            
+        if r.size != 1:
+            raise ValueError("Multiple radii: {!r}".format(r))
+
+        r.Units = Units('m')
+        r.dtype = float
+        return r
+
+    
     def map_axes(self, other):
         '''Map the axis identifiers of the field to their equivalent axis
     identifiers of another.
@@ -3748,8 +4487,8 @@ may be accessed with the `nc_global_attributes`,
                 construct's data.
     
             The *identity* parameter selects the domain axis as
-            returned by this call of the field's `domain_axis` method:
-            ``f.domain_axis(identity)``.
+            returned by this call of the field construct's
+            `domain_axis` method: ``f.domain_axis(identity)``.
     
         kwargs: deprecated at version 3.0.0
     
@@ -3946,19 +4685,19 @@ may be accessed with the `nc_global_attributes`,
                 construct's data.
     
             The *identity* parameter selects the domain axis as
-            returned by this call of the field's `domain_axis` method:
-            ``f.domain_axis(identity)``.
+            returned by this call of the field construct's
+            `domain_axis` method: ``f.domain_axis(identity)``.
     
         iscyclic: `bool`, optional
-            If `False` then the axis is set to be non-cyclic. By
+            If False then the axis is set to be non-cyclic. By
             default the selected axis is set to be cyclic.
     
         period: optional       
-            The period for a dimension coordinate object which spans
-            the selected axis. May be any numeric scalar object that
-            can be converted to a `Data` object (which includes numpy
-            array and `Data` objects). The absolute value of *period*
-            is used. If *period* has units then they must be
+            The period for a dimension coordinate construct which
+            spans the selected axis. May be any numeric scalar object
+            that can be converted to a `Data` object (which includes
+            numpy array and `Data` objects). The absolute value of
+            *period* is used. If *period* has units then they must be
             compatible with those of the dimension coordinates,
             otherwise it is assumed to have the same units as the
             dimension coordinates.
@@ -3997,8 +4736,8 @@ may be accessed with the `nc_global_attributes`,
             return set()
 
         data_axes = self.get_data_axes()
-        old = set([data_axes[i] for i in data.cyclic()])
 
+        old = set([data_axes[i] for i in data.cyclic()])
         if identity is None:            
             return old
 
@@ -4022,8 +4761,9 @@ may be accessed with the `nc_global_attributes`,
         return old
 
 
-    def weights(self, weights='auto', scale=False, components=False,
-                methods=False, **kwargs):
+    def weights(self, weights='auto', scale=None, measure=False,
+                components=False, methods=False, radius='earth',
+                **kwargs):
         '''Return weights for the data array values.
 
     The weights are those used during a statistical collapse of the
@@ -4031,12 +4771,12 @@ may be accessed with the `nc_global_attributes`,
     
     Weights for any combination of axes may be returned.
     
-    Weights are either derived from the field's metadata (such as
-    coordinate cell sizes) or provided explicitly in the form of other
-    `Field` objects. In any case, the outer product of these weights
-    components is returned in a field which is broadcastable to the
-    orginal field (see the *components* parameter for returning the
-    components individually).
+    Weights are either derived from the field construct's metadata
+    (such as coordinate cell sizes) or provided explicitly in the form
+    of other `Field` constructs. In any case, the outer product of
+    these weights components is returned in a field which is
+    broadcastable to the orginal field (see the *components* parameter
+    for returning the components individually).
     
     By default null, equal weights are returned.
     
@@ -4046,106 +4786,123 @@ may be accessed with the `nc_global_attributes`,
     
     :Parameters:
     
-    TODO
         weights: *optional*
-
             Specify the weights to be created. There are two distinct
             methods: **type 1** will always succeed in creating
             weights for all axes of the field, at the expense of not
             always being able to control exactly how the weights are
             created (see the *methods* parameter); **type 2** allows
             particular types of weights to be defined for particular
-            axes and an exception will be raised if it is not possible
-            to the create weights.
+            axes, and an exception will be raised if it is not
+            possible to the create weights.
     
               * **Type 1**: *weights* may be one of:
             
-                  ==========  ============================================
-                  *weights*   Description
-                  ==========  ============================================
-                  `None`      Equal weights for all axes. This the
-                              default.
+              ==========  ============================================
+              *weights*   Description
+              ==========  ============================================
+              `None`      Equal weights for all axes. This the
+                          default.
     
-                  ``'auto'``  Weights are created for non-overlapping
-                              subsets of the axes by the methods
-                              enumerated in the above notes. Set the
-                              *methods* parameter to find out how the
-                              weights were actually created.
+              ``'auto'``  Weights are created for non-overlapping
+                          subsets of the axes by the methods
+                          enumerated in the above notes. Set the
+                          *methods* parameter to find out how the
+                          weights were actually created.
     
-                              In this case weights components are created
-                              for all axes of the field by one or more of
-                              the following methods, in order of
-                              preference,
-                            
-                                1. Volume cell measures
-                                2. Area cell measures
-                                3. Area calculated from (grid) latitude
-                                   and (grid) longitude dimension
-                                   coordinates with bounds
-                                4. Cell sizes of dimension coordinates
-                                   with bounds
-                                5. Equal weights
+                          In this case weights components are created
+                          for all axes of the field by one or more of
+                          the following methods, in order of
+                          preference,
+                        
+                            1. Volume cell measures
+                            2. Area cell measures
+                            3. Area calculated from (grid) latitude
+                               and (grid) longitude dimension
+                               coordinate constructs with bounds
+                            4. Cell sizes of dimension coordinate
+                               constructs with bounds
+                            5. Equal weights
     
-                              and the outer product of these weights
-                              components is returned in a field which is
-                              broadcastable to the orginal field (see the
-                              *components* parameter).
-                  ==========  ============================================
-    
-           ..
+                          and the outer product of these weights
+                          components is returned in a field constructs
+                          which is broadcastable to the orginal field
+                          construct (see the *components* parameter).
+
+              `Data`      Explicit weights in a `Data` object that
+                          must be broadcastable to the field
+                          construct's data.
+
+              `Field`     Explicit weights from the data of another
+                          field construct, which must be broadcastable
+                          to this field construct's data.
+
+              `dict`      Explicit weights in dictionary of the form
+                          that is returned from a call to the
+                          `weights` method with ``component=True``
+              ==========  ============================================
     
               * **Type 2**: *weights* may be one, or a sequence, of:
               
-                  ============  ==========================================
-                  *weights*     Description     
-                  ============  ==========================================
-                  ``'area'``    Cell area weights from the field's area
-                                cell measure construct or, if one doesn't
-                                exist, from (grid) latitude and (grid)
-                                longitude dimension coordinates. Set the
-                                *methods* parameter to find out how the
-                                weights were actually created.
-                  
-                  ``'volume'``  Cell volume weights from the field's
-                                volume cell measure construct.
-                  
-                  items         Weights from the cell sizes of the
-                                dimension coordinate objects that would be
-                                selected by this call of the field's
-                                `~cf.Field.dims` method: ``f.dims(items,
-                                **kwargs)``. See `cf.Field.dims` for
-                                details. TODO
-                  
-                  `Field`       Take weights from the data array of
-                                another field, which must be broadcastable
-                                to this field.
-                  ============  ==========================================
+              ============  ==========================================
+              *weights*     Description     
+              ============  ==========================================
+              ``'area'``    Cell area weights from the field
+                            construct's area cell measure construct
+                            or, if one doesn't exist, from (grid)
+                            latitude and (grid) longitude dimension
+                            coordinate constructs. Set the *methods*
+                            parameter to find out how the weights were
+                            actually created.
+              
+              ``'volume'``  Cell volume weights from the field
+                            construct's volume cell measure construct.
+              
+              `str`         Weights from the cell sizes of the
+                            dimension coordinate construct with this
+                            identity.
+              
+              `Field`       Explicit weights from the data of another
+                            field construct, which must be
+                            broadcastable to this field construct.
+              ============  ==========================================
      
-                If *weights* is a sequence of any combination of the
-                above then the returned field contains the outer
-                product of the weights defined by each element of the
-                sequence. The ordering of the sequence is irrelevant.
+              If *weights* is a sequence of any combination of the
+              above then the returned field contains the outer product
+              of the weights defined by each element of the
+              sequence. The ordering of the sequence is irrelevant.
     
-                  *Parameter example:*
-                    To create to 2-dimensional weights based on cell
-                    areas: ``f.weights('area')``. To create to
-                    3-dimensional weights based on cell areas and
-                    linear height: ``f.weights(['area', 'Z'])``.
+              *Parameter example:*
+                To create to 2-dimensional weights based on cell
+                areas: ``f.weights('area')``. To create to
+                3-dimensional weights based on cell areas and linear
+                height: ``f.weights(['area', 'Z'])``.
     
-        scale: `bool`, optional
-            If `True` then scale the returned weights so that they are
-            less than or equal to 1.
-    
+        scale: number, optional
+            If set to a positive number then scale the weights so that
+            they are less than or equal to that number. If weights
+            components have been requested (see the *components*
+            parameter) then each component is scaled independently of
+            the others.
+
+            *Parameter example:*
+              To scale all weights so that they lie between 0 and 1:
+              ``scale=1``.
+
+        measure: `bool`, optional
+            TODO
+        
         components: `bool`, optional
-            If `True` then a dictionary of orthogonal weights components
+            If True then a dictionary of orthogonal weights components
             is returned instead of a field. Each key is a tuple of
-            integers representing axes positions in the field's data
-            array with corresponding values of weights in `Data`
-            objects. The axes of weights match the axes of the field's
-            data array in the order given by their dictionary keys.
+            integers representing axes positions in the field
+            construct's data, with corresponding values of weights in
+            `Data` objects. The axes of weights match the axes of the
+            field construct's data array in the order given by their
+            dictionary keys.
     
         methods: `bool`, optional
-            If `True`, then return a dictionary describing methods used
+            If True, then return a dictionary describing methods used
             to create the weights.
     
         kwargs: deprecated at version 3.0.0.
@@ -4159,41 +4916,43 @@ may be accessed with the `nc_global_attributes`,
     **Examples:**
     
     >>> f
-    <CF Field: air_temperature(time(1800), latitude(145), longitude(192)) K>
+    <CF Field: air_temperature(time(12), latitude(145), longitude(192)) K>
     >>> f.weights()
-    <CF Field: long_name:weight(time(1800), latitude(145), longitude(192)) 86400 s.rad>
-    >>> f.weights('auto', scale=True)
-    <CF Field: long_name:weight(time(1800), latitude(145), longitude(192)) 1>
+    <CF Field: long_name:weight(time(12), latitude(145), longitude(192)) 86400 s.rad>
+    >>> f.weights('auto', scale=1.0)
+    <CF Field: long_name:weight(time(12), latitude(145), longitude(192)) 1>
     >>> f.weights('auto', components=True)
-    {(0,): <CF Data(1800): [1.0, ..., 1.0] d>,
+    {(0,): <CF Data(12): [30.0, ..., 31.0] d>,
      (1,): <CF Data(145): [5.94949998503e-05, ..., 5.94949998503e-05]>,
      (2,): <CF Data(192): [0.0327249234749, ..., 0.0327249234749] radians>}
-    >>> f.weights('auto', components=True, scale=True)
-    {(0,): <CF Data(1800): [1.0, ..., 1.0]>,
+    >>> f.weights('auto', components=True, scale=1.0)
+    {(0,): <CF Data(12): [0.967741935483871, ..., 1.0] 1>,
      (1,): <CF Data(145): [0.00272710399807, ..., 0.00272710399807]>,
      (2,): <CF Data(192): [1.0, ..., 1.0]>}
+    >>> f.weights('auto', components=True, scale=2.0)
+    {(0,): <CF Data(12): [1.935483870967742, ..., 2.0] 1>,
+     (1,): <CF Data(145): [0.00545420799614, ..., 0.00545420799614]>,
+     (2,): <CF Data(192): [2.0, ..., 2.0]>}
     >>> f.weights('auto', methods=True)
     {(0,): 'linear time',
      (1,): 'linear sine latitude',
      (2,): 'linear longitude'}
 
         '''
-#        def _field_of_weights(data, domain=None, axes=None):
         def _scalar_field_of_weights(data):
             '''Return a field of weights with long_name ``'weight'``.
 
-    :Parameters:
+        :Parameters:
+        
+            data: `Data`
+                The weights which comprise the data array of the
+                weights field.
     
-        data: `Data`
-            The weights which comprise the data array of the weights
-            field.
-
-    :Returns:
-
-        `Field`
+        :Returns:
+    
+            `Field`
 
             '''
-#            w = type(self)(data=data, copy=False)
             w = type(self)()
             w.set_data(data, copy=False)            
             w.long_name = 'weight'
@@ -4204,11 +4963,11 @@ may be accessed with the `nc_global_attributes`,
         def _measure_weights(self, measure, comp, weights_axes, auto=False):
             '''Cell measure weights
 
-    :Parameters:
-
-    :Returns:
-
-        `bool`
+        :Parameters:
+    
+        :Returns:
+    
+            `bool`
 
             '''
             m = self.cell_measures.filter_by_measure(measure)
@@ -4216,16 +4975,18 @@ may be accessed with the `nc_global_attributes`,
             if not m:
                 if measure == 'area':
                     return False
+                
                 if auto:
                     return
                 
                 raise ValueError(
                     "Can't get weights: No {!r} cell measure".format(measure))
+            
             elif len(m) > 1:
                 if auto:
                     return False
                 
-                raise ValueError("Found multiple 'area' cell measures")                
+                raise ValueError("Found multiple {!r} cell measures".format(measure))
 
             key, clm = dict(m).popitem()    
             
@@ -4238,6 +4999,7 @@ may be accessed with the `nc_global_attributes`,
                 if axis in weights_axes:
                     if auto:
                         return False
+                    
                     raise ValueError(
                         "Multiple weights specifications for {!r} axis".format(
                             self.constructs.domain_axis_identity(axis)))
@@ -4258,10 +5020,11 @@ may be accessed with the `nc_global_attributes`,
             return True
         #--- End: def
         
-        def _linear_weights(self, axis, comp, weights_axes, auto=False):
-            # ------------------------------------------------------------
-            # 1-d linear weights from dimension coordinates
-            # ------------------------------------------------------------
+        def _linear_weights(self, axis, comp, weights_axes,
+                            auto=False, measure=False):
+            '''1-d linear weights from dimension coordinate constructs.
+
+            '''
             da_key = self.domain_axis(axis, key=True, default=None)
             if da_key is None:
                 if auto:
@@ -4276,10 +5039,10 @@ may be accessed with the `nc_global_attributes`,
                     return
                 
                 raise ValueError(
-                    "Can't create weights: Can't find dimension coodinates matching {!r}".format(
+                    "Can't create linear weights for {!r} axis: Can't find dimension coodinate construct.".format(
                         axis))
             
-            if dim.size == 1:
+            if not measure and dim.size == 1:
                 return
 
             if da_key in weights_axes:
@@ -4287,18 +5050,19 @@ may be accessed with the `nc_global_attributes`,
                     return
                 
                 raise ValueError(
-                    "Can't create weights: Multiple weights specifications for {!r} axis".format(
+                    "Can't create linear weights for {!r} axis: Multiple specifications for {!r} axis".format(
                         axis))
 
             if not dim.has_bounds():
+                # No bounds
                 if auto:
                     return
                 
                 raise ValueError(
-                    "Can't create weights: Can't find linear weights for {!r} axis: No bounds".format(
-                        axis))
-            
-            if dim.has_bounds():
+                    "Can't create linear weights for {!r} axis: No bounds".format(
+                        axis))            
+            else:
+                # Bounds exist
                 if methods:
                     comp[(da_key,)] = 'linear '+self.constructs.domain_axis_identity(da_key)
                 else: 
@@ -4308,11 +5072,22 @@ may be accessed with the `nc_global_attributes`,
             weights_axes.add(da_key)
         #--- End: def
             
-        def _area_weights_XY(self, comp, weights_axes, auto=False): 
-            # ----------------------------------------------------
-            # Calculate area weights from X and Y dimension
-            # coordinates
-            # ----------------------------------------------------
+        def _area_weights_XY(self, comp, weights_axes, auto=False,
+                             measure=False, radius=None): 
+            '''Calculate area weights from X and Y dimension coordinate
+        constructs.
+
+        :Parameters:
+            
+            measure: `bool`
+                If true then make sure that the weights represent true
+                cell areas.
+
+        :Returns:
+            
+            `bool` or `None`
+
+            '''
             xdims = dict(self.dimension_coordinates('X'))
             ydims = dict(self.dimension_coordinates('Y'))
 
@@ -4333,9 +5108,11 @@ may be accessed with the `nc_global_attributes`,
                 raise ValueError(
                     "Ambiguous coordinate constructs for calculating area weights")
 
-            if xcoord.Units.equivalent(Units('radians')) and ycoord.Units.equivalent(Units('radians')):
+            if (xcoord.Units.equivalent(Units('radians')) and
+                ycoord.Units.equivalent(Units('radians'))):
                 pass
-            elif xcoord.Units.equivalent(Units('metres')) and ycoord.Units.equivalent(Units('metres')):
+            elif (xcoord.Units.equivalent(Units('metres')) and
+                  ycoord.Units.equivalent(Units('metres'))):
                 pass
             else:
                 if auto:
@@ -4355,8 +5132,12 @@ may be accessed with the `nc_global_attributes`,
                     raise ValueError(
                         "Multiple weights specifications for {!r} axis".format( 
                             self.constructs.domain_axis_identity(axis)))
+            #--- End: if
 
-            if xcoord.size > 1:
+            if measure and radius is not None:
+                radius = self.radius(default=radius)
+            
+            if measure or xcoord.size > 1:
                 if not xcoord.has_bounds(): 
                     if auto:
                         return
@@ -4370,16 +5151,19 @@ may be accessed with the `nc_global_attributes`,
                 else:
                     cells = xcoord.cellsize
                     if xcoord.Units.equivalent(Units('radians')):
-                        cells.Units = _units_radians
+                        cells.Units = _units_radians                        
+                        if measure:
+                            cells *= radius
+                            cells.override_units(radius.Units, inplace=True)
                     else:
-                        cells.Units = Units('metres')
+                        cellgs.Units = Units('metres')
                         
                     comp[(xaxis,)] = cells
 
                 weights_axes.add(xaxis)
             #--- End: if
 
-            if ycoord.size > 1:
+            if measure or ycoord.size > 1:
                 if not ycoord.has_bounds():
                     if auto:
                         return
@@ -4394,13 +5178,18 @@ may be accessed with the `nc_global_attributes`,
     
                     if methods:
                         comp[(yaxis,)] = 'linear sine '+ycoord.identity()
-                    else:            
-                        comp[(yaxis,)] = ycoord.cellsize
+                    else:
+                        cells = ycoord.cellsize
+                        if measure:
+                            cells *=  radius
+
+                        comp[(yaxis,)] = cells
                 else:                    
                     if methods:
                         comp[(yaxis,)] = 'linear '+ycoord.identity()
-                    else:            
-                        comp[(yaxis,)] = ycoord.cellsize
+                    else:         
+                        cells = ycoord.cellsize
+                        comp[(yaxis,)] = cells
                 #--- End: if
                         
                 weights_axes.add(yaxis)
@@ -4417,9 +5206,9 @@ may be accessed with the `nc_global_attributes`,
                 t = w.analyse_items()
     
                 if t['undefined_axes']:
-#                    if t.axes(size=gt(1)).intersection(t['undefined_axes']):
                     if set(t.domain_axes.filter_by_size(gt(1))).intersection(t['undefined_axes']):
                         raise ValueError("345jn456jn TODO")
+                #--- End: if
     
                 w = w.squeeze()
 
@@ -4440,7 +5229,7 @@ may be accessed with the `nc_global_attributes`,
 
                     w_axis_size = w.domain_axes[axis1].get_size()
                     self_axis_size = self.domain_axes[axis0].get_size()
-#                    if w.domain_axes[axis1].get_size() != self.axis_size(axis0):
+
                     if w_axis_size != self_axis_size:
                         raise ValueError(
                             "Weights field has incorrectly sized {!r} axis ({} != {})".format(
@@ -4463,7 +5252,7 @@ may be accessed with the `nc_global_attributes`,
                     # If the defining coordinates are attached to
                     # coordinate references then check that those
                     # coordinate references are equivalent                    
-                    refs0 = [key for key, ref in self.coordinate_references.item()
+                    refs0 = [key for key, ref in self.coordinate_references.items()
                              if key0 in ref.coordinates()]
                     refs1 = [key for key, ref in w.coordinate_references.items()
                              if key1 in ref.coordinates()]
@@ -4482,14 +5271,14 @@ may be accessed with the `nc_global_attributes`,
                         # exactly one coordinate reference
                         equivalent_refs = self._equivalent_coordinate_references(
                             w,
-                            key0=refs0[0], key1e=refs1[0],
+                            key0=refs0[0], key1=refs1[0],
                             s=s,t=t)
 
                     if not equivalent_refs:
                         raise ValueError(
                             "Input weights field has an incompatible coordinate reference")
                 #--- End: for
-    
+
                 axes0 = tuple([axis1_to_axis0[axis1] for axis1 in w.get_data_axes()])
             
                 for axis0 in axes0:
@@ -4499,10 +5288,79 @@ may be accessed with the `nc_global_attributes`,
                                 self.constructs.domain_axis_identity(axis0)))
                 #--- End: for
     
-                comp[axes] = w.data
+                comp[tuple(axes0)] = w.data
             
-                weights_axes.update(axes)
+                weights_axes.update(axes0)
         #--- End: def
+
+        def _data_weights(self, data, comp, weights_axes):
+            # ------------------------------------------------------------
+            # Data weights
+            # ------------------------------------------------------------
+            for w in data:
+                if w.ndim > 0:
+                    while w.shape[0] == 1:
+                        w = w.squeeze(0)
+                #--- End: if                
+
+                if not self._is_broadcastable(w.shape):
+                    raise ValueError("TODO")
+
+                axes0 = self.get_data_axes()[self.ndim-w.ndim:]
+           
+                for axis0 in axes0:
+                    if axis0 in weights_axes:
+                        raise ValueError(
+                            "Multiple weights specified for {!r} axis".format(
+                                self.constructs.domain_axis_identity(axis0)))
+                #--- End: for
+    
+                comp[tuple(axes0)] = w
+            
+                weights_axes.update(axes0)
+        #--- End: def
+
+        def _scale(w, scale, wmax=None):
+            '''Scale the weights so that they are <= scale.
+
+            '''
+            scale = Data.asdata(scale).datum()
+            if scale <= 0:
+                raise ValueError("'scale' parameter must be a positive number")
+
+#            if isinstance(w, dict):
+#                wmax = Data(max([x.max().datum() for x in w.values()]))
+#                for key, x in comp.items(): 
+#                    w[key] = _scale(x, scale, wmax=wmax)
+#
+#                return w
+
+            if wmax is None:
+                wmax = w.max()
+                
+            if wmax <= 0:
+                raise ValueError(
+                    "Can't scale when all weights are non-positive. max(weights)={}".format(
+                        wmax))
+
+            factor = wmax / scale
+            factor.dtype = float
+            if numpy_can_cast(factor.dtype, w.dtype):
+                w /= factor
+            else:
+                w = w / factor
+
+            return w
+        #--- End: def
+
+        # ------------------------------------------------------------
+        # Start of main code (weights)
+        # ------------------------------------------------------------
+        if kwargs:
+            _DEPRECATION_ERROR_KWARGS(self, 'weights', kwargs) # pragma: no cover
+
+        if measure and scale is not None:
+            raise ValueError("Can't scale and measure TODO")
 
         if weights is None:
             # --------------------------------------------------------
@@ -4534,34 +5392,51 @@ may be accessed with the `nc_global_attributes`,
 
             # Area weights
             if not _measure_weights(self, 'area', comp, weights_axes, auto=True):
-                _area_weights_XY(self, comp, weights_axes, auto=True)
+                _area_weights_XY(self, comp, weights_axes, auto=True,
+                                 measure=measure, radius=radius)
 
             # 1-d linear weights from dimension coordinates
-#            for axis in self.dims():
             for dc_key in self.dimension_coordinates:
                 axis = self.get_data_axes(dc_key)[0]
-                _linear_weights(self, axis, comp, weights_axes, auto=True)
+                _linear_weights(self, axis, comp, weights_axes,
+                                auto=True, measure=measure)
  
         elif isinstance(weights, dict):
             # --------------------------------------------------------
             # Dictionary
             # --------------------------------------------------------
-            for key, value in weights.items():                
-                try:
-                    key = [data_axes[iaxis] for iaxis in key]
-                except IndexError:
-                    raise ValueError("TODO s ^^^^^^ csdcvd 3456 4")
+            for key, value in weights.items():
+                key = [self.domain_axis(i, key=True) for i in key]
+                for k in key:
+                    if k not in data_axes:
+                        raise ValueError("TODO {!r} domain axis".format(k))
+                #--- End: for
+                
+#                try:
+#                    key = [data_axes[iaxis] for iaxis in key]
+#                except IndexError:
+#                    raise ValueError("TODO s ^^^^^^ csdcvd 3456 4")
 
                 multiple_weights = weights_axes.intersection(key)
                 if multiple_weights:
                     raise ValueError(
-                        "Multiple weights specifications for {0!r} axis".format(
+                        "Multiple weights specifications for {!r} domain axis".format(
                             self.constructs.domain_axis_identity(multiple_weights.pop())))
-                #--- End: if
                 
                 weights_axes.update(key)
 
                 comp[tuple(key)] = value.copy()
+        elif isinstance(weights, self.__class__):
+            # --------------------------------------------------------
+            # Field
+            # --------------------------------------------------------
+            _field_weights(self, [weights], comp, weights_axes)
+            
+        elif isinstance(weights, Data):
+            # --------------------------------------------------------
+            # Data
+            # --------------------------------------------------------            
+            _data_weights(self, [weights], comp, weights_axes)
         else:
             # --------------------------------------------------------
             # String or sequence
@@ -4579,6 +5454,8 @@ may be accessed with the `nc_global_attributes`,
                 for w in tuple(weights):
                     if isinstance(w, self.__class__):
                         fields.append(w)
+                    elif isinstance(w, Data):
+                        raise ValueError("TODO")
                     elif w in ('area', 'volume'):
                         cell_measures.append(w)
                     else:
@@ -4596,6 +5473,7 @@ may be accessed with the `nc_global_attributes`,
                     da_key_x = da_key
                 elif da_key == yaxis:
                     da_key_y = da_key
+            #--- End: if
                 
             if da_key_x and da_key_y:
                 xdim = self.dimension_coordinate(xaxis, default=None)
@@ -4619,11 +5497,14 @@ may be accessed with the `nc_global_attributes`,
             # Area weights
             if 'area' in cell_measures:
                 if not _measure_weights(self, 'area', comp, weights_axes):
-                    _area_weights_XY(self, comp, weights_axes)      
+                    _area_weights_XY(self, comp, weights_axes,
+                                     measure=measure, radius=radius)
+            #--- End: if
 
             # 1-d linear weights from dimension coordinates
             for axis in axes:
-                _linear_weights(self, axis, comp, weights_axes, auto=False)
+                _linear_weights(self, axis, comp, weights_axes,
+                                auto=False, measure=measure)
 
             # Check for area weights specified by X and Y axes
             # separately and replace them with area weights
@@ -4635,23 +5516,17 @@ may be accessed with the `nc_global_attributes`,
                 weights_axes.discard(xaxis)
                 weights_axes.discard(yaxis)
                 if not _measure_weights(self, 'area', comp, weights_axes):
-                    _area_weights_XY(self, comp, weights_axes)      
+                    _area_weights_XY(self, comp, weights_axes,
+                                     measure=measure, radius=radius)      
         #--- End: if
- 
-        # ------------------------------------------------------------
-        # Scale the weights so that they are <= 1.0
-        # ------------------------------------------------------------
-        if scale and not methods:
-            # What to do about -ve weights? dch
+        
+        if scale is not None and not methods:
+            # --------------------------------------------------------
+            # Scale the weights so that they are <= scale
+            # --------------------------------------------------------
+#            comp = _scale(comp, scale)
             for key, w in comp.items(): 
-                wmax = w.data.max()    
-                if wmax > 0:
-                    wmax.dtype = float
-                    if not numpy_can_cast(wmax.dtype, w.dtype):
-                        w = w / wmax
-                    else:
-                        w /= wmax
-                    comp[key] = w
+                comp[key] = _scale(w, scale)
         #--- End: if
 
         if components:
@@ -4669,9 +5544,11 @@ may be accessed with the `nc_global_attributes`,
 
             return components
 
+        # Still here?
         if methods:
             return components
 
+        # Still here?
         if not comp:
             # --------------------------------------------------------
             # No component weights have been defined so return an
@@ -4680,8 +5557,8 @@ may be accessed with the `nc_global_attributes`,
             return _scalar_field_of_weights(Data(1.0, '1'))
         
         # ------------------------------------------------------------
-        # Return a weights field which is the outer product of the
-        # component weights
+        # Still here? Return a weights field which is the outer
+        # product of the component weights
         # ------------------------------------------------------------
         pp = sorted(comp.items())       
         waxes, wdata = pp.pop(0)
@@ -4689,7 +5566,13 @@ may be accessed with the `nc_global_attributes`,
             a, y = pp.pop(0)
             wdata.outerproduct(y, inplace=True)
             waxes += a
-        
+
+        if scale is not None:
+            # --------------------------------------------------------
+            # Scale the weights so that they are <= scale
+            # --------------------------------------------------------            
+            wdata = _scale(wdata, scale)
+            
         field = self.copy()
         field.del_data()
         field.del_data_axes()
@@ -4716,6 +5599,978 @@ may be accessed with the `nc_global_attributes`,
 
         return field
 
+
+    def digitize(self, bins, upper=False, open_ends=False,
+                 return_bins=False, inplace=False):
+        '''Return the indices of the bins to which each value belongs.
+
+    Values (including masked values) that do not belong to any bin
+    result in masked values in the output field construct of indices.
+                
+    The output field contruct is given a ``long_name`` property, and
+    properties that define the bins:
+
+    =====================  ===========================================
+    Property               Description
+    =====================  ===========================================
+    ``bin_count``          An integer giving the number of bins
+                           
+    ``bin_bounds``         A 1-d array giving the bin bounds. The
+                           first two numbers describe the lower and
+                           upper boundaries of the first bin, the
+                           second two numbers describe the lower and
+                           upper boundaries of the second bin, and so
+                           on. The presence of left-open and
+                           right-open bins (see the *bins* and
+                           *open_ends* parameters) is deduced from the
+                           ``bin_count`` property. If the
+                           ``bin_bounds`` array has 2N elements then
+                           the ``bin_count`` property will be N if
+                           there are no left-open and right-open bins
+                           or N+2 if such bins are present.
+                           
+    ``bin_interval_type``  A string that specifies the nature of the
+                           bin boundaries, i.e. if they are closed or
+                           open. For example, if the lower boundary is
+                           closed and the upper boundary is open
+                           (which is the case when the *upper*
+                           parameter is False) then
+                           ``bin_interval_type`` will have the value
+                           ``'lower: closed upper: open'``.
+
+    ``bin_units``          A string giving the units of the bin
+                           boundary values (e.g. ``'Kelvin'``). If the
+                           *bins* parameter is a `Data` object with
+                           units then these are used to set this
+                           property, otherwise the field construct's
+                           units are used.
+
+    ``bin_calendar``       A string giving the calendar of reference
+                           date-time units for the bin boundary values
+                           (e.g. ``'noleap'``). If the units are not
+                           reference date-time units this property
+                           will be omitted. If the calendar is the CF
+                           default calendar, then this property may be
+                           omitted. If the *bins* parameter is a
+                           `Data` object with a calendar then this is
+                           used to set this property, otherwise the
+                           field construct's calendar is used.
+
+    ``bin_standard_name``  A string giving the standard name of the
+                           bin boundaries
+                           (e.g. ``'air_temperature'``). If there is
+                           no standard name then this property will be
+                           omitted.
+
+    ``bin_long_name``      A string giving the long name of the bin
+                           boundaries (e.g. ``'Air Temperature'``). If
+                           there is no long name, or the
+                           ``bin_standard_name`` is present, then this
+                           property will be omitted.
+    =====================  ===========================================
+
+    .. versionadded:: 3.0.2
+
+    .. seealso:: `bin`, `histogram`
+
+    :Parameters:
+
+        bins: array_like
+            The bin boundaries. One of:
+
+            * An integer.
+           
+              Create this many equally sized, contiguous bins spanning
+              the range of the data. I.e. the smallest bin boundary is
+              the minimum of the data and the largest bin boundary is
+              the maximum of the data. In order to guarantee that each
+              data value lies inside a bin, the most extreme open
+              boundary is extended by multiplying it by ``1.0 -
+              epsilon`` or ``1.0 + epsilon`` (where ``epsilon`` is the
+              smallest positive 64-bit float such that ``1.0 +
+              epsilson != 1.0``), whichever extends the boundary in
+              the appropriate direction. I.e. if *upper* is False then
+              the largest upper bin boundary is made slightly larger
+              and if *upper* is True then the lowest lower bin
+              boundary is made slightly lower.
+
+            * A 1-d array of numbers.
+        
+              When sorted into a monotonically increasing sequence,
+              each boundary, with the exception of the two end
+              boundaries, counts as the upper boundary of one bin and
+              the lower boundary of next. If the *open_ends* parameter
+              is True then the lowest lower bin boundary also defines
+              a left-open (i.e. not bounded below) bin, and the
+              largest upper bin boundary also defines a right-open
+              (i.e. not bounded above) bin.
+
+            * A 2-d array of numbers.
+        
+              The second dimension, that must have size 2, contains
+              the lower and upper boundaries of each bin. The bins to
+              not have to be contiguous, but must not overlap. If the
+              *open_ends* parameter is True then the lowest lower bin
+              boundary also defines a left-open (i.e. not bounded
+              below) bin, and the largest upper bin boundary also
+              defines a right-open (i.e. not bounded above) bin.
+
+        upper: `bool`, optional
+            If True then each bin includes its upper bound but not its
+            lower bound. By default the opposite is applied, i.e. each
+            bin includes its lower bound but not its upper bound.
+
+        open_ends: `bool`, optional
+            If True then create left-open (i.e. not bounded below) and
+            right-open (i.e. not bounded above) bins from the lowest
+            lower bin boundary and largest upper bin boundary
+            respectively. By default these bins are not created
+
+        return_bins: `bool`, optional
+            If True then also return the bins in their 2-d form.
+
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+    :Returns:
+
+        `Field` or `None`, [`Data`]
+            The field construct containing indices of the bins to
+            which each value belongs, or `None` if the operation was
+            in-place.
+
+            If *return_bins* is True then also return the bins in
+            their 2-d form.
+
+    **Examples:**
+
+    >>> f
+    <CF Field: specific_humidity(latitude(5), longitude(8)) 0.001 1>
+    >>> f.properties()
+    {'Conventions': 'CF-1.7',
+     'standard_name': 'specific_humidity',
+     'units': '0.001 1'}
+    >>> print(f.array)
+    [[  7.  34.   3.  14.  18.  37.  24.  29.]
+     [ 23.  36.  45.  62.  46.  73.   6.  66.]
+     [110. 131. 124. 146.  87. 103.  57.  11.]
+     [ 29.  59.  39.  70.  58.  72.   9.  17.]
+     [  6.  36.  19.  35.  18.  37.  34.  13.]]
+    >>> g = f.digitize([0, 50, 100, 150]) 
+    >>> g
+    <CF Field: long_name=Bin index to which each 'specific_humidity' value belongs(latitude(5), longitude(8))>
+    >>> print(g.array)
+    [[0 0 0 0 0 0 0 0]
+     [0 0 0 1 0 1 0 1]
+     [2 2 2 2 1 2 1 0]
+     [0 1 0 1 1 1 0 0]
+     [0 0 0 0 0 0 0 0]]
+    >>> g.properties()
+    {'Conventions': 'CF-1.7',
+     'long_name': "Bin index to which each 'specific_humidity' value belongs",
+     'bin_bounds': array([  0,  50,  50, 100, 100, 150]),
+     'bin_count': 3,
+     'bin_interval_type': 'lower: closed upper: open',
+     'bin_standard_name': 'specific_humidity',
+     'bin_units': '0.001 1'}
+
+    >>> g = f.digitize([[10, 20], [40, 60], [100, 140]]) 
+    >>> print(g.array)                       
+    [[-- -- --  0  0 -- -- --]
+     [-- --  1 --  1 -- -- --]
+     [ 2  2  2 -- --  2  1  0]
+     [--  1 -- --  1 -- --  0]
+     [-- --  0 --  0 -- --  0]]
+    >>> g.properties()        
+    {'Conventions': 'CF-1.7',
+     'long_name': "Bin index to which each 'specific_humidity' value belongs",
+     'bin_bounds': array([ 10,  20,  40,  60, 100, 140]),
+     'bin_count': 3,
+     'bin_interval_type': 'lower: closed upper: open',
+     'bin_standard_name': 'specific_humidity',
+     'bin_units': '0.001 1'}
+    
+    >>> g = f.digitize([[10, 20], [40, 60], [100, 140]], open_ends=True)      
+    >>> print(g.array)                                               
+    [[ 0 --  0  1  1 -- -- --]
+     [-- --  2 --  2 --  0 --]
+     [ 3  3  3 -- --  3  2  1]
+     [--  2 -- --  2 --  0  1]
+     [ 0 --  1 --  1 -- --  1]]
+    >>> g.properties()                                           
+    {'Conventions': 'CF-1.7',
+     'long_name': "Bin index to which each 'specific_humidity' value belongs",
+     'bin_bounds': array([ 10,  20,  40,  60, 100, 140]),
+     'bin_count': 5,
+     'bin_interval_type': 'lower: closed upper: open',
+     'bin_standard_name': 'specific_humidity',
+     'bin_units': '0.001 1'}
+
+    >>> g = f.digitize([2, 6, 45, 100], upper=True)
+    >>> g
+    <CF Field: long_name=Bin index to which each 'specific_humidity' value belongs(latitude(5), longitude(8))>
+    >>> print(g.array)
+    [[ 1  1  0  1  1  1  1  1]
+     [ 1  1  1  2  2  2  0  2]
+     [-- -- -- --  2 --  2  1]
+     [ 1  2  1  2  2  2  1  1]
+     [ 0  1  1  1  1  1  1  1]]   
+    >>> g.properties()
+    {'Conventions': 'CF-1.7',
+     'long_name': "Bin index to which each 'specific_humidity' value belongs",
+     'bin_bounds': array([  2,   6,   6,  45,  45, 100]),
+     'bin_count': 3,
+     'bin_interval_type': 'lower: open upper: closed',
+     'bin_standard_name': 'specific_humidity',
+     'bin_units': '0.001 1'}
+
+    >>> g, bins = f.digitize(10, return_bins=True)        
+    >>> bins
+    <CF Data(10, 2): [[3.0, ..., 146.00000000000003]] 0.001 1>
+    >>> g, bins = f.digitize(10, upper=True, return_bins=True) 
+    <CF Data(10, 2): [[2.999999999999999, ..., 146.0]] 0.001 1>
+    >>> print(g.array)   
+    [[0 2 0 0 1 2 1 1]
+     [1 2 2 4 3 4 0 4]
+     [7 8 8 9 5 6 3 0]
+     [1 3 2 4 3 4 0 0]
+     [0 2 1 2 1 2 2 0]]
+
+    >>> f[1, [2, 5]] = cf.masked
+    >>> print(f.array) 
+    [[  7.  34.   3.  14.  18.  37.  24.  29.]
+     [ 23.  36.   --  62.  46.   --   6.  66.]
+     [110. 131. 124. 146.  87. 103.  57.  11.]
+     [ 29.  59.  39.  70.  58.  72.   9.  17.]
+     [  6.  36.  19.  35.  18.  37.  34.  13.]]
+    >>> g = f.digitize(10)
+    >>> print(g.array)  
+    [[ 0  2  0  0  1  2  1  1]
+     [ 1  2 --  4  3 --  0  4]
+     [ 7  8  8  9  5  6  3  0]
+     [ 1  3  2  4  3  4  0  0]
+     [ 0  2  1  2  1  2  2  0]]
+    >>> g.properties()    
+    {'Conventions': 'CF-1.7',
+     'long_name': "Bin index to which each 'specific_humidity' value belongs",
+     'bin_bounds': array([  3. ,  17.3,  17.3,  31.6,  31.6,  45.9,  45.9,  60.2,
+            60.2,  74.5,  74.5,  88.8,  88.8, 103.1, 103.1, 117.4, 117.4, 131.7,
+            131.7, 146. ]),
+     'bin_count': 10,
+     'bin_interval_type': 'lower: closed upper: open',
+     'bin_standard_name': 'specific_humidity',
+     'bin_units': '0.001 1'}
+
+        '''
+        if inplace:
+            f = self
+        else:
+            f = self.copy()
+
+        new_data, bins = self.data.digitize(bins, upper=upper,
+                                            open_ends=open_ends,
+                                            return_bins=True)
+        units = new_data.Units
+        
+        f.set_data(new_data, set_axes=False, copy=False)
+        f.override_units(units, inplace=True)
+
+        # ------------------------------------------------------------
+        # Set properties
+        # ------------------------------------------------------------
+        f.set_property('long_name',
+                       'Bin index to which each {!r} value belongs'.format(
+                           self.identity()))
+
+        f.set_property('bin_bounds', bins.array.flatten())
+
+        bin_count = bins.shape[0]        
+        if open_ends:
+            bin_count += 2
+
+        f.set_property('bin_count', bin_count)
+
+        if upper:
+            bin_interval_type = 'lower: open upper: closed'
+        else:
+            bin_interval_type = 'lower: closed upper: open'
+
+        f.set_property('bin_interval_type', bin_interval_type)
+
+        standard_name = f.del_property('standard_name', None)
+        if standard_name is not None:
+             f.set_property('bin_standard_name', standard_name)
+        else:
+             long_name = f.del_property('long_name', None)
+             if long_name is not None:
+                 f.set_property('bin_long_name', long_name)
+        #--- End: if
+
+        bin_units = bins.Units
+        units = getattr(bin_units, 'units', None)
+        if units is not None:
+            f.set_property('bin_units', units)
+
+        calendar = getattr(bin_units, 'calendar', None)
+        if calendar is not None:
+            f.set_property('bin_calendar', calendar)
+            
+        if inplace:
+            f = None
+
+        if return_bins:
+            return f, bins
+            
+        return f
+            
+
+    def bin(self, method, digitized, weights=None, measure=False,
+            scale=None, mtol=1, ddof=1, radius='earth',
+            return_indices=False, verbose=False):
+        '''Collapse the data values that lie in N-dimensional bins.
+
+    The data values of the field construct are binned according to how
+    they correspond to the N-dimensionsal histogram bins of another
+    set of variables (see `cf.histogram` for details), and each bin of
+    values is collapsed with one of the collapse methods allowed by
+    the *method* parameter.
+
+    The number of dimensions of the output binned data is equal to the
+    number of field constructs provided by the *digitized*
+    argument. Each such field construct defines a sequence of bins and
+    provides indices to the bins that each value of another field
+    construct belongs. There is no upper limit to the number of
+    dimensions of the output binned data.
+        
+    The output bins are defined by the exterior product of the
+    one-dimensional bins of each digitized field construct. For
+    example, if only one digitized field construct is provided then
+    the output bins simply comprise its one-dimensional bins; if there
+    are two digitized field constructs then the output bins comprise
+    the two-dimensionsal matrix formed by all possible combinations of
+    the two sets of one-dimensional bins; etc.
+
+    An output value for a bin is formed by collapsing (using the
+    method given by the *method* parameter) the elements of the data
+    for which the corresponding locations in the digitized field
+    constructs, taken together, index that bin. Note that it may be
+    the case that not all output bins are indexed by the digitized
+    field constructs, and for these bins missing data is returned.
+
+    The returned field construct will have a domain axis construct for
+    each dimension of the output bins, with a corresponding dimension
+    coordinate construct that defines the bin boundaries.
+
+    .. versionadded:: 3.0.2
+
+    .. seealso:: `collapse`, `digitize`, `weights`, `cf.histogram`
+
+    :Parameters:
+
+        method: `str`
+            The collapse method used to combine values that map to
+            each cell of the output field construct. The following
+            methods are available (see
+            https://ncas-cms.github.io/cf-python/beta/tutorial.html#collapse-methods
+            for precise definitions):
+
+            ============================  ============================  ========
+            *method*                      Description                   Weighted  
+            ============================  ============================  ========
+            ``'maximum'``                 The maximum of the values.    Never
+                                      
+            ``'minimum'``                 The minimum of the values.    Never
+            
+            ``'maximum_absolute_value'``  The maximum of the absolute.  Never
+                          
+            ``'minimum_absolute_value'``  The minimum of the absolute.  Never
+            
+            ``'mid_range'``               The average of the maximum    Never
+                                          and the minimum of the
+                                          values.
+                                          
+            ``'range'``                   The absolute difference       Never
+                                          between the maximum and the
+                                          minimum of the values.
+                                          
+            ``'sum'``                     The sum of the values.        Never
+                                                                                    
+            ``'sum_of_squares'``          The sum of the squares of     Never
+                                          values.
+                                          
+            ``'sample_size'``             The sample size, i.e. the     Never
+                                          number of non-missing
+                                          values.
+
+            ``'sum_of_weights'``          The sum of weights, as        Never
+                                          would be used for other
+                                          calculations.
+                                          
+            ``'sum_of_weights2'``         The sum of squares of         Never
+                                          weights, as would be used
+                                          for other calculations.
+
+            ``'mean'``                    The weighted or unweighted    May be
+                                          mean of the values.
+                                          
+            ``'variance'``                The weighted or unweighted    May be
+                                          variance of the values, with
+                                          a given number of degrees of
+                                          freedom.
+                                              
+            ``'standard_deviation'``      The square root of the        May be
+                                          weighted or unweighted
+                                          variance.
+                                          
+            ``'root_mean_square'``        The square root of the        May be
+                                          weighted or unweighted mean
+                                          of the squares of the
+                                          values.
+                                          
+            ``'integral'``                The integral of values.       Always
+            ============================  ============================  ========
+    
+            Collapse methods that are "Never" weighted ignore the
+            *weights* parameter, even if it is set.
+
+            Collapse methods that "May be" weighted will only be
+            weighted if the *weights* parameter is set.
+
+            Collapse methods that are "Always" weighted require the
+            *weights* parameter to be set.
+
+        digitized: (sequence of) `Field`
+            One or more field constructs that contain digitized data
+            with corresponding metadata, as would be output by
+            `cf.Field.digitize`. Each field construct contains indices
+            to the one-dimensionsal bins to which each value of an
+            original field construct belongs; and there must be
+            ``bin_count`` and ``bin_bounds`` properties as defined by
+            the `digitize` method (and any of the extra properties
+            defined by that method are also recommended).
+
+            The bins defined by the ``bin_count`` and ``bin_bounds``
+            properties are used to create a dimension coordinate
+            construct for the output field construct.
+
+            Each digitized field construct must be transformable so
+            that it is broadcastable to the input field contruct's
+            data. This is done by using the metadata constructs of the
+            to create a mapping of physically compatible dimensions
+            between the fields, and then manipulating the dimensions
+            of the digitized field construct's data to ensure that
+            broadcasting can occur.
+
+        weights: optional
+            Specify the weights for the collapse calculations. The
+            weights are those that would be returned by this call of
+            the field construct's `~cf.Field.weights` method:
+            ``f.weights(weights, measure=measure, scale=scale,
+            components=True)``. See the *measure* and *scale*
+            parameters and `cf.Field.weights` for details.
+
+            .. note:: By default *weights* is `None`, resulting in
+                      unweighted calculations.
+    
+            *Parameter example:*
+              To specify weights based on cell areas use
+              ``weights='area'``.
+    
+            *Parameter example:*
+              To specify weights based on cell areas and linearly in
+              time you could set ``weights=('area', 'T')``.
+    
+        measure: `bool`, optional
+            Create weights, as defined by the *weights* parameter,
+            which are cell measures, i.e. which describe actual cell
+            sizes (e.g. cell areas) with appropriate units
+            (e.g. metres squared). By default the weights are scaled
+            to lie between 0 and 1 and have arbitrary units (see the
+            *scale* parameter).
+
+            Cell measures can be created for any combination of
+            axes. For example, cell measures for a time axis are the
+            time span for each cell with canonical units of seconds;
+            cell measures for the combination of four axes
+            representing time and three dimensional space could have
+            canonical units of metres cubed seconds.
+
+            When collapsing with the ``'integral'`` method, *measure*
+            must be True, and the units of the weights are
+            incorporated into the units of the returned field
+            construct.
+
+            .. note:: Specifying cell volume weights via
+                      ``weights=['X', 'Y', 'Z']`` or
+                      ``weights=['area', 'Z']`` (or other equivalents)
+                      will produce **an incorrect result if the
+                      vertical dimension coordinates do not define the
+                      actual height or depth thickness of every cell
+                      in the domain**. In this case,
+                      ``weights='volume'`` should be used instead,
+                      which requires the field construct to have a
+                      "volume" cell measure construct.
+
+        scale: number, optional
+            If set to a positive number then scale the weights, as
+            defined by the *weights* parameter, so that they are less
+            than or equal to that number. By default the weights are
+            scaled to lie between 0 and 1 (i.e.  *scale* is 1), and
+            have arbitrary units.
+
+            *Parameter example:*
+              To scale all weights so that they lie between 0 and 0.5:
+              ``scale=0.5``.            
+
+        mtol: number, optional        
+            Set the fraction of input array elements which is allowed
+            to contain missing data when contributing to an individual
+            output array element. Where this fraction exceeds *mtol*,
+            missing data is returned. The default is 1, meaning that a
+            missing datum in the output array occurs when its
+            contributing input array elements are all missing data. A
+            value of 0 means that a missing datum in the output array
+            occurs whenever any of its contributing input array
+            elements are missing data. Any intermediate value is
+            permitted.
+    
+            *Parameter example:*
+              To ensure that an output array element is a missing
+              datum if more than 25% of its input array elements are
+              missing data: ``mtol=0.25``.
+    
+        ddof: number, optional
+            The delta degrees of freedom in the calculation of a
+            standard deviation or variance. The number of degrees of
+            freedom used in the calculation is (N-*ddof*) where N
+            represents the number of non-missing elements contributing
+            to the calculation. By default *ddof* is 1, meaning the
+            standard deviation and variance of the population is
+            estimated according to the usual formula with (N-1) in the
+            denominator to avoid the bias caused by the use of the
+            sample mean (Bessel's correction).
+    
+        radius: optional
+            The radius used for calculating area cell measures for
+            cells defined in spherical polar coordinates. By default
+            (or if *radius* is ``'earth'``) the radius taken as
+            6371229 metres, representing the radius of the Earth. May
+            be set to any numeric scalar object, including `numpy` and
+            `Data` objects. The units of the radius are assumed to be
+            metres, unless specified by a `Data` object.
+    
+            *Parameter example:*         
+              Five equivalent ways to set a radius of 6371200 metres:
+              ``radius=6371200``, ``radius=numpy.array(6371200)``,
+              ``radius=cf.Data(6371200)``, ``radius=cf.Data(6371200,
+              'm')``, ``radius=cf.Data(6371.2, 'km')``.
+
+        verbose: `bool`, optional    
+            If True then print a description of the binned field
+            construct creation process.
+    
+    :Returns:
+
+        `Field`
+            The field construct containing the binned values.
+
+    **Examples:**
+
+    Find the range of values that lie in each bin:
+
+    >>> print(q)                                       
+    Field: specific_humidity (ncvar%q)
+    ----------------------------------
+    Data            : specific_humidity(latitude(5), longitude(8)) 0.001 1
+    Cell methods    : area: mean
+    Dimension coords: latitude(5) = [-75.0, ..., 75.0] degrees_north
+                    : longitude(8) = [22.5, ..., 337.5] degrees_east
+                    : time(1) = [2019-01-01 00:00:00]       
+    >>> print(q.array)
+    [[  7.  34.   3.  14.  18.  37.  24.  29.]
+     [ 23.  36.  45.  62.  46.  73.   6.  66.]
+     [110. 131. 124. 146.  87. 103.  57.  11.]
+     [ 29.  59.  39.  70.  58.  72.   9.  17.]
+     [  6.  36.  19.  35.  18.  37.  34.  13.]]
+    >>> indices = q.digitize(10)                                             
+    >>> b = q.bin('range', digitized=indices)                             
+    >>> print(b)                                    
+    Field: specific_humidity
+    ------------------------
+    Data            : specific_humidity(specific_humidity(10)) 0.001 1
+    Cell methods    : latitude: longitude: range
+    Dimension coords: specific_humidity(10) = [10.15, ..., 138.85000000000002] 0.001 1
+    >>> print(b.array)                                 
+    [14. 11. 11. 13. 11.  0.  0.  0.  7.  0.]
+
+    Find various metrics describing how
+    ``tendency_of_sea_water_potential_temperature_expressed_as_heat_content``
+    data varies with ``sea_water_potential_temperature`` and
+    ``sea_water_salinity``:
+
+    >>> t
+    Field: sea_water_potential_temperature (ncvar%sea_water_potential_temperature)
+    ------------------------------------------------------------------------------
+    Data            : sea_water_potential_temperature(time(1), depth(1), latitude(5), longitude(8)) K
+    Cell methods    : area: mean time(1): mean
+    Dimension coords: time(1) = [2290-06-01 00:00:00] 360_day
+                    : depth(1) = [3961.89990234375] m
+                    : latitude(5) = [-1.875, ..., 3.125] degrees_north
+                    : longitude(8) = [75.0, ..., 83.75] degrees_east
+    Auxiliary coords: model_level_number(depth(1)) = [18]
+    >>> s
+    Field: sea_water_salinity (ncvar%sea_water_salinity)
+    ----------------------------------------------------
+    Data            : sea_water_salinity(time(1), depth(1), latitude(5), longitude(8)) psu
+    Cell methods    : area: mean time(1): mean
+    Dimension coords: time(1) = [2290-06-01 00:00:00] 360_day
+                    : depth(1) = [3961.89990234375] m
+                    : latitude(5) = [-1.875, ..., 3.125] degrees_north
+                    : longitude(8) = [75.0, ..., 83.75] degrees_east
+    Auxiliary coords: model_level_number(depth(1)) = [18]
+    >>> x
+    Field: tendency_of_sea_water_potential_temperature_expressed_as_heat_content (ncvar%tend)
+    -----------------------------------------------------------------------------------------
+    Data            : tendency_of_sea_water_potential_temperature_expressed_as_heat_content(time(1), depth(1), latitude(5), longitude(8)) W m-2
+    Cell methods    : area: mean time(1): mean
+    Dimension coords: time(1) = [2290-06-01 00:00:00] 360_day
+                    : depth(1) = [3961.89990234375] m
+                    : latitude(5) = [-1.875, ..., 3.125] degrees_north
+                    : longitude(8) = [75.0, ..., 83.75] degrees_east
+    Auxiliary coords: model_level_number(depth(1)) = [18]
+    >>> print(x.array)
+    [[[[-209.72  340.86   94.75  154.21   38.54 -262.75  158.22  154.58]
+       [ 311.67  245.91 -168.16   47.61 -219.66 -270.33  226.1    52.0 ]
+       [     -- -112.34  271.67  189.22    9.92  232.39  221.17  206.0 ]
+       [     --      --  -92.31 -285.57  161.55  195.89 -258.29    8.35]
+       [     --      --   -7.82 -299.79  342.32 -169.38  254.5   -75.4 ]]]]
+
+    >>> t_indices = t.digitize(6)
+    >>> s_indices = s.digitize(4)
+
+    >>> n = x.bin('sample_size', [t_indices, s_indices])
+    >>> print(n)
+    Field: number_of_observations
+    -----------------------------
+    Data            : number_of_observations(sea_water_salinity(4), sea_water_potential_temperature(6)) 1
+    Cell methods    : latitude: longitude: point
+    Dimension coords: sea_water_salinity(4) = [6.3054151982069016, ..., 39.09366758167744] psu
+                    : sea_water_potential_temperature(6) = [278.1569468180338, ..., 303.18466695149743] K
+    >>> print(n.array)
+    [[ 1  2 2  2 --  2]
+     [ 2  1 3  3  3  2]
+     [-- -- 3 --  1 --]
+     [ 1 -- 1  3  2  1]]
+
+    >>> m = x.bin('mean', [t_indices, s_indices], weights=['X', 'Y', 'Z', 'T'])
+    >>> print(m)
+    Field: tendency_of_sea_water_potential_temperature_expressed_as_heat_content
+    ----------------------------------------------------------------------------
+    Data            : tendency_of_sea_water_potential_temperature_expressed_as_heat_content(sea_water_salinity(4), sea_water_potential_temperature(6)) W m-2
+    Cell methods    : latitude: longitude: mean
+    Dimension coords: sea_water_salinity(4) = [6.3054151982069016, ..., 39.09366758167744] psu
+                    : sea_water_potential_temperature(6) = [278.1569468180338, ..., 303.18466695149743] K
+    >>> print(m.array)
+    [[ 189.22 131.36    6.75 -41.61     --  100.04]
+     [-116.73 232.38   -4.82 180.47 134.25 -189.55]
+     [     --     --  180.69     --  47.61      --]
+     [158.22      -- -262.75  64.12 -51.83 -219.66]]
+
+    >>> i = x.bin('integral', [t_indices, s_indices], weights=['X', 'Y', 'Z', 'T'], measure=True)
+    >>> print(i)
+    Field: long_name=integral of tendency_of_sea_water_potential_temperature_expressed_as_heat_content
+    --------------------------------------------------------------------------------------------------
+    Data            : long_name=integral of tendency_of_sea_water_potential_temperature_expressed_as_heat_content(sea_water_salinity(4), sea_water_potential_temperature(6)) 86400 m3.kg.s-2
+    Cell methods    : latitude: longitude: sum
+    Dimension coords: sea_water_salinity(4) = [6.3054151982069016, ..., 39.09366758167744] psu
+                    : sea_water_potential_temperature(6) = [278.1569468180338, ..., 303.18466695149743] K
+    >>> print(i.array)
+    [[ 3655558758400.0 5070927691776.0   260864491520.0 -1605439586304.0               --  3863717609472.0]
+     [-4509735059456.0 4489564127232.0  -280126521344.0 10454746267648.0  7777254113280.0 -7317268463616.0]
+     [              --              -- 10470463373312.0               --   919782031360.0               --]
+     [ 3055211773952.0              -- -5073676009472.0  3715958833152.0 -2000787079168.0 -4243632160768.0]]
+
+    >>> w = x.bin('sum_of_weights', [t_indices, s_indices], weights=['X', 'Y', 'Z', 'T'], measure=True)
+    Field: long_name=sum_of_weights of tendency_of_sea_water_potential_temperature_expressed_as_heat_content
+    --------------------------------------------------------------------------------------------------------
+    Data            : long_name=sum_of_weights of tendency_of_sea_water_potential_temperature_expressed_as_heat_content(sea_water_salinity(4), sea_water_potential_temperature(6)) 86400 m3.s
+    Cell methods    : latitude: longitude: sum
+    Dimension coords: sea_water_salinity(4) = [7.789749830961227, ..., 36.9842486679554] psu
+                    : sea_water_potential_temperature(6) = [274.50717671712243, ..., 302.0188242594401] K
+    >>> print(w.array)
+    [[19319093248.0 38601412608.0 38628990976.0 38583025664.0            --  38619795456.0]
+     [38628990976.0 19319093248.0 57957281792.0 57929699328.0 57929695232.0  38601412608.0]
+     [         --              -- 57948086272.0            -- 19319093248.0             --]
+     [19309897728.0            -- 19309897728.0 57948086272.0 38601412608.0  19319093248.0]]
+
+    Demonstrate that the integral divided by the sum of the cell
+    measures is equal to the mean:
+
+    >>> print(i/w)
+    Field: 
+    -------
+    Data            : (sea_water_salinity(4), sea_water_potential_temperature(6)) kg.s-3
+    Cell methods    : latitude: longitude: sum
+    Dimension coords: sea_water_salinity(4) = [7.789749830961227, ..., 36.9842486679554] psu
+                    : sea_water_potential_temperature(6) = [274.50717671712243, ..., 302.0188242594401] K
+    >>> (i/w == m).all()
+    True
+
+        '''
+        if verbose:
+            print('    Method:', method) # pragma: no cover
+            
+        if method == 'integral':            
+            if weights is None:
+                raise ValueError(
+                    "Must specify weights for 'integral' calculations.")
+            
+            if not measure:
+                raise ValueError(
+                    "Must set measure=True for 'integral' calculations.")
+
+            if scale is not None:
+                raise ValueError(
+                    "Can't set scale for 'integral' calculations.")
+        #--- End: if
+        
+        axes           = []
+        bin_indices    = []
+        shape          = []
+        dims           = []
+        names          = []
+
+        # Initialize the output binned field
+        out = type(self)(properties=self.properties())
+
+        # Sort out its identity
+        if method == 'sample_size':
+            out.standard_name = 'number_of_observations'
+        elif method in ('integral', 'sum_of_squares',
+                        'sum_of_weights', 'sum_of_weights2'):
+            out.del_property('standard_name', None)
+
+        long_name = self.get_property('long_name', None)
+        if long_name is None:
+            out.long_name = method+' of '+self.get_property('standard_name', '')
+        else:
+            out.long_name = method+' of '+long_name
+
+        # ------------------------------------------------------------
+        # Create domain axes and dimension coordinates for the output
+        # binned field
+        # ------------------------------------------------------------
+        if isinstance(digitized, self.__class__):
+            digitized = (digitized,)
+
+        for f in digitized[::-1]:
+            if verbose:
+                print('    Digitized field input    :', repr(f)) # pragma: no cover
+
+            f =  self._conform_for_data_broadcasting(f)
+            if verbose:
+                print('                    conformed:', repr(f)) # pragma: no cover
+          
+            if not self._is_broadcastable(f.shape):
+                raise ValueError(                    
+                    "Conformed digitized field {!r} construct must have shape broadcastable to {}.".format(
+                        f, self.shape))
+            
+            bin_bounds        = f.get_property('bin_bounds', None)
+            bin_count         = f.get_property('bin_count', None)
+            bin_interval_type = f.get_property('bin_interval_type', None)
+            bin_units         = f.get_property('bin_units', None)
+            bin_calendar      = f.get_property('bin_calendar', None)
+            bin_standard_name = f.get_property('bin_standard_name', None)
+            bin_long_name     = f.get_property('bin_long_name', None)
+
+            if bin_count is None:
+                raise ValueError(
+                    "Digitized field {!r} construct must have a 'bin_count' property.".format(f))
+
+            if bin_bounds is None:
+                raise ValueError(
+                    "Digitized field construct {!r} must have a 'bin_bounds' property.".format(f))
+             
+            if bin_count != len(bin_bounds)/2:
+                raise ValueError(
+                    "Digitized field construct {!r} bin_count must equal len(bin_bounds)/2. Got bin_count={}, len(bin_bounds)/2={}".format(
+                        f, bin_count, len(bin_bounds)/2))
+
+            # Create dimension coordinate for bins
+            dim = DimensionCoordinate()
+            if bin_standard_name is not None:
+                dim.standard_name = bin_standard_name
+            elif bin_long_name is not None:
+                dim.long_name = bin_long_name
+
+            if bin_interval_type is not None:
+                dim.set_property('bin_interval_type', bin_interval_type)
+                
+            # Create units for the bins
+            units = Units(bin_units, bin_calendar)
+            
+            data = Data(0.5*(bin_bounds[1::2] + bin_bounds[0::2]), units=units)
+            dim.set_data(data=data, copy=False)
+            
+            bounds_data = Data(numpy_reshape(bin_bounds, (bin_count, 2)), units=units)
+            dim.set_bounds(Bounds(data=bounds_data))
+
+            if verbose:
+                print('                    bins     : {} {!r}'.format(
+                    dim.identity(), bounds_data)) # pragma: no cover
+            
+            # Set domain axis and dimension coordinate for bins
+            axis = out.set_construct(DomainAxis(dim.size))            
+            out.set_construct(dim, axes=[axis], copy=False)
+
+            axes.append(axis)
+            bin_indices.append(f.data)
+            shape.append(dim.size)
+            dims.append(dim)
+            names.append(dim.identity())
+
+        # ------------------------------------------------------------
+        # Initialize the ouput data as a totally masked array
+        # ------------------------------------------------------------
+        if method == 'sample_size':
+            dtype = int
+        else:
+            dtype = self.dtype
+            
+        data = Data.masked_all(shape=tuple(shape), dtype=dtype,
+                               units=None)
+        out.set_data(data, axes=axes, copy=False)
+        out.hardmask = False
+
+        c = self.copy()
+
+#        if return_indices:
+#            # Create a field for storing the bin indices of each value
+#            d = self.copy()
+#            shape = d.shape
+#            d.del_data(None)
+#            d.Units = Units()
+#            n_indices = len(bin_indices)
+#            axis = d.set_construct(DomainAxis(n_indices))
+#            data = Data.masked_all(shape=(n_indices,) + self.shape,
+#                                   dtype=int, units=None)
+#
+#            d.set_data(data, axes=(axis,) + d.get_data_axes(), copy=False)
+#
+#            d.hardmask = False
+#            
+#            aux = AuxiliaryCoordinate()
+#            aux.long_name = 'Bin name'            
+#            data = Data([dim.identity(strict=True) for dim in dims])
+#            aux.set_data(data, copy=False)
+#            d.set_construct(aux, axes=axis, copy=False)
+#
+#            d.del_property('standard_name', None)
+#            d.long_name = 'Bin index to which each {!r} value belongs'.format(
+#                self.identity())
+#
+#            for key in d.cell_methods:
+#                d.del_construct(key)
+#        #--- End: if
+
+        # ------------------------------------------------------------
+        # Parse the weights
+        # ------------------------------------------------------------
+        if weights is not None:
+            if not measure and scale is None:
+                scale = 1.0
+
+            weights = self.weights(weights, components=True,
+                                   scale=scale, measure=measure,
+                                   radius=radius)
+
+        # ------------------------------------------------------------
+        # Find the unique multi-dimensionsal bin indices (TODO: can I
+        # LAMA this?)
+        # ------------------------------------------------------------
+        y = numpy_empty((len(bin_indices), bin_indices[0].size), dtype=int)
+        for i, f in enumerate(bin_indices):
+            y[i, :] = f.array.flatten()
+
+        unique_indices = numpy_unique(y, axis=1)
+        del f
+        del y
+        
+        if verbose:
+            print('    Weights:', repr(weights)) # pragma: no cover
+            print('    Number of indexed ({}) bins: {}'.format(
+                ', '.join(names), unique_indices.shape[1])) # pragma: no cover
+            print('    ({}) bin indices:'.format(', '.join(names)),
+                  end=" ") # pragma: no cover
+            
+        # Loop round unique collections of bin indices        
+        for i in zip(*unique_indices):
+            if verbose:
+                print(i, end=" ")
+            
+            b = (bin_indices[0] == i[0])
+            for a, n in zip(bin_indices[1:], i[1:]):
+                b &= (a == n)
+
+            c.set_data(self.data.where(b, None, cf_masked),
+                       set_axes=False, copy=False)
+
+            result = c.collapse(method=method, weights=weights, verbose=False).data
+            out.data[i] = result.datum()
+
+#            if return_indices:
+#                b.insert_dimension(0, inplace=True)
+#                for n, ind in enumerate(i):
+#                    d.data[n] = d.data[n].where(b, ind)
+        #--- End: for
+
+        if verbose:
+            print()
+        
+        # Set correct units (note: takes them from the last processed
+        # "result" variable in the above loop)
+        out.override_units(result.Units, inplace=True)
+        out.hardmask = True
+
+        # ------------------------------------------------------------
+        # Create a cell method (if possible)
+        # ------------------------------------------------------------
+        standard_names = []
+        domain_axes = self.domain_axes.filter_by_size(ge(2))
+       
+        for da_key in domain_axes:
+            dim = self.dimension_coordinate(da_key, default=None)
+            if dim is None:
+                continue
+            
+            standard_name = dim.get_property('standard_name', None)
+            if standard_name is None:
+                continue
+
+            standard_names.append(standard_name)
+
+        if len(standard_names) == len(domain_axes):
+            cell_method = CellMethod(axes=sorted(standard_names),
+                                     method=_collapse_cell_methods[method])
+            out.set_construct(cell_method, copy=False)
+           
+ 
+        # Return
+#        if return_indices:
+#            d.hardmask = True
+#            return out, d
+        return out
+
+    
+    def histogram(self, digitized):
+        '''Return a multi-dimensional histogram of the data.
+
+    **This has moved to** `cf.histogram`
+
+        '''
+        raise RuntimeError("Use cf.histogram instead")
+            
 
     def del_construct(self, identity, default=ValueError()):
         '''Remove a metadata construct.
@@ -4802,7 +6657,8 @@ may be accessed with the `nc_global_attributes`,
         return super().del_construct(key, default=default)
 
             
-    def del_coordinate_reference(self, identity, default=ValueError()):
+    def del_coordinate_reference(self, identity=None, construct=None,
+                                 default=ValueError()):
         '''Remove a coordinate reference construct and all of its domain
     ancillary constructs.
             
@@ -4812,6 +6668,135 @@ may be accessed with the `nc_global_attributes`,
     
     :Parameters:
     
+        identity: optional
+            Select the coordinate reference construct by one of:
+    
+              * The identity or key of a coordinate reference
+                construct.
+    
+            A construct identity is specified by a string
+            (e.g. ``'grid_mapping_name:latitude_longitude'``,
+            ``'latitude_longitude'``, ``'ncvar%lat_lon'``, etc.); a
+            `Query` object (e.g. ``cf.eq('latitude_longitude')``); or
+            a compiled regular expression
+            (e.g. ``re.compile('^atmosphere')``) that selects the
+            relevant constructs whose identities match via
+            `re.search`.
+    
+            Each construct has a number of identities, and is selected
+            if any of them match any of those provided. A construct's
+            identities are those returned by its `!identities`
+            method. In the following example, the construct ``x`` has
+            two identites:
+    
+               >>> x.identities()
+               ['grid_mapping_name:latitude_longitude', 'ncvar%lat_lon']
+    
+            A identity's prefix of ``'grid_mapping_name:'`` or
+            ``'standard_name:'`` may be omitted
+            (e.g. ``'standard_name:atmosphere_hybrid_height_coordinate'``
+            and ``'atmosphere_hybrid_height_coordinate'`` are both
+            acceptable identities).
+    
+            A construct key may optionally have the ``'key%'``
+            prefix. For example ``'coordinatereference2'`` and
+            ``'key%coordinatereference2'`` are both acceptable keys.
+    
+            Note that in the output of a `print` call or `!dump`
+            method, a construct is always described by one of its
+            identities, and so this description may always be used as
+            an *identity* argument.
+    
+            *Parameter example:*
+              ``identity='standard_name:atmosphere_hybrid_height_coordinate'``
+    
+            *Parameter example:*
+              ``identity='grid_mapping_name:rotated_latitude_longitude'``
+    
+            *Parameter example:*
+              ``identity='transverse_mercator'``
+    
+            *Parameter example:*
+              ``identity='coordinatereference1'``
+    
+            *Parameter example:*
+              ``identity='key%coordinatereference1'``
+    
+            *Parameter example:*
+              ``identity='ncvar%lat_lon'``
+    
+        construct: optional
+            TODO
+
+        default: optional
+            Return the value of the *default* parameter if the
+            construct can not be removed, or does not exist. If set to
+            an `Exception` instance then it will be raised instead.
+    
+    :Returns:
+    
+            The removed coordinate reference construct.
+    
+    **Examples:**
+    
+    >>> f.del_coordinate_reference('rotated_latitude_longitude')
+    <CF CoordinateReference: rotated_latitude_longitude>
+
+        '''
+        if construct is None:
+            if identity is None:
+                raise ValueError("TODO")
+            
+            key = self.coordinate_reference(identity, key=True, default=None)
+            if key is None:
+                return self._default(
+                    default,
+                    "Can't identify construct from {!r}".format(identity))
+    
+            ref = self.del_construct(key)
+            
+            for da_key in ref.coordinate_conversion.domain_ancillaries().values():
+                self.del_construct(da_key, default=None)
+                
+            return ref
+        elif identity is not None:
+            raise ValueError("TODO")
+
+        out = []
+        
+        c_key = self.construct(construct, key=True, default=None)
+        if c_key is None:
+            return self._default(
+                default,
+                "Can't identify construct from {!r}".format(construct))
+        
+        for key, ref in tuple(self.coordinate_references.items()):
+            if c_key in ref.coordinates():
+                self.del_coordinate_reference(key, construct=None,
+                                              default=default)
+                out.append(ref)
+                continue
+
+            if c_key in ref.coordinate_conversion.domain_ancillaries().values():
+                self.del_coordinate_reference(key, construct=None,
+                                              default=default)
+                out.append(ref)
+                continue
+        #--- End: for
+        
+        return out
+
+
+    def get_coordinate_reference(self, identity=None, key=False,
+                                 construct=None, default=ValueError()):
+        '''TODO
+            
+    .. versionadded:: 3.0.2
+    
+    .. seealso:: `construct`
+
+    :Parameters:
+
         identity:
             Select the coordinate reference construct by one of:
     
@@ -4869,35 +6854,59 @@ may be accessed with the `nc_global_attributes`,
             *Parameter example:*
               ``identity='ncvar%lat_lon'``
     
+        key: `bool`, optional
+            If True then return the selected construct key. By
+            default the construct itself is returned.
+    
         default: optional
-            Return the value of the *default* parameter if the
-            construct can not be removed, or does not exist. If set to
-            an `Exception` instance then it will be raised instead.
+            Return the value of the *default* parameter if a construct
+            can not be found. If set to an `Exception` instance then
+            it will be raised instead.
     
     :Returns:
     
-            The removed coordinate reference construct.
+        `CoordinateReference` or `str`
+            The selected coordinate reference construct, or its key.
     
     **Examples:**
     
-    >>> f.del_coordinate_reference('rotated_latitude_longitude')
-    <CF CoordinateReference: rotated_latitude_longitude>
-
+    TODO
         '''
-        key = self.coordinate_reference(identity, key=True, default=None)
-        if key is None:
+        if construct is None:
+            return self.coordinate_reference(identity=identity,
+                                             key=key, default=default)
+
+        out = []
+        
+        c_key = self.construct(construct, key=True, default=None)
+        if c_key is None:
             return self._default(
                 default,
-                "Can't identify construct to delete from identity {!r}".format(identity))
-
-        ref = self.del_construct(key)
+                "Can't identify construct from {!r}".format(construct))
         
-        for da_key in ref.coordinate_conversion.domain_ancillaries().values():
-            self.del_construct(da_key, default=None)
-            
-        return ref
+        for cr_key, ref in tuple(self.coordinate_references.items()):
+            if c_key in ref.coordinates():
+                if key:
+                    if cr_key not in out:
+                        out.append(cr_key)
+                elif ref not in out:
+                    out.append(ref)
 
+                continue
 
+            if c_key in ref.coordinate_conversion.domain_ancillaries().values():
+                if key:
+                    if cr_key not in out:
+                        out.append(cr_key)
+                elif ref not in out:
+                    out.append(ref)
+                    
+                continue
+        #--- End: for
+
+        return out
+
+        
     def set_coordinate_reference(self, coordinate_reference, key=None,
                                  field=None, strict=True):
         '''Set a coordinate reference construct.
@@ -4930,10 +6939,10 @@ may be accessed with the `nc_global_attributes`,
 
         field: `Field`, optional
             A parent field construct that contains the new coordinate
-            refence construct.
+            reference construct.
 
         strict: `bool`, optional
-            If `False` then allow non-strict identities for
+            If False then allow non-strict identities for
             identifying coordinate and domain ancillary metadata
             constructs.
 
@@ -4942,7 +6951,7 @@ may be accessed with the `nc_global_attributes`,
         `str`
             The construct identifier for the coordinate refernece
             construct.
-    
+
         '''
         if field is None:
             return self.set_construct(coordinate_reference, key=key, copy=True)
@@ -4975,7 +6984,6 @@ may be accessed with the `nc_global_attributes`,
         ref.coordinate_conversion.set_domain_ancillaries(dakeys)
 
         return self.set_construct(ref, key=key, copy=False)
-    #--- End: def
 
     
     def collapse(self, method, axes=None, squeeze=False, mtol=1,
@@ -4984,12 +6992,11 @@ may be accessed with the `nc_global_attributes`,
                  within_years=None, over_days=None, over_years=None,
                  coordinate='mid_range', group_by='coords',
                  group_span=None, group_contiguous=None,
+                 measure=False, scale=None, radius='earth',
                  verbose=False, _create_zero_size_cell_bounds=False,
                  _update_cell_methods=True, i=False, _debug=False,
                  **kwargs):
-        r'''
-
-    Collapse axes of the field.
+        '''Collapse axes of the field.
     
     Collapsing one or more dimensions reduces their size and replaces
     the data along those axes with representative statistical
@@ -5007,7 +7014,7 @@ may be accessed with the `nc_global_attributes`,
 
       >>> b = a.collapse('minimum')
 
-    The collapse can be applied to only a subset of the field
+    The collapse can also be applied to any subset of the field
     construct's dimensions. In this case, the domain axis and
     coordinate constructs for the non-collapsed dimensions remain the
     same. This is implemented either with the axes keyword, or with a
@@ -5039,96 +7046,13 @@ may be accessed with the `nc_global_attributes`,
     *Example:*
       Find the horizontal maximum using the special identity 'area':
 
-      >>> b=a.collapse('area: maximum')
+      >>> b = a.collapse('area: maximum')
 
     
     **Collapse methods**
     
-    The following collapse methods are available, over any subset of
-    the domain axes:
-    
-    ========================  =====================================================
-    Method                    Description
-    ========================  =====================================================
-    ``'maximum'``             The maximum of the values.
-                              
-    ``'minimum'``             The minimum of the values.
-                                       
-    ``'sum'``                 The sum of the values.
-                              
-    ``'mid_range'``           The average of the maximum and the minimum of the
-                              values.
-                              
-    ``'range'``               The absolute difference between the maximum and
-                              the minimum of the values.
-                              
-    ``'mean'``                The unweighted mean of :math:`N` values
-                              :math:`x_i` is
-                              
-                              .. math:: \mu=\frac{1}{N}\sum_{i=1}^{N} x_i
-                              
-                              The :ref:`weighted <Weights>` mean of
-                              :math:`N` values :math:`x_i` with
-                              corresponding weights :math:`w_i` is
-    
-                              .. math:: \hat{\mu}=\frac{1}{V_{1}}
-                                                    \sum_{i=1}^{N} w_i
-                                                    x_i
-    
-                              where :math:`V_{1}=\sum_{i=1}^{N} w_i`, the
-                              sum of the weights.
-                                   
-    ``'variance'``            The unweighted variance of :math:`N` values
-                              :math:`x_i` and with :math:`N-ddof` degrees
-                              of freedom (:math:`ddof\ge0`) is
-    
-                              .. math:: s_{N-ddof}^{2}=\frac{1}{N-ddof}
-                                          \sum_{i=1}^{N} (x_i - \mu)^2
-    
-                              The unweighted biased estimate of the
-                              variance (:math:`s_{N}^{2}`) is given by
-                              :math:`ddof=0` and the unweighted unbiased
-                              estimate of the variance using Bessel's
-                              correction (:math:`s^{2}=s_{N-1}^{2}`) is
-                              given by :math:`ddof=1`.
-    
-                              The :ref:`weighted <Weights>` biased
-                              estimate of the variance of :math:`N` values
-                              :math:`x_i` with corresponding weights
-                              :math:`w_i` is
-    
-                              .. math:: \hat{s}_{N}^{2}=\frac{1}{V_{1}}
-                                                        \sum_{i=1}^{N}
-                                                        w_i(x_i -
-                                                        \hat{\mu})^{2}
-                                   
-                              The corresponding :ref:`weighted <Weights>`
-                              unbiased estimate of the variance is
-                              
-                              .. math:: \hat{s}^{2}=\frac{1}{V_{1} -
-                                                    (V_{1}/V_{2})}
-                                                    \sum_{i=1}^{N}
-                                                    w_i(x_i -
-                                                    \hat{\mu})^{2}
-    
-                              where :math:`V_{2}=\sum_{i=1}^{N} w_i^{2}`,
-                              the sum of the squares of weights. In both
-                              cases, the weights are assumed to be
-                              non-random reliability weights, as
-                              opposed to frequency weights.
-                                  
-    ``'standard_deviation'``  The variance is the square root of the variance.
-    
-    ``'sample_size'``         The sample size, :math:`N`, as would be used for 
-                              other statistical calculations.
-                              
-    ``'sum_of_weights'``      The sum of weights, :math:`V_{1}`, as would be
-                              used for other statistical calculations.
-    
-    ``'sum_of_weights2'``     The sum of squares of weights, :math:`V_{2}`, as
-                              would be used for other statistical calculations.
-    ========================  =====================================================
-    
+    See the *methods* parameter  for details.
+
 
     **Data type and missing data**
     
@@ -5333,38 +7257,91 @@ may be accessed with the `nc_global_attributes`,
 
     .. versionadded:: 1.0
     
-    .. seealso:: `weights`, `weights`, `max`, `mean`, `mid_range`,
-                 `min`, `range`, `sample_size`, `sd`, `sum`, `var`
+    .. seealso:: `bin`, `weights`, `max`, `mean`, `mid_range`, `min`,
+                 `range`, `sample_size`, `sd`, `sum`, `var`
     
     :Parameters:
-    
+        
         method: `str`
+
             Define the collapse method. All of the axes specified by
             the *axes* parameter are collapsed simultaneously by this
             method. The method is given by one of the following
-            strings:
+            strings (see
+            https://ncas-cms.github.io/cf-python/beta/tutorial.html#collapse-methods
+            for precise definitions):
+
+            ============================  ============================  ========
+            *method*                      Description                   Weighted  
+            ============================  ============================  ========
+            ``'maximum'``                 The maximum of the values.    Never
+                                      
+            ``'minimum'``                 The minimum of the values.    Never
+            
+            ``'maximum_absolute_value'``  The maximum of the absolute.  Never
+                          
+            ``'minimum_absolute_value'``  The minimum of the absolute.  Never
+            
+            ``'mid_range'``               The average of the maximum    Never
+                                          and the minimum of the
+                                          values.
+                                          
+            ``'range'``                   The absolute difference       Never
+                                          between the maximum and the
+                                          minimum of the values.
+                                          
+            ``'sum'``                     The sum of the values.        Never
+                                                                                    
+            ``'sum_of_squares'``          The sum of the squares of     Never
+                                          values.
+                                          
+            ``'sample_size'``             The sample size, i.e. the     Never
+                                          number of non-missing
+                                          values.
+
+            ``'sum_of_weights'``          The sum of weights, as        Never
+                                          would be used for other
+                                          calculations.
+                                          
+            ``'sum_of_weights2'``         The sum of squares of         Never
+                                          weights, as would be used
+                                          for other calculations.
+                                          
+            ``'mean'``                    The weighted or unweighted    May be
+                                          mean of the values.
+                                          
+            ``'variance'``                The weighted or unweighted    May be
+                                          variance of the values, with
+                                          a given number of degrees of
+                                          freedom.
+                                              
+            ``'standard_deviation'``      The square root of the        May be
+                                          weighted or unweighted
+                                          variance.
+                                          
+            ``'root_mean_square'``        The square root of the        May be
+                                          weighted or unweighted mean
+                                          of the squares of the
+                                          values.
+                                          
+            ``'integral'``                The integral of values.       Always
+            ============================  ============================  ========
     
-              ========================================  =========================
-              *method*                                  Description
-              ========================================  =========================
-              ``'max'`` or ``'maximum'``                Maximum                  
-              ``'min'`` or ``'minimum'``                Minimum                      
-              ``'sum'``                                 Sum                      
-              ``'mid_range'``                           Mid-range                
-              ``'range'``                               Range                    
-              ``'mean'`` or ``'average'`` or ``'avg'``  Mean                         
-              ``'var'`` or ``'variance'``               Variance                 
-              ``'sd'`` or ``'standard_deviation'``      Standard deviation       
-              ``'sample_size'``                         Sample size                      
-              ``'sum_of_weights'``                      Sum of weights           
-              ``'sum_of_weights2'``                     Sum of squares of weights
-              ========================================  =========================
-    
-            An alternative form is to provide a CF cell methods-like
-            string. In this case an ordered sequence of collapses may
-            be defined and both the collapse methods and their axes
-            are provided. The axes are interpreted as for the *axes*
-            parameter, which must not also be set. For example:
+            Collapse methods that are "Never" weighted ignore the
+            *weights* parameter, even if it is set.
+
+            Collapse methods that "May be" weighted will only be
+            weighted if the *weights* parameter is set.
+
+            Collapse methods that are "Always" weighted require the
+            *weights* parameter to be set.
+
+            An alternative form of providing the collapse method is to
+            provide a CF cell methods-like string. In this case an
+            ordered sequence of collapses may be defined and both the
+            collapse methods and their axes are provided. The axes are
+            interpreted as for the *axes* parameter, which must not
+            also be set. For example:
               
             >>> g = f.collapse('time: max (interval 1 hr) X: Y: mean dim3: sd')
             
@@ -5391,11 +7368,11 @@ may be accessed with the `nc_global_attributes`,
         axes: (sequence of) `str`, optional
             The axes to be collapsed, defined by those which would be
             selected by passing each given axis description to a call
-            of the field's `domain_axis` method. For example, for a
-            value of ``'X'``, the domain axis construct returned by
-            ``f.domain_axis('X'))`` is selected. If a selected axis
-            has size 1 then it is ignored. By default all axes with
-            size greater than 1 are collapsed.
+            of the field construct's `domain_axis` method. For
+            example, for a value of ``'X'``, the domain axis construct
+            returned by ``f.domain_axis('X'))`` is selected. If a
+            selected axis has size 1 then it is ignored. By default
+            all axes with size greater than 1 are collapsed.
    
             *Parameter example:*
               ``axes='X'``
@@ -5420,14 +7397,15 @@ may be accessed with the `nc_global_attributes`,
               'Z']``.
     
         weights: optional
-            Specify the weights for the collapse. **By default the
-            collapse is unweighted**. The weights are those that would
-            be returned by this call of the field's
-            `~cf.Field.weights` method: ``f.weights(weights,
-            components=True)``. See `cf.Field.weights` for details.
-            By default *weights* is `None` (``f.weights(None,
-            components=True)`` creates equal weights for all
-            elements).
+            Specify the weights for the collapse. The weights are
+            those that would be returned by this call of the field
+            construct's `~cf.Field.weights` method:
+            ``f.weights(weights, measure=measure, scale=scale,
+            components=True)``. See the *measure* and *scale*
+            parameters and `cf.Field.weights` for details.
+
+            .. note:: By default *weights* is `None`, resulting in
+                      unweighted calculations.
     
             *Parameter example:*
               To specify weights based on cell areas use
@@ -5438,13 +7416,54 @@ may be accessed with the `nc_global_attributes`,
               time you could set ``weights=('area', 'T')``.
     
             *Parameter example:*
-              To automatically detect the best weights available for
-              all axes from the metadata: ``weights='auto'``. See
-              `cf.Field.weights` for details on how the weights are
-              derived in this case.
+              To specify weights based on cell areas use
+              ``weights='area'``.
     
+            *Parameter example:*
+              To specify weights based on cell areas and linearly in
+              time you could set ``weights=('area', 'T')``.
+    
+        measure: `bool`, optional
+            Create weights which are cell measures, i.e. which
+            describe actual cell sizes (e.g. cell area) with
+            appropriate units (e.g. metres squared). By default the
+            weights are normalized and have arbitrary units.
+
+            Cell measures can be created for any combination of
+            axes. For example, cell measures for a time axis are the
+            time span for each cell with canonical units of seconds;
+            cell measures for the combination of four axes
+            representing time and three dimensional space could have
+            canonical units of metres cubed seconds.
+
+            When collapsing with the ``'integral'`` method, *measure*
+            must be True, and the units of the weights are
+            incorporated into the units of the returned field
+            construct.
+
+            .. note:: Specifying cell volume weights via
+                      ``weights=['X', 'Y', 'Z']`` or
+                      ``weights=['area', 'Z']`` (or other equivalents)
+                      will produce **an incorrect result if the
+                      vertical dimension coordinates do not define the
+                      actual height or depth thickness of every cell
+                      in the domain**. In this case,
+                      ``weights='volume'`` should be used instead,
+                      which requires the field construct to have a
+                      "volume" cell measure construct.
+
+        scale: number, optional
+            If set to a positive number then scale the weights so that
+            they are less than or equal to that number. By default the
+            weights are scaled to lie between 0 and 1 (i.e.  *scale*
+            is 1), and have arbitrary units.
+
+            *Parameter example:*
+              To scale all weights so that they lie between 0 and 0.5:
+              ``scale=0.5``.            
+
         squeeze: `bool`, optional
-            If `True` then size 1 collapsed axes are removed from the
+            If True then size 1 collapsed axes are removed from the
             output data array. By default the axes which are collapsed
             are retained in the result's data array.
     
@@ -5453,7 +7472,7 @@ may be accessed with the `nc_global_attributes`,
             to contain missing data when contributing to an individual
             output array element. Where this fraction exceeds *mtol*,
             missing data is returned. The default is 1, meaning that a
-            missing datum in the output array only occurs when its
+            missing datum in the output array occurs when its
             contributing input array elements are all missing data. A
             value of 0 means that a missing datum in the output array
             occurs whenever any of its contributing input array
@@ -6123,7 +8142,7 @@ may be accessed with the `nc_global_attributes`,
     
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         kwargs: deprecated at version 3.0.0
     
@@ -6134,14 +8153,14 @@ may be accessed with the `nc_global_attributes`,
      
         `Field` or `numpy.ndarray`
              The collapsed field. Alternatively, if the *regroup*
-             parameter is `True` then a numpy array is returned.
+             parameter is True then a `numpy` array is returned.
 
     **Examples:**
 
-    See the on-line documention for further worked examples
-    (TODOile:///home/david/cf-python/docs/dev/tutorial.html#statistical-collapses)
+    See the on-line documention for further worked examples:
+    https://ncas-cms.github.io/cf-python/tutorial.html#statistical-collapses
 
-    '''        
+        '''        
         if i:
             _DEPRECATION_ERROR_KWARGS(self, 'collapse', i=True) # pragma: no cover
 
@@ -6172,8 +8191,8 @@ may be accessed with the `nc_global_attributes`,
         # ------------------------------------------------------------
         if ':' in method:
             # Convert a cell methods string (such as 'area: mean dim3:
-            # dim2: max T: minimum height: variance') to a CellMethods
-            # object
+            # dim2: max T: minimum height: variance') to a CellMethod
+            # construct
             if axes is not None:
                 raise ValueError(
                     "Can't collapse: Can't set 'axes' when 'method' is CF-like cell methods string")
@@ -6248,7 +8267,7 @@ may be accessed with the `nc_global_attributes`,
         #--- End: for
 
         if verbose:
-            print('    all_methods, all_axes, all_within, all_over =', \
+            print('    all_methods, all_axes, all_within, all_over =',
                   all_methods, all_axes, all_within, all_over) # pragma: no cover
 
         if group is not None and len(all_axes) > 1:
@@ -6322,17 +8341,43 @@ may be accessed with the `nc_global_attributes`,
 
             if grouped_collapse:
                 if len(collapse_axes) > 1:
-                    raise ValueError("Can't do a grouped collapse multiple axes simultaneously")
+                    raise ValueError("Can't do a grouped collapse on multiple axes simultaneously")
 
                 # ------------------------------------------------------------
                 # Calculate weights
                 # ------------------------------------------------------------
                 g_weights = weights
                 if method in _collapse_weighted_methods:
-                    g_weights = f.weights(weights, scale=True, components=True)
+                    if isinstance(weights, (dict, self.__class__, Data)):
+                        if measure:
+                            raise ValueError(
+                                "TODO")
+                        
+                        if scale is not None:
+                            raise ValueError(
+                                "TODO")
+                    elif method == 'integral':
+                        if not measure:
+                            raise ValueError(
+                                "Must set measure=True for creation of weights for 'integral' calculations.")
+                        
+                        if scale is not None:
+                            raise ValueError(
+                                "Can't set scale for creation of weights for 'integral' calculations.")
+                    elif not measure and scale is None:
+                        scale = 1.0
+                    elif measure and scale is not None:
+                        raise ValueError("TODO")
+                        
+                    g_weights = f.weights(weights, components=True,
+                                          scale=scale,
+                                          measure=measure,
+                                          radius=radius)
                     if not g_weights:
                         g_weights = None
-                #--- End: if
+                        
+                elif weights is not None:
+                    raise ValueError("Can't weight a {!r} collapse".format(method))
 
                 axis = collapse_axes.key()
                 
@@ -6350,6 +8395,7 @@ may be accessed with the `nc_global_attributes`,
                                         regroup=regroup,
                                         mtol=mtol,
                                         ddof=ddof,
+                                        measure=measure,
                                         weights=g_weights,
                                         squeeze=squeeze,
                                         coordinate=coordinate,
@@ -6395,7 +8441,8 @@ may be accessed with the `nc_global_attributes`,
 #                    (_collapse_cell_methods[method], min_size))
     
             data_axes = f.get_data_axes()
-            iaxes = [data_axes.index(axis) for axis in collapse_axes]
+            iaxes = [data_axes.index(axis) for axis in collapse_axes
+                     if axis in data_axes]
 
             # ------------------------------------------------------------
             # Calculate weights
@@ -6406,15 +8453,44 @@ may be accessed with the `nc_global_attributes`,
             d_kwargs = {}
             if weights is not None:
                 if method in _collapse_weighted_methods:
-                    d_weights = f.weights(weights, scale=True, components=True)
+                    if isinstance(weights, (dict, self.__class__, Data)):
+                        if measure:
+                            raise ValueError(
+                                "TODO")
+                        
+                        if scale is not None:
+                            raise ValueError(
+                                "TODO")
+                    elif method == 'integral':
+                        if not measure:
+                            raise ValueError(
+                                "Must set measure=True for 'integral' calculations.")
+                        
+                        if scale is not None:
+                            raise ValueError(
+                                "Can't set scale for 'integral' calculations.")
+                    elif not measure and scale is None:
+                        scale = 1.0
+                    elif measure and scale is not None:
+                        raise ValueError("TODO")
+
+                    d_weights = f.weights(weights, components=True,
+                                          scale=scale,
+                                          measure=measure,
+                                          radius=radius)
+
                     if d_weights:
                         d_kwargs['weights'] = d_weights
-                elif not equals(weights, 'auto'):  # doc this
+
+#                elif weights is not None:
+#                    raise ValueError("Can't weight a {!r} collapse".format(method))
+
+                elif not equals(weights, 'auto'):  # doc this TODO is this right?
                     for x in iaxes:
                         if (x,) in d_kwargs:
                             raise ValueError(
-"Can't collapse: Can't weight {!r} collapse method".format(method))
-
+                                "Can't collapse: Can't weight {!r} collapse method".format(
+                                    method))
             #--- End: if
 
             if method in _collapse_ddof_methods:
@@ -6540,7 +8616,6 @@ may be accessed with the `nc_global_attributes`,
 
                 bounds = Bounds(data=Data([bounds_data], units=units))
 
-#                dim.insert_data(data, bounds=bounds, copy=False)
                 dim.set_data(data, copy=False)
                 dim.set_bounds(bounds, copy=False)
             #--- End: for
@@ -6548,7 +8623,6 @@ may be accessed with the `nc_global_attributes`,
             # --------------------------------------------------------
             # Update the cell methods
             # --------------------------------------------------------
-#            if kwargs.get('_update_cell_methods', True):
             if _update_cell_methods:
                 f._collapse_update_cell_methods(method,
                                                 collapse_axes=collapse_axes,
@@ -6562,16 +8636,16 @@ may be accessed with the `nc_global_attributes`,
         # Return the collapsed field (or the classification array)
         # ------------------------------------------------------------
         return f
-    #--- End: def
+
 
     def _collapse_grouped(self, method, axis, within=None, over=None,
                           within_days=None, within_years=None,
                           over_days=None, over_years=None, group=None,
                           group_span=None, group_contiguous=False,
-#                          input_axis=None,
-                          mtol=None, ddof=None,
-                          regroup=None, coordinate=None, weights=None,
-                          squeeze=None, group_by=None, verbose=False):
+                          mtol=None, ddof=None, regroup=None,
+                          coordinate=None, measure=False,
+                          weights=None, squeeze=None, group_by=None,
+                          verbose=False):
         '''TODO
         
     :Parameters:
@@ -6909,7 +8983,7 @@ may be accessed with the `nc_global_attributes`,
                 As for the *group_by* parameter of the `collapse` method.
         
             time_interval: `bool`
-                If `True` then then return a tuple of date-time
+                If True then then return a tuple of date-time
                 objects, rather than a tuple of `Data` objects.
         
         :Returns:
@@ -7041,7 +9115,6 @@ may be accessed with the `nc_global_attributes`,
 
             if isinstance(group, numpy_ndarray):
                 classification = numpy_squeeze(group.copy())
-#                coord = self.dimension_coordinates.filter_by_axis('exact', axis).value()
 
                 if classification.dtype.kind != 'i':
                     raise ValueError(
@@ -7153,7 +9226,6 @@ may be accessed with the `nc_global_attributes`,
                 # ----------------------------------------------------
                 coord = self.dimension_coordinates.filter_by_axis('exact', axis).value(None)
                 if coord is None:
-#                    coord = self.aux(axes=axis, ndim=1)
                     coord = self.auxiliary_coordinates.filter_by_axis('exact', axis).value(None)
                     if coord is None:
                         raise ValueError("asdad8777787 TODO")
@@ -7557,7 +9629,6 @@ may be accessed with the `nc_global_attributes`,
                                 ignore_n -= 1
                                 continue
                         else:
-#                            coord = pc.coord(input_axis, ndim=1)
                             coord = pc.coordinates.filter_by_axis('exact', axis).value(None)
                             if coord is None:
                                 raise ValueError(
@@ -7637,7 +9708,6 @@ may be accessed with the `nc_global_attributes`,
             # Hack to fix missing bounds!            
             for g in fl:
                 try:
-#                    g.dim(axis).get_bounds(create=True, insert=True, copy=False)
                     c = g.dimension_coordinates.filter_by_axis('exact', axis).value()
                     if not c.has_bounds():
                         c.set_bounds(c.create_bounds())
@@ -7649,8 +9719,6 @@ may be accessed with the `nc_global_attributes`,
             # Sort the list of collapsed fields
             # --------------------------------------------------------
             if coord is not None and coord.isdimension:
-#                fl.sort(key=lambda g: g.dim(axis).datum(0),
-#                        reverse=coord.decreasing)
                 fl.sort(
                     key=lambda g: g.dimension_coordinates.filter_by_axis('exact', axis).value().datum(0),
                     reverse=coord.decreasing)
@@ -7707,7 +9775,11 @@ may be accessed with the `nc_global_attributes`,
         if input_axes and tuple(input_axes) == ('area',):
             axes = ('area',)
         else:
-            axes   = tuple(collapse_axes)
+            axes = tuple(collapse_axes)
+
+        comment = None
+#        if method == 'integral':
+#            comment = 'integral'
             
         method = _collapse_cell_methods.get(method, method)
 
@@ -7717,6 +9789,9 @@ may be accessed with the `nc_global_attributes`,
         elif over:
             cell_method.set_qualifier('over', over)
 
+        if comment:
+            cell_method.set_qualifier('comment', comment)
+            
         if original_cell_methods:
             # There are already some cell methods
             if len(collapse_axes) == 1:
@@ -7738,11 +9813,12 @@ may be accessed with the `nc_global_attributes`,
                         # It was a null collapse (i.e. the method is
                         # the same as the last one and the size of the
                         # collapsed axis hasn't changed).
-                        cell_method = None
                         if within:
                             lastcm.within = within
                         elif over:
                             lastcm.over = over
+
+                        cell_method = None
         #--- End: if
     
         if cell_method is not None:
@@ -7751,7 +9827,7 @@ may be accessed with the `nc_global_attributes`,
         if verbose:
             print('    Modified cell methods =', self.cell_methods.ordered()) # pragma: no cover
 
-
+            
     def direction(self, identity, axes=None, **kwargs):
         '''Whether or not a domain axis is increasing.
 
@@ -7775,8 +9851,8 @@ may be accessed with the `nc_global_attributes`,
                 construct's data.
     
             The *identity* parameter selects the domain axis as
-            returned by this call of the field's `domain_axis` method:
-            ``f.domain_axis(identity)``.
+            returned by this call of the field construct's
+            `domain_axis` method: ``f.domain_axis(identity)``.
     
         axes: deprecated at version 3.0.0
             Use the *identity* parmeter instead.
@@ -7853,17 +9929,17 @@ may be accessed with the `nc_global_attributes`,
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: `domain_axis`, `flip`, `squeeze`, `transpose`,
-                 `unsqueeze`
+    .. seealso:: `domain_axis`, `flatten`, `flip`, `squeeze`,
+                 `transpose`, `unsqueeze`
     
     :Parameters:
     
         axis:
             Select the domain axis to, defined by that which would be
             selected by passing the given axis description to a call
-            of the field's `domain_axis` method. For example, for a
-            value of ``'X'``, the domain axis construct returned by
-            ``f.domain_axis('X'))`` is selected.
+            of the field construct's `domain_axis` method. For
+            example, for a value of ``'X'``, the domain axis construct
+            returned by ``f.domain_axis('X'))`` is selected.
     
         position: `int`, optional
             Specify the position that the new axis will have in the
@@ -7871,12 +9947,12 @@ may be accessed with the `nc_global_attributes`,
             slowest varying position.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
     :Returns:
     
         `Field`, or `None`
-            The field construct with expanded data, or `None` of the
+            The field construct with expanded data, or `None` if the
             operation was in-place.
     
     **Examples:**
@@ -7896,7 +9972,7 @@ may be accessed with the `nc_global_attributes`,
         axis = self.domain_axis(axis, key=True, default=ValueError(
             "Can't identify a unique axis to insert"))
 
-        # Expand the dims in the field's data array
+        # Expand the dims in the field construct's data array
         super(Field, f).insert_dimension(axis=axis, position=position,
                                          inplace=True)
 
@@ -7906,145 +9982,194 @@ may be accessed with the `nc_global_attributes`,
 
 
     def indices(self, *mode, **kwargs):
-        '''Create indices based on domain metadata that define a subspace of
-    the field.
+        '''Create indices that define a subspace of the field construct.
 
-    The subspace is defined in "domain space" via data array values of its
-    domain items: dimension coordinate, auxiliary coordinate, cell
-    measure, domain ancillary and field ancillary objects.
-    
-    If metadata items are not specified for an axis then a full slice
-    (``slice(None)``) is assumed for that axis.
-    
-    Values for size 1 axes which are not spanned by the field's data array
-    may be specified, but only indices for axes which span the field's
-    data array will be returned.
-    
-    The conditions may be given in any order.
-    
-    .. seealso:: `where`, `subspace`
+    The subspace is defined by identifying indices based on the
+    metadata constructs.
+
+    Metadata constructs are selected conditions are specified on their
+    data. Indices for subspacing are then automatically inferred from
+    where the conditions are met.
+
+    The returned tuple of indices may be used to created a subspace by
+    indexing the original field construct with them.
+
+    Metadata constructs and the conditions on their data are defined
+    by keyword parameters.
+
+    * Any domain axes that have not been identified remain unchanged.
+
+    * Multiple domain axes may be subspaced simultaneously, and it
+      doesn't matter which order they are specified in.
+
+    * Subspace criteria may be provided for size 1 domain axes that
+      are not spanned by the field construct's data.
+
+    * Explicit indices may also be assigned to a domain axis
+      identified by a metadata construct, with either a Python `slice`
+      object, or a sequence of integers or booleans.
+
+    * For a dimension that is cyclic, a subspace defined by a slice or
+      by a `Query` instance is assumed to "wrap" around the edges of
+      the data.
+
+    * Conditions may also be applied to multi-dimensionsal metadata
+      constructs. The "compress" mode is still the default mode (see
+      the positional arguments), but because the indices may not be
+      acting along orthogonal dimensions, some missing data may still
+      need to be inserted into the field construct's data.
+
+    **Auxiliary masks**
+
+    When creating an actual subspace with the indices, if the first
+    element of the tuple of indices is ``'mask'`` then the extent of
+    the subspace is defined only by the values of elements three and
+    onwards. In this case the second element contains an "auxiliary"
+    data mask that is applied to the subspace after its initial
+    creation, in order to set unselected locations to missing data.
+
+    .. seealso:: `subspace`, `where`, `__getitem__`, `__setitem__`
     
     :Parameters:
-    
-        mode: *optional*
-    
-            ==============  ==============================================
-            *mode*           Description
-            ==============  ==============================================
-            ``'compress'``
-    
-            ``'envelope'``
-    
-            ``'full'``
-            ==============  ==============================================
+        
+        mode: `str`, *optional*
+            There are three modes of operation, each of which provides
+            indices for a different type of subspace:
+
+            ==============  ==========================================
+            *mode*          Description
+            ==============  ==========================================
+            ``'compress'``  This is the default mode. Unselected
+                            locations are removed to create the
+                            returned subspace. Note that if a
+                            multi-dimensional metadata construct is
+                            being used to define the indices then some
+                            missing data may still be inserted at
+                            unselected locations.
+            
+            ``'envelope'``  The returned subspace is the smallest that
+                            contains all of the selected
+                            indices. Missing data is inserted at
+                            unselected locations within the envelope.
+            
+            ``'full'``      The returned subspace has the same domain
+                            as the original field construct. Missing
+                            data is inserted at unselected locations.
+            ==============  ==========================================
     
         kwargs: *optional*
-            Keyword parameters identify items of the domain (such as a
-            particular coordinate type) and its value sets conditions on
-            their data arrays (e.g. the actual coordinate values). Indices
-            are created which, for each axis, select where the conditions
-            are met.
-    
-            A keyword name is a string which selects a unique item of the
-            field. The string may be any string value allowed by the
-            *description* parameter of the field's `item` method, which is
-            used to select a unique domain item. See `cf.Field.item` for
-            details.
-            
-              *Parameter example:*           
-                The keyword ``lat`` will select the item returned by
-                ``f.item('lat', role='dam')``. See the *exact* parameter.
-    
-            In general, a keyword value specifies a test on the selected
-            item's data array which identifies axis elements. The returned
-            indices for this axis are the positions of these elements.
-    
-              *Parameter example:*
-                To create indices for the northern hemisphere, assuming
-                that there is a coordinate with identity "latitude":
-                ``f.indices(latitude=cf.ge(0))``
-    
-              *Parameter example:*
-                To create indices for the northern hemisphere, identifying
-                the latitude coordinate by its longtg name:
-                ``f.indices(**{'long_name:latitude': cf.ge(0)})``. In this
-                case it is necessary to use the ``**`` syntax because the
-                ``:`` character is not allowed in keyword parameter names.
-    
-            If the value is a `slice` object then it is used as the axis
-            indices, without testing the item's data array.
-    
-              *Parameter example:*
-                To create indices for every even numbered element along
-                the "Z" axis: ``f.indices(Z=slice(0, None, 2))``.
-    
-    
-            **Multidimensional items**
-              Indices based on items which span two or more axes are
-              possible if the result is a single element index for each of
-              the axes spanned. In addition, two or more items must be
-              provided, each one spanning the same axes  (in any order).
-    
-                *Parameter example:*          
-                  To create indices for the unique location 45 degrees
-                  north, 30 degrees east when latitude and longitude are
-                  stored in 2-dimensional auxiliary coordiantes:
-                  ``f.indices(latitude=45, longitude=30)``. Note that this
-                  example would also work if latitude and longitude were
-                  stored in 1-dimensional dimensional or auxiliary
-                  coordinates, but in this case the location would not
-                  have to be unique.
-    
+            A keyword name is an identity of a metadata construct, and
+            the keyword value provides a condition for inferring
+            indices that apply to the dimension (or dimensions)
+            spanned by the metadata construct's data. Indices are
+            created that select every location for which the metadata
+            construct's data satisfies the condition.
+
     :Returns:
     
         `tuple`
-            
+            The indices meeting the conditions.
+
     **Examples:**
     
-    These examples use the following field, which includes a dimension
-    coordinate object with no identity (``ncvar:model_level_number``)
-    and which has a data array which doesn't span all of the domain
-    axes:
-    
-    
-    >>> print(f)
-    eastward_wind field summary
-    ---------------------------
-    Data           : eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1
-    Cell methods   : time: mean
-    Axes           : time(3) = [1979-05-01 12:00:00, ..., 1979-05-03 12:00:00] gregorian
-                   : air_pressure(5) = [850.0, ..., 50.0] hPa
-                   : grid_longitude(106) = [-20.54, ..., 25.66] degrees
-                   : grid_latitude(110) = [23.32, ..., -24.64] degrees
-    Aux coords     : latitude(grid_latitude(110), grid_longitude(106)) = [[67.12, ..., 22.89]] degrees_N
-                   : longitude(grid_latitude(110), grid_longitude(106)) = [[-45.98, ..., 35.29]] degrees_E
-    Coord refs     : <CF CoordinateReference: rotated_latitude_longitude>
-    
-    
-    >>> f.indices(lat=23.32, lon=-20.54)
-    (slice(0, 3, 1), slice(0, 5, 1), slice(0, 1, 1), slice(0, 1, 1))
-    
-    >>> f.indices(grid_lat=slice(50, 2, -2), grid_lon=[0, 1, 3, 90]) 
-    (slice(0, 3, 1), slice(0, 5, 1), slice(50, 2, -2), [0, 1, 3, 90])
-    
-    >>> f.indices(grid_lon=cf.wi(0, 10, 'degrees'), air_pressure=850)
-    (slice(0, 3, 1), slice(0, 1, 1), slice(0, 110, 1), slice(47, 70, 1))
-    
-    >>> f.indices(grid_lon=cf.wi(0, 10), air_pressure=cf.eq(85000, 'Pa')
-    (slice(0, 3, 1), slice(0, 1, 1), slice(0, 110, 1), slice(47, 70, 1))
-    
-    >>> f.indices(grid_long=cf.gt(0, attr='lower_bounds'))
-    (slice(0, 3, 1), slice(0, 5, 1), slice(0, 110, 1), slice(48, 106, 1))
+    >>> print(q)
+    Field: specific_humidity (ncvar%q)
+    ----------------------------------
+    Data            : specific_humidity(latitude(5), longitude(8)) 1
+    Cell methods    : area: mean
+    Dimension coords: latitude(5) = [-75.0, ..., 75.0] degrees_north
+                    : longitude(8) = [22.5, ..., 337.5] degrees_east
+                    : time(1) = [2019-01-01 00:00:00]
+    >>> indices = q.indices(X=112.5)                                                   
+    >>> print(indices)
+    (slice(0, 5, 1), slice(2, 3, 1))
+    >>> q[indicies]
+    <CF Field: specific_humidity(latitude(5), longitude(1)) 1>
+    >>> q.indices(X=112.5, latitude=cf.gt(-60))                              
+    (slice(1, 5, 1), slice(2, 3, 1))
+    >>> q.indices(latitude=cf.eq(-45) | cf.ge(20))                           
+    (array([1, 3, 4]), slice(0, 8, 1))
+    >>> q.indices(X=[1, 2, 4], Y=slice(None, None, -1))                      
+    (slice(4, None, -1), array([1, 2, 4]))
+    >>> q.indices(X=cf.wi(-100, 200))                                        
+    (slice(0, 5, 1), slice(-2, 4, 1))
+    >>> q.indices(X=slice(-2, 4))                                            
+    (slice(0, 5, 1), slice(-2, 4, 1))
+    >>> q.indices('compress', X=[1, 2, 4, 6])                                
+    (slice(0, 5, 1), array([1, 2, 4, 6]))
+    >>> q.indices(Y=[True, False, True, True, False])
+    (array([0, 2, 3]), slice(0, 8, 1))
+    >>> q.indices('envelope', X=[1, 2, 4, 6])                                
+    ('mask', [<CF Data(1, 6): [[False, ..., False]]>], slice(0, 5, 1), slice(1, 7, 1))
+    >>> indices = q.indices('full', X=[1, 2, 4, 6])                                    
+    ('mask', [<CF Data(1, 8): [[True, ..., True]]>], slice(0, 5, 1), slice(0, 8, 1))
+    >>> print(indices)
+    >>> print(q)
+    <CF Field: specific_humidity(latitude(5), longitude(8)) 1>
+
+    >>> print(a)
+    Field: air_potential_temperature (ncvar%air_potential_temperature)
+    ------------------------------------------------------------------
+    Data            : air_potential_temperature(time(120), latitude(5), longitude(8)) K
+    Cell methods    : area: mean
+    Dimension coords: time(120) = [1959-12-16 12:00:00, ..., 1969-11-16 00:00:00]
+                    : latitude(5) = [-75.0, ..., 75.0] degrees_north
+                    : longitude(8) = [22.5, ..., 337.5] degrees_east
+                    : air_pressure(1) = [850.0] hPa    
+    >>> a.indices(T=410.5)                                                   
+    (slice(2, 3, 1), slice(0, 5, 1), slice(0, 8, 1))
+    >>> a.indices(T=cf.dt('1960-04-16'))                                     
+    (slice(4, 5, 1), slice(0, 5, 1), slice(0, 8, 1))
+    >>> indices = a.indices(T=cf.wi(cf.dt('1962-11-01'), cf.dt('1967-03-17 07:30')))
+    >>> print(indices)
+    (slice(35, 88, 1), slice(0, 5, 1), slice(0, 8, 1))
+    >>> a[indices]
+    <CF Field: air_potential_temperature(time(53), latitude(5), longitude(8)) K>
+
+    >>> print(t)
+    Field: air_temperature (ncvar%ta)
+    ---------------------------------
+    Data            : air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K
+    Cell methods    : grid_latitude(10): grid_longitude(9): mean where land (interval: 0.1 degrees) time(1): maximum
+    Field ancils    : air_temperature standard_error(grid_latitude(10), grid_longitude(9)) = [[0.76, ..., 0.32]] K
+    Dimension coords: atmosphere_hybrid_height_coordinate(1) = [1.5]
+                    : grid_latitude(10) = [2.2, ..., -1.76] degrees
+                    : grid_longitude(9) = [-4.7, ..., -1.18] degrees
+                    : time(1) = [2019-01-01 00:00:00]
+    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
+                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
+                    : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., b'kappa']
+    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
+    Coord references: grid_mapping_name:rotated_latitude_longitude
+                    : standard_name:atmosphere_hybrid_height_coordinate
+    Domain ancils   : ncvar%a(atmosphere_hybrid_height_coordinate(1)) = [10.0] m
+                    : ncvar%b(atmosphere_hybrid_height_coordinate(1)) = [20.0]
+                    : surface_altitude(grid_latitude(10), grid_longitude(9)) = [[0.0, ..., 270.0]] m
+    >>> indices = t.indices(latitude=cf.wi(51, 53))                                    
+    >>> print(indices)
+    ('mask', [<CF Data(1, 5, 9): [[[False, ..., False]]]>], slice(0, 1, 1), slice(3, 8, 1), slice(0, 9, 1))
+    >>> t[indices]
+    <CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(5), grid_longitude(9)) K>
 
         '''
         if 'exact' in mode:
-            _DEPRECATION_ERROR("'exact' mode has been deprecated and is no longer available. It is now assumed that, where applicable, keyword arguments not regular expressions. Use 're.compile' keywords for regular expressions.") # pragma: no cover
+            _DEPRECATION_ERROR_ARG(
+                self, 'indices', 'exact',
+                "Keywords are now never interpreted as regular expressions.") # pragma: no cover
+            
+        if len(mode) > 2:
+            raise ValueError("Can't provide more than two positional arguments.")
             
         envelope = 'envelope' in mode
         full     = 'full' in mode
         compress = 'compress' in mode or not (envelope or full)
         _debug   = '_debug' in mode
 
+        if not _debug and len(mode) == 2:
+            raise ValueError(
+                "Can't provide {0[0]!r} and {0[1]!r} positional arguments in the same call.".format(
+                    mode))
+        
         if _debug:
             print('Field.indices:') # pragma: no cover
             print('    envelope, full, compress, _debug =', envelope, full, compress, _debug) # pragma: no cover
@@ -8136,16 +10261,14 @@ may be accessed with the `nc_global_attributes`,
                     # 1-dimensional CASE 1: Value is already an index,
                     #                       e.g. [0], (0,3),
                     #                       slice(0,4,2),
-                    #                       numpy.array([2,4,7])
+                    #                       numpy.array([2,4,7]),
+                    #                       [True, False, True]
                     #-------------------------------------------------
                     if _debug:
                         print('    1-d CASE 1: ',) # pragma: no cover
                         
                     index = value
                     
-#                    if envelope or full:
-#                        raise ValueError(
-#                            "Can't create 'full' nor 'envelope' indices from {!r}".format(value))
                     if envelope or full:
                         size = self.constructs[axis].get_size()
                         d = Data(list(range(size)))
@@ -8244,7 +10367,8 @@ may be accessed with the `nc_global_attributes`,
                         index = slice(None)
 
                 else:
-                    raise ValueError("Must specify a domain axis construct or a construct with data for which to create indices")
+                    raise ValueError(
+                        "Must specify a domain axis construct or a construct with data for which to create indices")
 
                 if _debug:
                     print('    index =', index) # pragma: no cover
@@ -8347,7 +10471,7 @@ may be accessed with the `nc_global_attributes`,
                         Path
                     except NameError:
                         raise ImportError(
-                            "Must install matplotlib to create indices based on a {}-d construct and a 'contains' Query object".format(
+                            "Must install matplotlib to create indices based on {}-d constructs and a 'contains' Query object".format(
                                 constructs[0].ndim))
                     
                     if n_items != 2:
@@ -8360,8 +10484,6 @@ may be accessed with the `nc_global_attributes`,
 
                     # Remove grid cells if, upon closer inspection,
                     # they do actually contain the point.
-#                    for i in zip(*zip(*bounds)):
-#                        print (i)
                     delete = [n for n, vertices in enumerate(zip(*zip(*bounds)))
                               if not Path(zip(*vertices)).contains_point(points2)]
                     
@@ -8486,14 +10608,14 @@ may be accessed with the `nc_global_attributes`,
               ``axes=[1, 0]``
     
         set_axes: `bool`, optional
-            If `False` then do not set the domain axes constructs that
+            If False then do not set the domain axes constructs that
             are spanned by the data, even if the *axes* parameter has
             been set. By default the axes are set either according to
             the *axes* parameter, or an attempt will be made to assign
             existing domain axis constructs to the data.
     
         copy: `bool`, optional
-            If `True` then set a copy of the data. By default the data
+            If True then set a copy of the data. By default the data
             are not copied.
        
     :Returns:
@@ -8532,6 +10654,16 @@ may be accessed with the `nc_global_attributes`,
 
         '''
         if not set_axes:
+            if not data.Units:
+                units = getattr(self, 'Units', None)
+                if units is not None:
+                    if copy:
+                        copy = False
+                        data = data.override_units(units, inplace=False)
+                    else:
+                        data.override_units(units, inplace=True)
+            #--- End: if
+            
             super(cfdm.Field, self).set_data(data, axes=None, copy=copy)
             return
             
@@ -8639,7 +10771,7 @@ may be accessed with the `nc_global_attributes`,
                 else:
                     data.override_units(units, inplace=True)
         #--- End: if
-            
+
         super(cfdm.Field, self).set_data(data, axes=axes, copy=copy)
 
 
@@ -8865,7 +10997,7 @@ may be accessed with the `nc_global_attributes`,
 
     def convolution_filter(self, weights, axis=None, mode=None,
                            cval=None, origin=0, update_bounds=True,
-                           inplace=False, i=False):
+                           inplace=False, i=False, _bounds=True):
         '''Return the field convolved along the given axis with the specified
     filter.
     
@@ -8888,9 +11020,9 @@ may be accessed with the `nc_global_attributes`,
         axis:
             Select the domain axis over which the filter is to be
             applied, defined by that which would be selected by
-            passing the given axis description to a call of the
-            field's `domain_axis` method. For example, for a value of
-            ``'X'``, the domain axis construct returned by
+            passing the given axis description to a call of the field
+            construct's `domain_axis` method. For example, for a value
+            of ``'X'``, the domain axis construct returned by
             ``f.domain_axis('X'))`` is selected.
                 
         mode: `str`, optional
@@ -8950,14 +11082,14 @@ may be accessed with the `nc_global_attributes`,
               the and the next three points.
     
         update_bounds: `bool`, optional
-            If `False` then the bounds of a dimension coordinate
+            If False then the bounds of a dimension coordinate
             construct that spans the convolved axis are not
             altered. By default, the bounds of a dimension coordinate
             construct that spans the convolved axis are updated to
             reflect the width and origin of the window.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -9016,10 +11148,9 @@ may be accessed with the `nc_global_attributes`,
             if masked or (mode == 'constant' and numpy_isnan(cval)):
                 with numpy_errstate(invalid='ignore'):
                     output_array = numpy_ma_masked_invalid(output_array)
-           #--- End: if
+            #--- End: if
             
             sections[k] = Data(output_array, units=self.Units)
-        #--- End: for
 
         # Glue the sections back together again
         new_data = Data.reconstruct_sectioned_data(sections)
@@ -9034,37 +11165,35 @@ may be accessed with the `nc_global_attributes`,
         f.set_data(new_data, axes=self.get_data_axes(), copy=False)
 
         # Update the bounds of the convolution axis if necessary
-        if update_bounds:
-            coord = f.dimension_coordinate(axis_key, default=None)
-            if coord is not None and coord.has_bounds():
-                old_bounds = coord.bounds.array
-                length = old_bounds.shape[0]
-                new_bounds = numpy_empty((length, 2))
-                len_weights = len(weights)
-                lower_offset = len_weights//2 + origin
-                upper_offset = len_weights - 1 - lower_offset
-                if mode == 'wrap':
-                    if coord.direction():
-                        new_bounds[:, 0] = coord.roll(0,  upper_offset).bounds.array[:, 0]
-                        new_bounds[:, 1] = coord.roll(0, -lower_offset).bounds.array[:, 1] + coord.period()
-                    else:
-                        new_bounds[:, 0] = coord.roll(0,  upper_offset).bounds.array[:, 0] + 2*coord.period()
-                        new_bounds[:, 1] = coord.roll(0, -lower_offset).bounds.array[:, 1] + coord.period()
+        coord = f.dimension_coordinate(axis_key, default=None)
+        if _bounds and coord is not None and coord.has_bounds():
+            old_bounds = coord.bounds.array
+            length = old_bounds.shape[0]
+            new_bounds = numpy_empty((length, 2))
+            len_weights = len(weights)
+            lower_offset = len_weights//2 + origin
+            upper_offset = len_weights - 1 - lower_offset
+            if mode == 'wrap':
+                if coord.direction():
+                    new_bounds[:, 0] = coord.roll(0,  upper_offset).bounds.array[:, 0]
+                    new_bounds[:, 1] = coord.roll(0, -lower_offset).bounds.array[:, 1] + coord.period()
                 else:
-                    new_bounds[upper_offset:length, 0] = old_bounds[0:length - upper_offset, 0]
-                    new_bounds[0:upper_offset, 0] = old_bounds[0, 0]
-                    new_bounds[0:length - lower_offset, 1] = old_bounds[lower_offset:length, 1]
-                    new_bounds[length - lower_offset:length, 1] = old_bounds[length - 1, 1]
-
-                coord.set_bounds(Bounds(data=Data(new_bounds, units=coord.Units)))
-        #--- End: if
+                    new_bounds[:, 0] = coord.roll(0,  upper_offset).bounds.array[:, 0] + 2*coord.period()
+                    new_bounds[:, 1] = coord.roll(0, -lower_offset).bounds.array[:, 1] + coord.period()
+            else:
+                new_bounds[upper_offset:length, 0] = old_bounds[0:length - upper_offset, 0]
+                new_bounds[0:upper_offset, 0] = old_bounds[0, 0]
+                new_bounds[0:length - lower_offset, 1] = old_bounds[lower_offset:length, 1]
+                new_bounds[length - lower_offset:length, 1] = old_bounds[length - 1, 1]
+                
+            coord.set_bounds(Bounds(data=Data(new_bounds, units=coord.Units)))
 
         if inplace:
             f = None
         return f
 
 
-    def convert(self, identity, full_domain=True):
+    def convert(self, identity, full_domain=True, cellsize=False):
         '''Convert a metadata construct into a new field construct.
 
     The new field construct has the properties and data of the
@@ -9073,7 +11202,7 @@ may be accessed with the `nc_global_attributes`,
     (such as dimension coordinate and coordinate reference constructs)
     that define its domain.
     
-    The cf.read function allows a field construct to be derived
+    The `cf.read` function allows a field construct to be derived
     directly from a netCDF variable that corresponds to a metadata
     construct. In this case, the new field construct will have a
     domain limited to that which can be inferred from the
@@ -9133,10 +11262,14 @@ may be accessed with the `nc_global_attributes`,
               ``identity='ncvar%areacello'``
     
         full_domain: `bool`, optional
-            If `False` then do not create a domain, other than domain
+            If False then do not create a domain, other than domain
             axis constructs, for the new field construct. By default
             as much of the domain as possible is copied to the new
             field construct.
+    
+        cellsize: `bool`, optional
+            If True then create a field construct from the selected
+            metadata construct's cell sizes.
     
     :Returns:	
     
@@ -9150,32 +11283,145 @@ may be accessed with the `nc_global_attributes`,
         '''
         key = self.construct_key(identity, default=None)
         if key is None:
-            raise ValueError("Can't find metadata construct with identity {!r}".format(
-                identity))
+            raise ValueError(
+                "Can't find metadata construct with identity {!r}".format(
+                    identity))
 
-        return super().convert(key, full_domain=full_domain)
+        f = super().convert(key, full_domain=full_domain)
+
+        if cellsize:
+            # Change the new field's data to cell sizes
+            construct = self.construct(key)
+            try:
+                cs = construct.cellsize
+            except AttributeError as error:
+                raise ValueError(error)
+
+            f.set_data(cs.data, set_axes=False, copy=False)
+
+        return f
+
+
+    def cumsum(self, axis, masked_as_zero=False, coordinate=None,
+               inplace=False):
+        '''Return the field cumulatively summed along the given axis.
+        
+    The cell bounds of the axis are updated to describe the range over
+    which the sums apply, and a new "sum" cell method construct is
+    added to the resulting field construct.
+
+    .. versionadded:: 3.0.0
+        
+    .. seealso:: `collapse`, `convolution_filter`, `sum`
+
+    :Parameters:
+    
+        axis:
+            Select the domain axis over which the cumulative sums are
+            to be calculated, defined by that which would be selected
+            by passing the given axis description to a call of the
+            field construct's `domain_axis` method. For example, for a
+            value of ``'X'``, the domain axis construct returned by
+            ``f.domain_axis('X'))`` is selected.
+
+        masked_as_zero: `bool`, optional
+            If True then set missing data values to zero before
+            calculating the cumulative sum. By default the output data
+            will be masked at the same locations as the original data.
+    
+        coordinate: `str`, optional
+            Set how the cell coordinate values for the summed axis are
+            defined. By default they are unchanged from the original
+            field construct, but if *coordinate* is set to
+            ``'mid_range'`` then the each coordinate value is replaced
+            by the mid_range of the updated cell bounds.
+
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+    :Returns:
+
+        `Field` or `None`
+            The field construct with the cumulatively summed
+            dimension, or `None` if the operation was in-place.
+
+    **Examples:**
+        
+    >>> g = f.cumsum('T')
+
+    >>> g = f.cumsum('latitude', masked_as_zero=True)
+
+    >>> g = f.cumsum('latitude', coordinate='mid_range')
+
+    >>> f.cumsum('latitude', inplace=True)
+
+        '''
+        # Retrieve the axis
+        axis_key = self.domain_axis(axis, key=True)
+        if axis_key is None:
+            raise ValueError('Invalid axis specifier: {!r}'.format(axis))
+
+        # Get the axis index
+        axis_index = self.get_data_axes().index(axis_key)
+
+        new_data = self.data.cumsum(axis_index, masked_as_zero=masked_as_zero)
+        
+        # Construct new field
+        if inplace:
+            f = self
+        else:
+            f = self.copy()
+
+        # Insert new data into field
+        f.set_data(new_data, set_axes=False, copy=False)
+
+        if self.domain_axis(axis_key).get_size() > 1:
+            # Update the bounds of the summed axis if necessary
+            coord = f.dimension_coordinate(axis_key, default=None)
+            if coord is not None and coord.has_bounds():
+                bounds = coord.get_bounds()
+                bounds[:, 0] = bounds[0, 0]
+
+                if coordinate is not None:
+                    if coordinate != 'mid_range':
+                        raise ValueError("TODO")
+                    
+                    data = coord.get_data(None)
+                    if data is not None:
+                        bounds = bounds.array
+                        data = data.varray
+                        data[...] = (bounds[:, 0] + bounds[:, 1])*0.5
+            #--- End: if
+            
+            # Update the cell methods
+            cell_method = CellMethod(axes=[axis_key], method='sum')
+            f.set_construct(cell_method, copy=False)
+
+        if inplace:
+            f = None
+        return f
 
 
     def flip(self, axes=None, inplace=False, i=False, **kwargs):
         '''Flip (reverse the direction of) axes of the field.
 
-    .. seealso:: `domain_axis`, `insert_dimension`, `squeeze`,
-                 `transpose`, `unsqueeze`
+    .. seealso:: `domain_axis`, `flatten`, `insert_dimension`,
+                 `squeeze`, `transpose`, `unsqueeze`
     
     :Parameters:
     
         axes: (sequence of) `str` or `int`, optional
             Select the domain axes to flip, defined by the domain axes
             that would be selected by passing the each given axis
-            description to a call of the field's `domain_axis`
-            method. For example, for a value of ``'X'``, the domain
-            axis construct returned by ``f.domain_axis('X'))`` is
-            selected.
+            description to a call of the field construct's
+            `domain_axis` method. For example, for a value of ``'X'``,
+            the domain axis construct returned by
+            ``f.domain_axis('X'))`` is selected.
 
             If no axes are provided then all axes are flipped.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -9252,9 +11498,9 @@ may be accessed with the `nc_global_attributes`,
         axis:
             The cyclic axis to be rolled, defined by that which would
             be selected by passing the given axis description to a
-            call of the field's `domain_axis` method. For example, for
-            a value of ``'X'``, the domain axis construct returned by
-            ``f.domain_axis('X'))`` is selected.
+            call of the field construct's `domain_axis` method. For
+            example, for a value of ``'X'``, the domain axis construct
+            returned by ``f.domain_axis('X'))`` is selected.
 
         value:
             Anchor the dimension coordinate values for the selected
@@ -9300,7 +11546,7 @@ may be accessed with the `nc_global_attributes`,
               30``.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         dry_run: `bool`, optional
             Return a dictionary of parameters which describe the
@@ -9437,59 +11683,88 @@ may be accessed with the `nc_global_attributes`,
         return f
 
 
-#    def argmax(self, axes=None, **kwargs):
-#        '''DCH
-#
-#.. seealso:: `argmin`, `where`
-#
-#:Parameters:
-#
-#:Returns:
-#
-#    `Field`
-#        TODO
-#
-#**Examples:**
-#
-#>>> g = f.argmax('T')
-#
-#        '''
-#        if axes is None and not kwargs:
-#            if self.ndim == 1:
-#                pass
-#            elif not self.ndim:
-#                return
-#
-#        else:
-#            axis = self.axis(axes, key=True, **kwargs)
-#            if axis is None:
-#                raise ValueError("Can't identify a unique axis")
-#            elif self.axis_size(axis) != 1:
-#                raise ValueError(
-#"Can't insert an axis of size {0}: {0!r}".format(self.axis_size(axis), axis))
-#            elif axis in self.get_data_axes():
-#                raise ValueError(
-#                    "Can't insert a duplicate axis: %r" % axis)
-#        #--- End: if
-#
-#        f = self.copy(_omit_Data=True)
-#
-#        f.data = self.data.argmax(iaxis)
-#
-#        f.remove_axes(axis)
-#
-#        standard_name = f.get_property('standard_name', None)
-#        long_name = f.get_property('long_name', standard_name)
-#        
-#        if standard_name is not None:
-#            del f.standard_name
-#
-#        f.long_name = 'Index of first maximum'
-#        if long_name is not None:
-#            f.long_name += ' '+long_name
-#
-#        return f
-#    #--- End: def
+    def argmax(self, axis=None):
+        '''Return the indices of the maximum values along an axis.
+
+    If no axis is specified then the returned index locates the
+    maximum of the whole data.
+
+    .. seealso:: `argmin`, `where`
+    
+    :Parameters:
+    
+    :Returns:
+    
+        `Field`
+            TODO
+    
+    **Examples:**
+    
+    >>> g = f.argmax('T')
+
+        '''
+        print('not ready')
+        return
+
+        standard_name = None
+        
+        if axis is not None:
+            axis_key = self.domain_axis(axis, key=True,
+                                        default=ValueError("TODO"))
+            axis = self.get_data_axes.index(axis_key)
+            standard_name = self.domain_axis_identity(axis_key,
+                                                      strict=True, default=None)
+            
+        indices = self.data.argmax(axis, unravel=True)
+
+        if axis is None:
+            return self[indices]
+
+        out = self.subspace(**{axis_key: [0]}) # What if axis_key does not span array?
+        out.squeeze(axis_key, inplace=True)
+        
+        for i in indices.ndindex():
+            out.data[i] = org.data[indices[i].datum()]
+
+        for key, c in tuple(out.constructs.filter_by_type('dimension_coordinate',
+                                                          'auxiliary_coordinate',
+                                                          'cell_measure',
+                                                          'domain_ancillary',
+                                                          'field_ancillary').filter_by_axis('and', axis_key).items()):
+                       
+            out.del_construct(key)
+
+            if c.construct_type == ('cell_measure', 'domain_ancillary', 'field_ancillary'):
+                continue
+
+            aux = AuxiliaryCoordinate()
+            aux.set_properties(c.properties())
+
+            c_data = c.get_data(None)
+            if c_data is not None:
+                data = Data.empty(indices.shape, dtype=c.dtype)        
+                for x in indices.ndindex():
+                    data[x] = c_data[indices[x]]
+            
+                aux.set_data(data, copy=False)
+        
+            c_bounds_data = c.get_bounds_data(None)
+            if c_bounds_data is not None:
+                bounds = Data.empty(indices.shape + (c_bounds_data.shape[-1],),
+                                    dtype=c_bounds.dtype)        
+                for x in indices.ndindex():
+                    bounds[x] = c_bounds_data[indices[x]]
+        
+                aux.set_bounds(Bounds(data=bounds, copy=False), copy=False)
+            
+            out.set_construct(aux, axes=out.get_data_axes(), copy=False)
+
+
+        if standard_name:
+            cm = CellMethod()
+            cm.create(standard_name+': maximum')            
+            
+        return out
 
 
     def autocyclic(self, verbose=False):
@@ -9522,14 +11797,14 @@ may be accessed with the `nc_global_attributes`,
 
         if len(dims) != 1:
             if verbose:
-                print ("Not one 'X' dimension coordinate construct:", len(dims)) # pragma: no cover
+                print("Not one 'X' dimension coordinate construct:", len(dims)) # pragma: no cover
             return False
 
         key, dim = dict(dims).popitem()
 
 
         if not dim.Units.islongitude:
-            if verbose: print (0)
+            if verbose: print(0)
             if dim.get_property('standard_name', None) not in ('longitude', 'grid_longitude'):
                 self.cyclic(key, iscyclic=False)
                 if verbose: print (1)
@@ -9539,13 +11814,13 @@ may be accessed with the `nc_global_attributes`,
         bounds = dim.get_bounds(None)
         if bounds is None:
             self.cyclic(key, iscyclic=False)
-            if verbose: print (2)
+            if verbose: print(2)
             return False
 
         bounds_data = bounds.get_data(None)
         if bounds_data is None:
             self.cyclic(key, iscyclic=False)
-            if verbose: print (3)
+            if verbose: print(3)
             return False
 
         bounds = bounds_data.array
@@ -9556,11 +11831,11 @@ may be accessed with the `nc_global_attributes`,
 
         if abs(bounds[-1, -1] - bounds[0, 0]) != period.array:
             self.cyclic(key, iscyclic=False)
-            if verbose: print (4)
+            if verbose: print(4)
             return False
 
         self.cyclic(key, iscyclic=True, period=period)
-        if verbose: print (5)
+        if verbose: print(5)
 
         return True
     
@@ -9624,7 +11899,7 @@ may be accessed with the `nc_global_attributes`,
     Squeezed domain axis constructs are not removed from the metadata
     contructs, nor from the domain.
     
-    .. seealso:: `domain_axis`, `insert_dimension`, `flip`,
+    .. seealso:: `domain_axis`, `flatten`, `insert_dimension`, `flip`,
                  `remove_axes`, `transpose`, `unsqueeze`
     
     :Parameters:
@@ -9632,15 +11907,15 @@ may be accessed with the `nc_global_attributes`,
         axes: (sequence of) `str` or `int`, optional
             Select the domain axes to squeeze, defined by the domain
             axes that would be selected by passing the each given axis
-            description to a call of the field's `domain_axis`
-            method. For example, for a value of ``'X'``, the domain
-            axis construct returned by ``f.domain_axis('X'))`` is
-            selected.
+            description to a call of the field construct's
+            `domain_axis` method. For example, for a value of ``'X'``,
+            the domain axis construct returned by
+            ``f.domain_axis('X'))`` is selected.
 
             If no axes are provided then all size-1 axes are squeezed.
 
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -9650,7 +11925,7 @@ may be accessed with the `nc_global_attributes`,
     :Returns:
     
         `Field` or `None`
-            The field construct with squeezed data, or `None` of the
+            The field construct with squeezed data, or `None` if the
             operation was in-place.
     
             **Examples:**
@@ -9670,7 +11945,7 @@ may be accessed with the `nc_global_attributes`,
 
         data_axes = self.get_data_axes()
 
-        if axes is None and not kwargs:
+        if axes is None:
             all_axes = self.domain_axes
             axes = [axis for axis in data_axes if all_axes[axis].get_size(None) == 1]
         else:
@@ -9686,6 +11961,71 @@ may be accessed with the `nc_global_attributes`,
         return super().squeeze(iaxes, inplace=inplace)
 
     
+    def swapaxes(self, axis0, axis1, inplace=False, i=False):
+        '''Interchange two axes of the data.
+        
+    .. seealso:: `flatten`, `flip`, `insert_dimension`, `squeeze`,
+                 `transpose`
+    
+    :Parameters:
+    
+        axis0, axis1: TODO
+            Select the axes to swap. Each axis is identified by its
+            original integer position.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+    :Returns:
+    
+            The field construct with data with swapped axis
+            positions. If the operation was in-place then `None` is
+            returned.
+
+    **Examples:**
+    
+    >>> f.shape
+    (1, 2, 3)
+    >>> f.swapaxes(1, 0).shape
+    (2, 1, 3)
+    >>> f.swapaxes(0, -1).shape
+    (3, 2, 1)
+    >>> f.swapaxes(1, 1).shape
+    (1, 2, 3)
+    >>> f.swapaxes(-1, -1).shape
+    (1, 2, 3)
+
+        '''
+        data_axes = self.get_data_axes(default=None)
+
+        da_key0 = self.domain_axis(axis0, key=True)
+        da_key1 = self.domain_axis(axis1, key=True)
+
+        if da_key0 not in data_axes:
+            raise ValueError(
+                "Can't swapaxes {}: Bad axis specification: {!r}".format(
+                    self.__class__.__name__, axes0))
+
+        if da_key1 not in data_axes:
+            raise ValueError(
+                "Can't swapaxes {}: Bad axis specification: {!r}".format(
+                    self.__class__.__name__, axis1))
+
+        axis0 = data_axes.index(da_key0)
+        axis1 = data_axes.index(da_key1)
+            
+        f = super().swapaxes(axis0, axis1, inplace=inplace)
+        if inplace:
+            f = self
+            
+        if data_axes is not None:
+            data_axes = list(data_axes)
+            data_axes[axis1], data_axes[axis0] = data_axes[axis0], data_axes[axis1] 
+            f.set_data_axes(data_axes)
+
+        return f
+
+    
     def transpose(self, axes=None, constructs=False, inplace=False,
                   items=True, i=False, **kwargs):
         '''Permute the axes of the data array.
@@ -9697,31 +12037,31 @@ may be accessed with the `nc_global_attributes`,
     By default metadata constructs are not tranposed, but they may be
     if the *constructs* parmeter is set.
     
-    .. seealso:: `domain_axis`, `insert_dimension`, `flip`, `squeeze`,
-                 `unsqueeze`
+    .. seealso:: `domain_axis`, `flatten`, `insert_dimension`, `flip`,
+                 `squeeze`, `unsqueeze`
     
     :Parameters:
 
         axes: (sequence of) `str` or `int`, optional
             Select the domain axis order, defined by the domain axes
             that would be selected by passing the each given axis
-            description to a call of the field's `domain_axis`
-            method. For example, for a value of ``'X'``, the domain
-            axis construct returned by ``f.domain_axis('X'))`` is
-            selected.
+            description to a call of the field construct's
+            `domain_axis` method. For example, for a value of ``'X'``,
+            the domain axis construct returned by
+            ``f.domain_axis('X'))`` is selected.
 
             Each dimension of the field construct's data must be
             provided, or if no axes are specified then the axis order
             is reversed.
    
         constructs: `bool`
-            If `True` then metadata constructs are also transposed so
+            If True then metadata constructs are also transposed so
             that their axes are in the same relative order as in the
             tranposed data array of the field. By default metadata
             constructs are not altered.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         items: deprecated at version 3.0.0
             Use the *constructs* parameter instead.
@@ -9734,7 +12074,7 @@ may be accessed with the `nc_global_attributes`,
     :Returns:
     
         `Field` or `None`
-            The field construct with transposed data, or `None` of the
+            The field construct with transposed data, or `None` if the
             operation was in-place.
     
     **Examples:**
@@ -9773,41 +12113,41 @@ may be accessed with the `nc_global_attributes`,
         # Transpose the field's data array
         return super().transpose(iaxes, constructs=constructs,
                                  inplace=inplace)
-    #--- End: def
 
-    # 1
+
     def unsqueeze(self, inplace=False, i=False, axes=None, **kwargs):
         '''Insert size 1 axes into the data array.
 
-All size 1 domain axes which are not spanned by the field's data array
-are inserted.
-
-The axes are inserted into the slowest varying data array positions.
-
-.. seealso:: `flip`, `insert_dimension`, `squeeze`, `transpose`
-
-:Parameters:
-
-    inplace: `bool`, optional
-        If `True` then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use the *inplace* parameter instead.
-
-    axes: deprecated at version 3.0.0
-
-    kwargs: deprecated at version 3.0.0
-
-:Returns:
-
-    `Field` or `None`
-        The field construct with size-1 axes inserted in its data, or
-        `None` of the operation was in-place.
-
-**Examples:**
-
->>> g = f.unsqueeze()
->>> f.unsqueeze(['dim2'], inplace=True)
+    All size 1 domain axes which are not spanned by the field
+    construct's data are inserted.
+    
+    The axes are inserted into the slowest varying data array positions.
+    
+    .. seealso:: `flatten`, `flip`, `insert_dimension`, `squeeze`,
+                 `transpose`
+    
+    :Parameters:
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use the *inplace* parameter instead.
+    
+        axes: deprecated at version 3.0.0
+    
+        kwargs: deprecated at version 3.0.0
+    
+    :Returns:
+    
+        `Field` or `None`
+            The field construct with size-1 axes inserted in its data,
+            or `None` if the operation was in-place.
+    
+    **Examples:**
+    
+    >>> g = f.unsqueeze()
+    >>> f.unsqueeze(['dim2'], inplace=True)
 
         '''
         if i:
@@ -9821,9 +12161,6 @@ The axes are inserted into the slowest varying data array positions.
                 self, 'unsqueeze', {'axes': axes},
                 "All size one domain axes missing from the data are inserted. Use method 'insert_dimension' to insert an individual size one domain axis.") # pragma: no cover
 
-        if kwargs:
-            _DEPRECATION_ERROR_KWARGS(self, 'unsqueeze', kwargs) # pragma: no cover
-
         if inplace:
             f = self
         else:
@@ -9836,7 +12173,7 @@ The axes are inserted into the slowest varying data array positions.
         if inplace:
             f = None
         return f
-    #--- End: def
+
 
     def auxiliary_coordinate(self, identity, default=ValueError(),
                              key=False):
@@ -9844,7 +12181,10 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
+    .. seealso:: `construct`, `auxiliary_coordinates`, `cell_measure`,
+                 `cell_method`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillary`
     
     :Parameters:
     
@@ -9913,7 +12253,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=0``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -9963,8 +12303,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_method`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillaries`,
+                 `domain_axis`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10030,7 +12373,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=0``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10067,8 +12410,11 @@ The axes are inserted into the slowest varying data array positions.
 
     New in version 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measures`,
+                 `cell_method`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10131,7 +12477,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=0``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10167,8 +12513,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_methods`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10221,7 +12570,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=0``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10261,7 +12610,8 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
+    .. seealso:: `construct`, `auxiliary_coordinate`, `coordinates`,
+                 `dimension_coordinate`
     
     :Parameters:
     
@@ -10326,7 +12676,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity='ncdim%y'``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional  
@@ -10364,8 +12714,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_method`, `coordinate`, `coordinate_references`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10426,7 +12779,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity='ncvar%lat_lon'``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10464,8 +12817,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_method`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillaries`
+
     :Parameters:
     
         identity:
@@ -10532,7 +12888,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=0``
     
         key: `bool`, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10570,8 +12926,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_method`, `coordinate_reference`,
+                 `dimension_coordinates`, `domain_ancillary`,
+                 `domain_axis`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10635,7 +12994,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity='ncdim%y'``
     
         key: `bool, optional
-            If `True` then return the selected construct key. By default
+            If True then return the selected construct key. By default
             the construct itself is returned.
     
         default: optional
@@ -10671,8 +13030,11 @@ The axes are inserted into the slowest varying data array positions.
 
     .. versionadded:: 3.0.0
     
-    .. seealso:: TODO
-    
+    .. seealso:: `construct`, `auxiliary_coordinate`, `cell_measure`,
+                 `cell_method`, `coordinate`, `coordinate_reference`,
+                 `dimension_coordinate`, `domain_ancillary`,
+                 `domain_axes`, `field_ancillary`
+
     :Parameters:
     
         identity:
@@ -10733,7 +13095,7 @@ The axes are inserted into the slowest varying data array positions.
               ``identity=2``
     
         key: `bool, optional
-            If `True` then return the selected construct key. By
+            If True then return the selected construct key. By
             default the construct itself is returned.
     
         default: optional
@@ -10775,6 +13137,100 @@ The axes are inserted into the slowest varying data array positions.
             return da_key
 
         return self.constructs[da_key]
+
+
+    def domain_axis_position(self, identity):
+        '''Return the position in the data of a domain axis construct.
+
+    .. versionadded:: 3.0.0
+    
+    .. seealso:: `domain_axis`
+    
+    :Parameters:
+    
+        identity:
+           Select the domain axis construct by one of:
+    
+              * An identity or key of a 1-d coordinate construct that
+                whose data spans the domain axis construct.
+    
+              * A domain axis construct identity or key.
+    
+              * The position of the domain axis construct in the field
+                construct's data.
+    
+            A construct identity is specified by a string
+            (e.g. ``'latitude'``, ``'long_name=time'``,
+            ``'ncvar%lat'``, etc.); or a compiled regular expression
+            (e.g. ``re.compile('^atmosphere')``) that selects the
+            relevant constructs whose identities match via
+            `re.search`.
+    
+            Each construct has a number of identities, and is selected
+            if any of them match any of those provided. A construct's
+            identities are those returned by its `!identities`
+            method. In the following example, the construct ``x`` has
+            six identities:
+    
+               >>> x.identities()
+               ['time', 'long_name=Time', 'foo=bar', 'standard_name=time', 'ncvar%t', 'T']
+    
+            A construct key may optionally have the ``'key%'``
+            prefix. For example ``'dimensioncoordinate2'`` and
+            ``'key%dimensioncoordinate2'`` are both acceptable keys.
+    
+            A position of a domain axis construct in the field
+            construct's data is specified by an integer index.
+    
+            Note that in the output of a `print` call or `!dump`
+            method, a construct is always described by one of its
+            identities, and so this description may always be used as
+            an *identity* argument.
+            
+            *Parameter example:*
+              ``identity='long_name=Latitude'``
+    
+            *Parameter example:*
+              ``identity='dimensioncoordinate1'``
+    
+            *Parameter example:*
+              ``identity='domainaxis2'``
+    
+            *Parameter example:*
+              ``identity='key%domainaxis2'``
+    
+            *Parameter example:*
+              ``identity='ncdim%y'``
+    
+            *Parameter example:*
+              ``identity=2``
+    
+    :Returns:
+    
+        `int`
+            The position in the field construct's dat of the selected
+            domain axis construct.
+    
+    **Examples:**
+    
+    >>> f
+    <CF Field: air_temperature(time(12), latitude(64), longitude(128)) K>
+    >>> f.get_data_axes()        
+    ('domainaxis0', 'domainaxis1', 'domainaxis2')
+    >>> f.domain_axis_position('T')
+    0    
+    >>> f.domain_axis_position('latitude')
+    1
+    >>> f.domain_axis_position('domainaxis1')
+    1
+    >>> f.domain_axis_position(2)
+    2
+    >>> f.domain_axis_position(-2)
+    1
+
+        '''
+        key = self.domain_axis(identity, key=True)
+        return self.get_data_axes().index(key)
 
 
     def axes_names(self, *identities, **kwargs):
@@ -10901,7 +13357,8 @@ The axes are inserted into the slowest varying data array positions.
 
         '''
         if axes:
-            _DEPRECATION_ERROR_KWARGS(self, 'axis_size', axes=True) # pragma: no cover
+            _DEPRECATION_ERROR_KWARGS(self, 'axis_size',
+                                      "Use keyword 'identity' instead.") # pragma: no cover
 
         if kwargs:
             _DEPRECATION_ERROR_KWARGS(self, 'axis_size', kwargs, "See f.domain_axes") # pragma: no cover
@@ -10977,14 +13434,14 @@ The axes are inserted into the slowest varying data array positions.
               ``axes=[1, 0]``
     
         set_axes: `bool`, optional
-            If `False` then do not set the domain axes constructs that
+            If False then do not set the domain axes constructs that
             are spanned by the data, even if the *axes* parameter has
             been set. By default the axes are set either according to
             the *axes* parameter, or an attempt will be made to assign
             existing domain axis constructs to the data.
     
         copy: `bool`, optional
-            If `True` then set a copy of the construct. By default the
+            If True then set a copy of the construct. By default the
             construct is not copied.
             
     :Returns:
@@ -11152,8 +13609,8 @@ The axes are inserted into the slowest varying data array positions.
         axis:
             The cyclic axis, defined by that which would be selected
             by passing the given axis description to a call of the
-            field's `domain_axis` method. For example, for a value of
-            ``'X'``, the domain axis construct returned by
+            field construct's `domain_axis` method. For example, for a
+            value of ``'X'``, the domain axis construct returned by
             ``f.domain_axis('X'))`` is selected.
     
         axes: deprecated at version 3.0.0
@@ -11165,7 +13622,7 @@ The axes are inserted into the slowest varying data array positions.
     
         `Data` or `None`
             The period of the cyclic axis's dimension coordinates, or
-            `None` no period has been set.
+            `None` if no period has been set.
     
     **Examples:**
     
@@ -11273,7 +13730,7 @@ The axes are inserted into the slowest varying data array positions.
            *identity* parameter.
 
         copy: `bool`, optional
-            If `True` then set a copy of the new construct. By default
+            If True then set a copy of the new construct. By default
             the construct is not copied.
     
     :Returns:
@@ -11304,7 +13761,268 @@ The axes are inserted into the slowest varying data array positions.
         self.set_construct(construct, key=key, axes=axes, copy=copy)
 
         return c
+    
 
+    def flatten(self, axes=None, return_axis=False, inplace=False):
+        '''Flatten axes of the field.
+
+    Any subset of the domain axes may be flattened.
+
+    The shape of the data may change, but the size will not.
+
+    Metadata constructs whose data spans the flattened axes will
+    either themselves be flattened, or else removed.
+
+    Cell method constructs that apply to the flattened axes will be
+    removed or, if possible, have their axis specifications changed to
+    standard names.
+
+    The flattening is executed in row-major (C-style) order. For
+    example, the array ``[[1, 2], [3, 4]]`` would be flattened across
+    both dimensions to ``[1 2 3 4]``.
+
+    .. versionadded:: 3.0.2
+
+    .. seealso:: `insert_dimension`, `flip`, `swapaxes`, `transpose`
+
+    :Parameters:
+
+        axes: (sequence of) `str` or `int`, optional
+            Select the domain axes to be flattened, defined by the
+            domain axes that would be selected by passing the each
+            given axis description to a call of the field construct's
+            `domain_axis` method. For example, for a value of ``'X'``,
+            the domain axis construct returned by
+            ``f.domain_axis('X'))`` is selected.
+
+            If no axes are provided then all axes spanned by the field
+            construct's data are flattened.
+
+            No axes are flattened if *axes* is an empty sequence.
+
+        return_axis: `bool`, optional
+            If True then also return either the key of the flattened
+            domain axis construct; or `None` if the axes to be
+            flattened do not span the data.
+
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+    :Returns:
+
+        `Field` or `None`, [`str` or `None`]
+            The new, flattened field construct, or `None` if the
+            operation was in-place.
+
+            If *return_axis* is True then also return either the key
+            of the flattened domain axis construct; or `None` if the
+            axes to be flattened do not span the data.
+ 
+    **Examples**
+
+    See `cf.Data.flatten` for more examples of how the data are
+    flattened.
+
+    >>> f.shape
+    (1, 2, 3, 4)
+    >>> f.flatten().shape
+    (24,)
+    >>> f.flatten([]).shape
+    (1, 2, 3, 4)
+    >>> f.flatten([1, 3]).shape
+    (1, 8, 3)
+    >>> f.flatten([0, -1], inplace=True)
+    >>> f.shape
+    (4, 2, 3)
+
+    >>> print(t)
+    Field: air_temperature (ncvar%ta)
+    ---------------------------------
+    Data            : air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K
+    Cell methods    : grid_latitude(10): grid_longitude(9): mean where land (interval: 0.1 degrees) time(1): maximum
+    Field ancils    : air_temperature standard_error(grid_latitude(10), grid_longitude(9)) = [[0.76, ..., 0.32]] K
+    Dimension coords: atmosphere_hybrid_height_coordinate(1) = [1.5]
+                    : grid_latitude(10) = [2.2, ..., -1.76] degrees
+                    : grid_longitude(9) = [-4.7, ..., -1.18] degrees
+                    : time(1) = [2019-01-01 00:00:00]
+    Auxiliary coords: latitude(grid_latitude(10), grid_longitude(9)) = [[53.941, ..., 50.225]] degrees_N
+                    : longitude(grid_longitude(9), grid_latitude(10)) = [[2.004, ..., 8.156]] degrees_E
+                    : long_name=Grid latitude name(grid_latitude(10)) = [--, ..., b'kappa']
+    Cell measures   : measure:area(grid_longitude(9), grid_latitude(10)) = [[2391.9657, ..., 2392.6009]] km2
+    Coord references: grid_mapping_name:rotated_latitude_longitude
+                    : standard_name:atmosphere_hybrid_height_coordinate
+    Domain ancils   : ncvar%a(atmosphere_hybrid_height_coordinate(1)) = [10.0] m
+                    : ncvar%b(atmosphere_hybrid_height_coordinate(1)) = [20.0]
+                    : surface_altitude(grid_latitude(10), grid_longitude(9)) = [[0.0, ..., 270.0]] m
+    >>> print(t.flatten())
+    Field: air_temperature (ncvar%ta)
+    ---------------------------------
+    Data            : air_temperature(key%domainaxis4(90)) K
+    Cell methods    : grid_latitude: grid_longitude: mean where land (interval: 0.1 degrees) time(1): maximum
+    Field ancils    : air_temperature standard_error(key%domainaxis4(90)) = [0.76, ..., 0.32] K
+    Dimension coords: time(1) = [2019-01-01 00:00:00]
+    Auxiliary coords: latitude(key%domainaxis4(90)) = [53.941, ..., 50.225] degrees_N
+                    : longitude(key%domainaxis4(90)) = [2.004, ..., 8.156] degrees_E
+    Cell measures   : measure:area(key%domainaxis4(90)) = [2391.9657, ..., 2392.6009] km2
+    Coord references: grid_mapping_name:rotated_latitude_longitude
+                    : standard_name:atmosphere_hybrid_height_coordinate
+    Domain ancils   : surface_altitude(key%domainaxis4(90)) = [0.0, ..., 270.0] m
+    >>> print(t.flatten(['grid_latitude', 'grid_longitude']))
+    Field: air_temperature (ncvar%ta)
+    ---------------------------------
+    Data            : air_temperature(atmosphere_hybrid_height_coordinate(1), key%domainaxis4(90)) K
+    Cell methods    : grid_latitude: grid_longitude: mean where land (interval: 0.1 degrees) time(1): maximum
+    Field ancils    : air_temperature standard_error(key%domainaxis4(90)) = [0.76, ..., 0.32] K
+    Dimension coords: atmosphere_hybrid_height_coordinate(1) = [1.5]
+                    : time(1) = [2019-01-01 00:00:00]
+    Auxiliary coords: latitude(key%domainaxis4(90)) = [53.941, ..., 50.225] degrees_N
+                    : longitude(key%domainaxis4(90)) = [2.004, ..., 8.156] degrees_E
+    Cell measures   : measure:area(key%domainaxis4(90)) = [2391.9657, ..., 2392.6009] km2
+    Coord references: grid_mapping_name:rotated_latitude_longitude
+                    : standard_name:atmosphere_hybrid_height_coordinate
+    Domain ancils   : ncvar%a(atmosphere_hybrid_height_coordinate(1)) = [10.0] m
+                    : ncvar%b(atmosphere_hybrid_height_coordinate(1)) = [20.0]
+                    : surface_altitude(key%domainaxis4(90)) = [0.0, ..., 270.0] m
+
+    >>> t.domain_axes.keys()
+    >>> dict_keys(['domainaxis0', 'domainaxis1', 'domainaxis2', 'domainaxis3'])
+    >>> t.flatten(return_axis=True)
+    (<CF Field: air_temperature(key%domainaxis4(90)) K>,
+     'domainaxis4')
+    >>> t.flatten('grid_longitude', return_axis=True)
+    (<CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>,
+     'domainaxis2')
+    >>> t.flatten('time', return_axis=True)
+    (<CF Field: air_temperature(atmosphere_hybrid_height_coordinate(1), grid_latitude(10), grid_longitude(9)) K>,
+     None)
+
+        '''
+        
+        if inplace:
+            f = self
+        else:
+            f = self.copy()
+
+        data_axes = self.get_data_axes()
+
+        if axes is None:
+            axes = data_axes
+        else:
+            if isinstance(axes, (str, int)):
+                axes = (axes,)
+
+            axes = [self.domain_axis(x, key=True) for x in axes]
+            axes = set(axes).intersection(data_axes)
+
+        # Note that it is important to sort the iaxes, as we rely on
+        # the first iaxis in the list being the left-most flattened
+        # axis
+        iaxes = sorted([data_axes.index(axis) for axis in axes])
+
+        if not len(iaxes):
+            if inplace:
+                f = None
+            if return_axis:
+                return f, None
+            return f
+        
+        if len(iaxes) == 1:
+            if inplace:
+                f = None
+            if return_axis:
+                return f, tuple(axes)[0]
+            return f
+        
+#        # Make sure that the metadata constructs have the same
+#        # relative axis order as the data (pre-flattening)
+#        f.transpose(f.get_data_axes(), constructs=True, inplace=True)
+
+        # Create the new data axes
+        shape = f.shape
+        new_data_axes = [axis for i, axis in enumerate(data_axes)
+                         if i not in iaxes]
+        new_axis_size = numpy_prod([shape[i] for i in iaxes])
+        new_axis = f.set_construct(DomainAxis(new_axis_size))
+        new_data_axes.insert(iaxes[0], new_axis)
+
+        # Flatten the field's data
+        super(Field, f).flatten(iaxes, inplace=True)
+        
+        # Set the new data axes
+        f.set_data_axes(new_data_axes)
+
+        # Modify or remove cell methods that span the flatten axes
+        for key, cm in tuple(f.cell_methods.items()):
+            cm_axes = set(cm.get_axes(()))
+            if not cm_axes or cm_axes.isdisjoint(axes):
+                continue
+            
+            if cm_axes.difference(axes):
+                f.del_construct(key)
+                continue
+            
+            if cm_axes.issubset(axes):
+                cm_axes = list(cm_axes)
+                set_axes = True
+                for i, a in enumerate(cm_axes):
+                    sn = None
+                    for ctype in ('dimension_coordinate', 'auxiliary_coordinate'):
+                        for c in f.constructs.filter_by_type(ctype).filter_by_axis('exact', a).values():
+                            sn = c.get_property('standard_name', None)
+                            if sn is not None:
+                                break
+                            
+                        if sn is not None:
+                            break
+                    #--- End: for
+
+                    if sn is None:
+                        f.del_construct(key)
+                        set_axes = False
+                        break
+                    else:
+                        cm_axes[i] = sn    
+                #--- End: for
+
+                if set_axes:
+                    cm.set_axes(cm_axes)                
+        #--- End: for
+
+        # Flatten the constructs that span all of the flattened axes,
+        # or all of the flattened axes all bar some which have size 1.
+#        d = dict(f.constructs.filter_by_axis('exact', *axes))
+#        axes2 = [axis for axis in axes  if f.domain_axes[axis].get_size() > 1]
+#        if axes2 != axes:
+#            d.update(f.constructs.filter_by_axis('subset', *axes).filter_by_axis('and', *axes2))
+
+        # Flatten the constructs that span all of the flattened axes,
+        # and no others.
+        for key, c in f.constructs.filter_by_axis('and', *axes).items():
+            c_axes = f.get_data_axes(key)
+            c_iaxes = sorted([c_axes.index(axis) for axis in axes if axis in c_axes])
+            c.flatten(c_iaxes, inplace=True)
+            new_data_axes = [axis for i, axis in enumerate(c_axes)
+                             if i not in c_iaxes]
+            new_data_axes.insert(c_iaxes[0], new_axis)        
+            f.set_data_axes(new_data_axes, key=key)
+
+        # Remove constructs that span some, but not all, of the
+        # flattened axes
+        for key in f.constructs.filter_by_axis('or', *axes):
+            f.del_construct(key)
+        
+        # Remove the domain axis constructs for the flattened axes
+        for key in axes:
+            f.del_construct(key)
+
+        if inplace:
+            f = None
+        if return_axis:
+            return f, new_axis
+        
+        return f
+
+    
     def roll(self, axis, shift, inplace=False, i=False, **kwargs):
         '''Roll the field along a cyclic axis.
 
@@ -11319,16 +14037,16 @@ The axes are inserted into the slowest varying data array positions.
         axis: 
             The cyclic axis to be rolled, defined by that which would
             be selected by passing the given axis description to a
-            call of the field's `domain_axis` method. For example, for
-            a value of ``'X'``, the domain axis construct returned by
-            ``f.domain_axis('X'))`` is selected.
+            call of the field construct's `domain_axis` method. For
+            example, for a value of ``'X'``, the domain axis construct
+            returned by ``f.domain_axis('X'))`` is selected.
 
         shift: `int`
             The number of places by which the selected cyclic axis is
             to be rolled.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -11451,12 +14169,12 @@ The axes are inserted into the slowest varying data array positions.
               will set data values in columns 0 and 2 to -999, and
               data values in column 1 to missing data. This works
               because the condition has shape ``(3,)`` which
-              broadcasts to the field's shape.
+              broadcasts to the field construct's shape.
     
-            If *condition* is a `Query` object then this implies a
-            condition defined by applying the query to the field
-            construct's data (or a metadata construct's data if the
-            *construct* parameter is set).
+            If, however, *condition* is a `Query` object then this
+            implies a condition defined by applying the query to the
+            field construct's data (or a metadata construct's data if
+            the *construct* parameter is set).
     
             *Parameter example:*
               ``f.where(cf.lt(0), x=-999)`` will set all data values
@@ -11489,10 +14207,10 @@ The axes are inserted into the slowest varying data array positions.
     
         x, y: *optional*
             Specify the assignment values. Where the condition
-            evaluates to `True`, assign to the field's data from *x*,
-            and where the condition evaluates to `False`, assign to
-            the field's data from *y*. The *x* and *y* parameters are
-            each one of:
+            evaluates to `True`, assign to the field construct's data
+            from *x*, and where the condition evaluates to `False`,
+            assign to the field construct's data from *y*. The *x* and
+            *y* parameters are each one of:
     
             * `None`. The appropriate data elements array are
               unchanged. This the default.
@@ -11548,8 +14266,8 @@ The axes are inserted into the slowest varying data array positions.
         ..
     
             The *construct* parameter selects the metadata construct
-            that is returned by this call of the field's `construct`
-            method: ``f.construct(construct)``. See
+            that is returned by this call of the field construct's
+            `construct` method: ``f.construct(construct)``. See
             `cf.Field.construct` for details.
     
             *Parameter example:*
@@ -11558,13 +14276,13 @@ The axes are inserted into the slowest varying data array positions.
               30 degrees of the equator to missing data.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
     
         item: deprecated at version 3.0.0
-            Use the *constuct* parameter instead.
+            Use the *construct* parameter instead.
     
         item_options: deprecated at version 3.0.0
     
@@ -11707,270 +14425,148 @@ The axes are inserted into the slowest varying data array positions.
 
     @property
     def subspace(self):
-        '''Create a subspace of the field.
+        '''Create a subspace of the field construct.
 
-    The subspace retains all of the metadata of the original field, with
-    those metadata items that contain data arrays also subspaced.
+    Creation of a new field construct which spans a subspace of the
+    domain of an existing field construct is achieved either by
+    identifying indices based on the metadata constructs (subspacing
+    by metadata) or by indexing the field construct directly
+    (subspacing by index).
+
+    The subspacing operation, in either case, also subspaces any
+    metadata constructs of the field construct (e.g. coordinate
+    metadata constructs) which span any of the domain axis constructs
+    that are affected. The new field construct is created with the
+    same properties as the original field construct.
+
+    **Subspacing by metadata**
     
-    A subspace may be defined in "metadata-space" via conditionss on the
-    data array values of its domain items: dimension coordinate, auxiliary
-    coordinate, cell measure, domain ancillary and field ancillary
-    objects.
+    Subspacing by metadata, signified by the use of round brackets,
+    selects metadata constructs and specifies conditions on their
+    data. Indices for subspacing are then automatically inferred from
+    where the conditions are met.
+
+    Metadata constructs and the conditions on their data are defined
+    by keyword parameters.
+
+    * Any domain axes that have not been identified remain unchanged.
+
+    * Multiple domain axes may be subspaced simultaneously, and it
+      doesn't matter which order they are specified in.
+
+    * Subspace criteria may be provided for size 1 domain axes that
+      are not spanned by the field construct's data.
+
+    * Explicit indices may also be assigned to a domain axis
+      identified by a metadata construct, with either a Python `slice`
+      object, or a sequence of integers or booleans.
+
+    * For a dimension that is cyclic, a subspace defined by a slice or
+      by a `Query` instance is assumed to "wrap" around the edges of
+      the data.
+
+    * Conditions may also be applied to multi-dimensionsal metadata
+      constructs. The "compress" mode is still the default mode (see
+      the positional arguments), but because the indices may not be
+      acting along orthogonal dimensions, some missing data may still
+      need to be inserted into the field construct's data.
+
+    **Subspacing by index**
+
+    Subspacing by indexing, signified by the use of square brackets,
+    uses rules that are very similar to the numpy indexing rules, the
+    only differences being:
+
+    * An integer index i specified for a dimension reduces the size of
+      this dimension to unity, taking just the i-th element, but keeps
+      the dimension itself, so that the rank of the array is not
+      reduced.
+
+    * When two or more dimensions’ indices are sequences of integers
+      then these indices work independently along each dimension
+      (similar to the way vector subscripts work in Fortran). This is
+      the same indexing behaviour as on a Variable object of the
+      netCDF4 package.
+
+    * For a dimension that is cyclic, a range of indices specified by
+      a `slice` that spans the edges of the data (such as ``-2:3`` or
+      ``3:-2:-1``) is assumed to "wrap" around, rather then producing
+      a null result.
+  
+
+    .. seealso:: `indices`, `squeeze`, `where`, `__getitem__`
     
-    Alternatively, a subspace may be defined be in "index-space" via
-    explicit indices for the data array using an extended Python slicing
-    syntax.
-    
-    .. seealso:: `indices`, `where`, `__getitem__`
-    
-    **Size one axes**
-    
-      Size one axes in the data array of the subspaced field are always
-      retained, but may be subsequently removed with the field's
-      `~cf.Field.squeeze` method:
-    
-    
-    **Defining a subspace in metadata-space**
-    
-      Defining a subspace in metadata-space has the following features
-      
-      * Axes to be subspaced may identified by metadata, rather than their
-        position in the data array.
-      
-      * The position in the data array of each axis need not be known and
-        the axes to be subspaced may be given in any order.
-      
-      * Axes for which no subspacing is required need not be specified.
-      
-      * Size one axes of the domain which are not spanned by the data
-        array may be specified.
-      
-      * The field may be subspaced according to conditions on
-        multidimensional items.
-      
-      Subspacing in metadata-space is configured with the following
-      parameters:
-    
-      :Parameters:
+    :Parameters:
         
-          positional arguments: *optional*
-              Configure the type of subspace that is created. Zero or one
-              of:
-        
-                ==============  ==========================================
-                *argument*      Description
-                ==============  ==========================================
-                ``'compress'``  The default. Create the smallest possible
-                                subspace that contains the selected
-                                elements. As many non-selected elements
-                                are discarded as possible, meaning that
-                                the subspace may not form a contiguous
-                                block of the original field. The subspace
-                                may still contain non-selected elements, 
-                                which are set to missing data.
-                
-                ``'envelope'``  Create the smallest subspace that
-                                contains the selected elements and forms a
-                                contiguous block of the original
-                                field. Interior, non-selected elements are
-                                set to missing data.
-                
-                ``'full'``      Create a subspace that is the same size as
-                                the original field, but with all
-                                non-selected elements set to missing data.
-                ==============  ==========================================
+        positional arguments: *optional*
+            There are three modes of operation, each of which provides
+            a different type of subspace:
+
+            ==============  ==========================================
+            *argument*      Description
+            ==============  ==========================================
+            ``'compress'``  This is the default mode. Unselected
+                            locations are removed to create the
+                            returned subspace. Note that if a
+                            multi-dimensional metadata construct is
+                            being used to define the indices then some
+                            missing data may still be inserted at
+                            unselected locations.
+            
+            ``'envelope'``  The returned subspace is the smallest that
+                            contains all of the selected
+                            indices. Missing data is inserted at
+                            unselected locations within the envelope.
+            
+            ``'full'``      The returned subspace has the same domain
+                            as the original field construct. Missing
+                            data is inserted at unselected locations.
+            ==============  ==========================================
     
-              In addition the following optional argument specifies how to
-              interpret the keyword parameter names:
+        keyword parameters: *optional*
+            A keyword name is an identity of a metadata construct, and
+            the keyword value provides a condition for inferring
+            indices that apply to the dimension (or dimensions)
+            spanned by the metadata construct's data. Indices are
+            created that select every location for which the metadata
+            construct's data satisfies the condition.
+
+    :Returns:
     
-                ==============  ==========================================
-                *argument*      Description
-                ==============  ==========================================
-                ``'exact'``     Keyword parameters names are not treated
-                                as abbreviations of item identities. By
-                                default, keyword parameters names are
-                                allowed to be abbreviations of item
-                                identities.
-                ==============  ==========================================
+        `Field`
+            An independent field construct containing the subspace of
+            the original field.
     
-                *Parameter example:*
-                  To create a subspace that is the same size as the
-                  original field, but with missing data at non-selected
-                  elements: ``f.subspace('full', **kwargs)``, where
-                  ``**kwargs`` are the positional parameters that define
-                  the selected elements.
-        
-          keyword parameters: *optional*
-              Keyword parameter names identify items of the domain (such
-              as a particular coordinate type) and their values set
-              conditions on their data arrays (e.g. the actual coordinate
-              values). These conditions define the subspace that is
-              created.
+    **Examples:**
     
-          ..
-      
-              **Keyword names**
+    See the on-line documention for further worked examples:
+    https://ncas-cms.github.io/cf-python/tutorial.html#subspacing-by-metadata
+
+    >>> g = f.subspace(X=112.5)
+    >>> g = f.subspace(X=112.5, latitude=cf.gt(-60))
+    >>> g = f.subspace(latitude=cf.eq(-45) | cf.ge(20))
+    >>> g = f.subspace(X=[1, 2, 4], Y=slice(None, None, -1))
+    >>> g = f.subspace(X=cf.wi(-100, 200))
+    >>> g = f.subspace(X=slice(-2, 4))
+    >>> g = f.subspace(Y=[True, False, True, True, False])
+    >>> g = f.subspace(T=410.5)
+    >>> g = f.subspace(T=cf.dt('1960-04-16'))
+    >>> g = f.subspace(T=cf.wi(cf.dt('1962-11-01'), cf.dt('1967-03-17 07:30')))
+    >>> g = f.subspace('compress', X=[1, 2, 4, 6])
+    >>> g = f.subspace('envelope', X=[1, 2, 4, 6])
+    >>> g = f.subspace('full', X=[1, 2, 4, 6])
+    >>> g = f.subspace(latitude=cf.wi(51, 53))
     
-              A keyword name selects a unique item of the field. The name
-              may be any value allowed by the *description* parameter of
-              the field's `item` method, which is used to select a unique
-              domain item. See `cf.Field.item` for details.
-              
-                *Parameter example:*           
-                  The keyword ``lat`` will select the item returned by
-                  ``f.item(description='lat')``. See the *exact*
-                  positional argument.
-      
-                *Parameter example:*           
-                  The keyword ``'T'`` will select the item returned by
-                  ``f.item(description='T')``.
-      
-      
-                *Parameter example:*           
-                  The keyword ``'dim2'`` will select the item that has
-                  this internal identifier
-                  ``f.item(description='dim2')``. This can be useful in
-                  the absence of any more meaningful metadata. A full list
-                  of internal identifiers may be found with the field's
-                  `items` method.
-      
-              **Keyword values**
-    
-              A keyword value specifies a selection on the selected item's
-              data array which identifies the axis elements to be be
-              included in the subspace.
-    
-          ..
-      
-              If the value is a `Query` object then then the query is
-              applied to the item's data array to create the subspace.
-    
-                *Parameter example:*
-                  To create a subspace for the northern hemisphere,
-                  assuming that there is a coordinate with identity
-                  "latitude": ``f.subspace(latitude=cf.ge(0))``
-      
-                *Parameter example:*
-                  To create a subspace for the time 2018-08-27:
-                  ``f.subspace(T=cf.dteq('2018-08-27'))``
-      
-                *Parameter example:*
-                  To create a subspace for the northern hemisphere,
-                  identifying the latitude coordinate by its long name:
-                  ``f.subspace(**{'long_name:latitude': cf.ge(0)})``. In
-                  this case it is necessary to use the ``**`` syntax
-                  because the ``:`` character is not allowed in keyword
-                  parameter names.
-      
-              If the value is a `list` of integers then these are used as
-              the axis indices, without testing the item's data array.
-      
-                *Parameter example:*
-                  To create a subspace using the first, third, fourth and
-                  last indices of the "X" axis: ``f.subspace(X=[0, 2, 3,
-                  -1])``.
-      
-              If the value is a `slice` object then it is used as the axis
-              indices, without testing the item's data array.
-      
-                *Parameter example:*
-                  To create a subspace from every even numbered index
-                  along the "Z" axis: ``f.subspace(Z=slice(0, None, 2))``.
-      
-              If the value is anything other thaqn a `Query`, `list` or
-              `slice` object then, the subspace is defined by where the
-              data array equals that value. I.e. ``f.subspace(name=x)`` is
-              equivalent to ``f.subspace(name=cf.eq(x))``.
-    
-                *Parameter example:*
-                  To create a subspace where latitude is 52 degrees north:
-                  ``f.subspace(latitude=52)``. Note that this assumes that
-                  the latitude coordinate are in units of degrees
-                  north. If this were not known, either of
-                  ``f.subspace(latitude=cf.Data(52, 'degrees_north'))``
-                  and ``f.subspace(latitude=cf.eq(52, 'degrees_north'))``
-                  would guarantee the correct result.
-      
-      :Returns:
-    
-          `Field`
-              An independent field containing the subspace of the original
-              field.
-          
-      **Multidimensional items**
-    
-      Subspaces defined by items which span two or more axes are
-      allowed.
-    
-          *Parameter example:* 
-            The subspace for the Nino Region 3 created by
-            ``f.subspace(latitude=cf.wi(-5, 5), longitude=cf.wi(90,
-            150))`` will work equally well if the latitude and longitude
-            coordinates are stored in 1-d or 2-d arrays. In the latter
-            case it is possble that the coordinates are curvilinear or
-            unstructured, in which case the subspace may contain missing
-            data for the non-selected elements.
-    
-      **Subspacing multiple axes simultaneously**
-    
-      To subspace multiple axes simultaneously, simply provide multiple
-      keyword arguments.
-    
-        *Parameter example:*
-          To create an eastern hemisphere tropical subspace:
-          ``f.subspace(X=cf.wi(0, 180), latitude=cf.wi(-30, 30))``.
-    
-    
-    **Defining a subspace in index-space**
-    
-      Subspacing in index-space uses an extended Python slicing syntax,
-      which is similar to :ref:`numpy array indexing
-      <numpy:arrays.indexing>`. Extensions to the numpy indexing
-      functionality are:
-    
-      * When more than one axis's slice is a 1-d boolean sequence or 1-d
-        sequence of integers, then these indices work independently along
-        each axis (similar to the way vector subscripts work in Fortran),
-        rather than by their elements.
-      
-      * Boolean indices may be any object which exposes the numpy array
-        interface, such as the field's coordinate objects.
-    
-      :Returns:
-    
-          `Field`
-              An independent field containing the subspace of the original
-              field.
-          
-      **Examples:**
-    
-      >>> f
-      <CF Field: air_temperature(time(12), latitude(73), longitude(96)) K>
-      >>> f.subspace[:, [0, 72], [5, 4, 3]]
-      <CF Field: air_temperature(time(12), latitude(2), longitude(3)) K>
-      >>> f.subspace[:, f.coord('latitude')<0]
-      <CF Field: air_temperature(time(12), latitude(36), longitude(96)) K>
-    
-    
-    **Assignment to the data array**
-    
-      A subspace defined in index-space may have its data array values
-      changed by assignment:
-      
-      >>> f
-      <CF Field: air_temperature(time(12), latitude(73), longitude(96)) K>
-      >>> f.subspace[0:6] = f.subspace[6:12]
-      >>> f.subspace[..., 0:48] = -99
-      
-      To assign to a subspace defined in metadata-space, the equivalent
-      index-space indices must first be found with the field's `indices`
-      method, and then the assignment may be applied in index-space:
-      
-      >>> index = f.indices(longitude=cf.lt(180))
-      >>> f.subspace[index] = cf.masked
-      
-      Note that the `indices` method accepts the same positional and
-      keyword arguments as `subspace`.
+    >>> g = f.subspace[::-1, 0]
+    >>> g = f.subspace[:, :, 1]
+    >>> g = f.subspace[:, 0]
+    >>> g = f.subspace[..., 6:3:-1, 3:6]
+    >>> g = f.subspace[0, [2, 3, 9], [4, 8]]
+    >>> g = t.subspace[0, :, -2]
+    >>> g = f.subspace[0, [2, 3, 9], [4, 8]]
+    >>> g = f.subspace[:, -2:3]
+    >>> g = f.subspace[:, 3:-2:-1]
+    >>> g = f.subspace[..., [True, False, True, True, False]]
 
         '''
         return SubspaceField(self)
@@ -12137,7 +14733,7 @@ The axes are inserted into the slowest varying data array positions.
     method is particular useful for cases when the latitude and
     longitude coordinate cell boundaries are not known nor
     inferrable. Higher order patch recovery is available as an
-    alternative to bilinear interpolation.  This typically results in
+    alternative to bilinear interpolation. This typically results in
     better approximations to values and derivatives compared to the
     latter, but the weight matrix can be larger than the bilinear
     matrix, which can be an issue when regridding close to the memory
@@ -12148,9 +14744,9 @@ The axes are inserted into the slowest varying data array positions.
 
     **Metadata**
     
-    The field's domain must have well defined X and Y axes with
-    latitude and longitude coordinate values, which may be stored as
-    dimension coordinate objects or two dimensional auxiliary
+    The field construct's domain must have well defined X and Y axes
+    with latitude and longitude coordinate values, which may be stored
+    as dimension coordinate objects or two dimensional auxiliary
     coordinate objects. If the latitude and longitude coordinates are
     two dimensional then the X and Y axes must be defined by dimension
     coordinates if present or by the netCDF dimensions. In the latter
@@ -12167,10 +14763,10 @@ The axes are inserted into the slowest varying data array positions.
     bounds it will be necessary to specify *src_cyclic* or
     *dst_cyclic* manually if the field is global.
     
-    The output field's coordinate objects which span the X and/or Y
-    axes are replaced with those from the destination grid. Any fields
-    contained in coordinate reference objects will also be regridded,
-    if possible.
+    The output field construct's coordinate objects which span the X
+    and/or Y axes are replaced with those from the destination
+    grid. Any fields contained in coordinate reference objects will
+    also be regridded, if possible.
     
 
     **Mask**
@@ -12310,12 +14906,15 @@ The axes are inserted into the slowest varying data array positions.
     
         src_axes: `dict`, optional
             A dictionary specifying the axes of the 2D latitude and
-            longitude coordinates of the source field when no
+            longitude coordinates of the source field when no 1D
             dimension coordinates are present. It must have keys 'X'
-            and 'Y'.
+            and 'Y'. TODO
     
             *Parameter example:*
               ``src_axes={'X': 'ncdim%x', 'Y': 'ncdim%y'}``
+    
+            *Parameter example:*
+              ``src_axes={'X': 1, 'Y': 0}``
     
         dst_axes: `dict`, optional
             A dictionary specifying the axes of the 2D latitude and
@@ -12349,7 +14948,7 @@ The axes are inserted into the slowest varying data array positions.
     
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -12358,21 +14957,22 @@ The axes are inserted into the slowest varying data array positions.
             If this is a dictionary then the field masses of the
             source and destination fields are computed and returned
             within the dictionary. The keys of the dictionary
-            indicates the lat/long slice of the field and the
-            corresponding value is a tuple containing the source
-            field's mass and the destination field's mass. The
-            calculation is only done if conservative regridding is
-            being performed. This is for debugging purposes.
+            indicates the lat-long slice of the field and the
+            corresponding value is a tuple containing the source field
+            construct's mass and the destination field construct's
+            mass. The calculation is only done if conservative
+            regridding is being performed. This is for debugging
+            purposes.
     
     :Returns:
     
         `Field`
-            The regridded field.
+            The regridded field construct.
     
     **Examples:**
     
-    Regrid field ``f`` conservatively onto a grid contained in field
-    ``g``:
+    Regrid field construct ``f`` conservatively onto a grid contained
+    in field construct ``g``:
     
     >>> h = f.regrids(g, 'conservative')
     
@@ -12739,15 +15339,16 @@ The axes are inserted into the slowest varying data array positions.
 
     **Metadata**
     
-    The field's domain must have axes matching those specified in
-    *src_axes*. The same is true for the destination grid, if it
-    provided as part of another field. Optionally the axes to use from
-    the destination grid may be specified separately in *dst_axes*.
+    The field construct's domain must have axes matching those
+    specified in *src_axes*. The same is true for the destination
+    grid, if it provided as part of another field. Optionally the axes
+    to use from the destination grid may be specified separately in
+    *dst_axes*.
     
-    The output field's coordinate objects which span the specified
-    axes are replaced with those from the destination grid. Any fields
-    contained in coordinate reference objects will also be regridded,
-    if possible.
+    The output field construct's coordinate objects which span the
+    specified axes are replaced with those from the destination
+    grid. Any fields contained in coordinate reference objects will
+    also be regridded, if possible.
 
     
     **Mask**
@@ -12864,7 +15465,7 @@ The axes are inserted into the slowest varying data array positions.
     
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -12874,10 +15475,11 @@ The axes are inserted into the slowest varying data array positions.
             source and destination fields are computed and returned
             within the dictionary. The keys of the dictionary
             indicates the lat/long slice of the field and the
-            corresponding value is a tuple containing the source
-            field's mass and the destination field's mass. The
-            calculation is only done if conservative regridding is
-            being performed. This is for debugging purposes.
+            corresponding value is a tuple containing the source field
+            construct's mass and the destination field construct's
+            mass. The calculation is only done if conservative
+            regridding is being performed. This is for debugging
+            purposes.
     
     :Returns:
     
@@ -13221,25 +15823,24 @@ The axes are inserted into the slowest varying data array positions.
     :Parameters:
     
         axis: 
-            The axis , defined by that which would
-            be selected by passing the given axis description to a
-            call of the field's `domain_axis` method. For example, for
-            a value of ``'X'``, the domain axis construct returned by
+            The axis , defined by that which would be selected by
+            passing the given axis description to a call of the field
+            construct's `domain_axis` method. For example, for a value
+            of ``'X'``, the domain axis construct returned by
             ``f.domain_axis('X'))`` is selected.
 
         wrap: `bool`, optional
-            If `True` then the boundary is wrapped around, otherwise the
+            If True then the boundary is wrapped around, otherwise the
             value of *one_sided_at_boundary* determines the boundary
             condition. If `None` then the cyclicity of the axis is
             autodetected.
     
         one_sided_at_boundary: `bool`, optional
-            If `True` then one-sided finite differences are used at the
+            If True then one-sided finite differences are used at the
             boundary, otherwise missing values are used.
     
-    
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use the *inplace* parameter instead.
@@ -13262,8 +15863,6 @@ The axes are inserted into the slowest varying data array positions.
                                       "Use the 'wrap' keyword instead") # pragma: no cover
 
         # Retrieve the axis
-#        dims = self.dims(axis)
-#        axis = self.domain_axis_key(axis, default=None)
         axis = self.domain_axis(axis, key=True, default=None)
         if axis is None:
             raise ValueError('Invalid axis specifier')
@@ -13275,7 +15874,6 @@ The axes are inserted into the slowest varying data array positions.
         elif len_dims != 1:
             raise ValueError('Axis specified is not unique.')
 
-#        axis_key, coord = dict(dims).popitem()
         dckey, coord = dict(dims).popitem()
 
         # Get the axis index
@@ -13300,7 +15898,8 @@ The axes are inserted into the slowest varying data array positions.
             
         # Find the finite difference of the field
         f.convolution_filter([1, 0, -1], axis=axis, mode=mode,
-                             update_bounds=False, inplace=True)
+                             update_bounds=False, inplace=True,
+                             _bounds=False)
 
         # Find the finite difference of the axis
         d = convolve1d(coord, [1, 0, -1], mode=mode, cval=numpy_nan)
@@ -13655,7 +16254,8 @@ The axes are inserted into the slowest varying data array positions.
     def _Axes(self):
         '''
         '''
-        _DEPRECATION_ERROR_ATTRIBUTE(self, '_Axes', "Use attribute 'domain_axes' instead.") # pragma: no cover
+        _DEPRECATION_ERROR_ATTRIBUTE(self, '_Axes',
+                                     "Use attribute 'domain_axes' instead.") # pragma: no cover
 
         
     @property
@@ -13794,7 +16394,8 @@ The axes are inserted into the slowest varying data array positions.
     Deprecated at version 3.0.0. Use method 'set_construct' instead.
 
         '''
-        _DEPRECATION_ERROR_METHOD(self, 'insert_aux', "Use method 'set_construct' instead.")  # pragma: no cover
+        _DEPRECATION_ERROR_METHOD(self, 'insert_aux',
+                                  "Use method 'set_construct' instead.")  # pragma: no cover
 
 
     def insert_cell_methods(self, item):
@@ -13979,1225 +16580,3 @@ The axes are inserted into the slowest varying data array positions.
 
         
 #--- End: class
-
-
-# ====================================================================
-#
-# SubspaceField object
-#
-# ====================================================================
-
-class SubspaceField(mixin.Subspace):
-    '''Return a subspace of a field.
-
-A subspace may be defined in "domain-space" via data array values of
-its domain items: dimension coordinate, auxiliary coordinate, cell
-measure, domain ancillary and field ancillary objects.
-
-Alternatively, a subspace my be defined be in "index-space" via
-explicit indices for the data array using an extended Python slicing
-syntax.
-
-Subspacing by values of 1-d coordinates allows a subspaced field to be
-defined via coordinate values of its domain. The benefits of
-subspacing in this fashion are:
-
-  * The axes to be subspaced may identified by name.
-  * The position in the data array of each axis need not be known and
-    the axes to be subspaced may be given in any order.
-  * Axes for which no subspacing is required need not be specified.
-  * Size 1 axes in the subspaced field are always retained, but may be
-    subsequently removed with the `~cf.Field.squeeze` method.
-
-  * Size 1 axes of the domain which are not spanned by the data array
-    may be specified.
-
-Metadata values are provided as keyword arguments. Metadata items are
-identified by their identity or their axis's identifier in the field.
-
-``f.subspace(*args, **kwargs)`` is equivalent to ``f[f.indices(*args,
-**kwargs)]``. See `cf.Field.indices` for details.
-
-.. seealso:: `__getitem__`, `indices`, `where`
-
-**Examples:**
-
->>> f,shape
-(12, 73, 96)
->>> f.subspace().shape
-(12, 73, 96)
->>> f.subspace(latitude=0).shape
-(12, 1, 96)
->>> f.subspace(latitude=cf.wi(-30, 30)).shape
-(12, 25, 96)
->>> f.subspace(long=cf.ge(270, 'degrees_east'), lat=cf.set([0, 2.5, 10])).shape
-(12, 3, 24)
->>> f.subspace(latitude=cf.lt(0, 'degrees_north'))
-(12, 36, 96)
->>> f.subspace(latitude=[cf.lt(0, 'degrees_north'), 90])
-(12, 37, 96)
->>> import math
->>> f.subspace('exact', longitude=cf.lt(math.pi, 'radian'), height=2)
-(12, 73, 48)
->>> f.subspace(height=cf.gt(3))
-IndexError: No indices found for 'height' values gt 3
->>> f.subspace(dim2=3.75).shape
-(12, 1, 96)
->>> f.subspace(time=cf.le(cf.dt('1860-06-16 12:00:00')).shape
-(6, 73, 96)
->>> f.subspace(time=cf.gt(cf.dt(1860, 7)),shape
-(5, 73, 96)
-
-Note that if a comparison function (such as `cf.wi`) does not specify
-any units, then the units of the named item are assumed.
-
-    '''
-        
-    __slots__ = []
-
-    def __call__(self, *args, **kwargs):
-        '''Return a subspace of the field defined by coordinate values.
-    
-    :Parameters:
-    
-        kwargs: *optional*
-            Keyword names identify coordinates; and keyword values specify
-            the coordinate values which are to be reinterpreted as indices
-            to the field's data array.
-    
-    
-    ~~~~~~~~~~~~~~ /??????
-            Coordinates are identified by their exact identity or by their
-            axis's identifier in the field's domain.
-    
-            A keyword value is a condition, or sequence of conditions,
-            which is evaluated by finding where the coordinate's data
-            array equals each condition. The locations where the
-            conditions are satisfied are interpreted as indices to the
-            field's data array. If a condition is a scalar ``x`` then
-            this is equivalent to the `Query` object ``cf.eq(x)``.
-    
-    :Returns:
-    
-        `Field`
-    TODO
-    
-    **Examples:**
-    
-    >>> f.indices(lat=0.0, lon=0.0)
-    >>> f.indices(lon=cf.lt(0.0), lon=cf.set([0, 3.75]))
-    >>> f.indices(lon=cf.lt(0.0), lon=cf.set([0, 356.25]))
-    >>> f.indices(lon=cf.lt(0.0), lon=cf.set([0, 3.75, 356.25]))
-
-        '''
-        field = self.variable
-
-        if not args and not kwargs:
-            return field.copy()    
-
-        return field[field.indices(*args, **kwargs)]
-
-
-    def __getitem__(self, indices):
-        '''Called to implement evaluation of x[indices].
-
-    x.__getitem__(indices) <==> x[indices]
-    
-    Returns a subspace of a field.
-
-        '''
-        return super().__getitem__(indices)
-
-
-    def __setitem__(self, indices, value):
-        '''Called to implement assignment to x[indices]
-
-    x.__setitem__(indices, value) <==> x[indices]
-
-        '''      
-        super().__setitem__(indices, value)
-
-
-#--- End: class
-
-
-#class FieldList_old(list):
-#    '''An ordered sequence of fields.
-#
-#Each element of a field list is a field construct.
-#
-#A field list supports the python list-like operations (such as
-#indexing and methods like `!append`).
-#
-#>>> fl = cf.FieldList()
-#>>> len(fl)
-#0
-#>>> f
-#<CF Field: air_temperaturetime(12), latitude(73), longitude(96) K>
-#>>> fl = cf.FieldList(f)
-#>>> len(fl)
-#1
-#>>> fl = cf.FieldList([f, f])
-#>>> len(fl)
-#2
-#>>> fl = cf.FieldList(cf.FieldList([f] * 3))
-#>>> len(fl)
-#3
-#>>> len(fl + fl)
-#6
-#
-#These methods provide functionality similar to that of a
-#:ref:`built-in list <python:tut-morelists>`. The main difference is
-#that when a field element needs to be assesed for equality its
-#`~cf.Field.equals` method is used, rather than the ``==`` operator.
-#
-#    '''   
-#    def __init__(self, fields=None):
-#        '''**Initialization**
-#
-#:Parameters:
-#
-#    fields: (sequence of) `Field`, optional
-#         Create a new field list with these fields.
-#
-#        '''
-#        if fields is not None:
-#            if isinstance(fields, Field):
-#                self.append(fields)
-#            else:
-#                self.extend(fields)         
-#    #--- End: def
-#
-#    def __call__(self, *identities):
-#        '''TODO'''        
-#        return self.filter_by_identity(*identities)
-#    #--- End: def
-#    
-#    def __repr__(self):
-#        '''Called by the `repr` built-in function.
-#
-#x.__repr__() <==> repr(x)
-#
-#        '''
-#        
-#        out = [repr(f) for f in self]
-#        out = ',\n '.join(out)
-#        return '['+out+']'
-#    #--- End: def
-#
-##    def __str__(self):
-##        '''Called by the `str` built-in function.
-##
-##x.__str__() <==> str(x)
-##
-##        '''
-##        return '\n'.join(str(f) for f in self)
-##    #--- End: def
-#
-#    # ----------------------------------------------------------------
-#    # Overloaded list methods
-#    # ----------------------------------------------------------------
-#    def __add__(self, x):
-#        '''Called to implement evaluation of f + x
-#
-#f.__add__(x) <==> f + x
-#
-#:Returns:
-#
-#    `FieldList`
-#
-#**Examples:**
-#
-#>>> h = f + g
-#>>> f += g
-#
-#        '''
-#        return type(self)(list.__add__(self, x))
-#    #--- End: def
-#
-#    def __mul__(self, x):
-#        '''Called to implement evaluation of f * x
-#
-#f.__mul__(x) <==> f * x
-#
-#:Returns:
-#
-#    `FieldList`
-#
-#**Examples:**
-#
-#>>> h = f * 2
-#>>> f *= 2
-#
-#        '''
-#        return type(self)(list.__mul__(self, x))
-#    #--- End: def
-#
-#    def __getslice__(self, i, j):
-#        '''Called to implement evaluation of f[i:j]
-#
-#    f.__getslice__(i, j) <==> f[i:j]
-#    
-#    :Returns:
-#    
-#        `FieldList`
-#    
-#    **Examples:**
-#    
-#    >>> g = f[0:1]
-#    >>> g = f[1:-4]
-#    >>> g = f[:1]
-#    >>> g = f[1:]
-#
-#        '''
-#        return type(self)(list.__getslice__(self, i, j))
-#
-#
-#    def __getitem__(self, index):
-#        '''Called to implement evaluation of f[index]
-#
-#    f.__getitem_(index) <==> f[index]
-#    
-#    :Returns:
-#    
-#        `Field` or `FieldList`
-#            If *index* is an integer then a field construct is
-#            returned. If *index* is a slice then a field list is returned,
-#            which may be empty.
-#    
-#    **Examples:**
-#    
-#    >>> g = f[0]
-#    >>> g = f[-1:-4:-1]
-#    >>> g = f[2:2:2]
-#
-#        '''
-#        out = list.__getitem__(self, index)
-#
-#        if isinstance(out, list):
-#            return type(self)(out)
-#
-#        return out
-#
-#    # ???
-#    __len__     = list.__len__
-#    __setitem__ = list.__setitem__    
-#    append      = list.append
-#    extend      = list.extend
-#    insert      = list.insert
-#    pop         = list.pop
-#    reverse     = list.reverse
-#    sort        = list.sort
-#
-#    def __contains__(self, y):
-#        '''Called to implement membership test operators.
-#
-#x.__contains__(y) <==> y in x
-#
-#Each field in the field list is compared with the field's
-#`~cf.Field.equals` method, as aopposed to the ``==`` operator.
-#
-#Note that ``y in fl`` is equivalent to ``any(f.equals(y) for f in fl)``.
-#
-#        '''
-#        for f in self:
-#            if f.equals(y):
-#                return True
-#        #--- End: for
-#            
-#        return False
-#    #--- End: def
-#
-#    def close(self):
-#        '''Close all files referenced by each field.
-#
-#Note that a closed file will be automatically reopened if its contents
-#are subsequently required.
-#
-#:Returns:
-#
-#    `None`
-#
-#**Examples:**
-#
-#>>> f.close()
-#
-#        '''
-#        for f in self:
-#            f.close()
-#    #--- End: def
-#
-#    def count(self, value):
-#        '''Return number of occurrences of value
-#
-#Each field in the field list is compared with the field's
-#`~cf.Field.equals` method, as opposed to the ``==`` operator.
-#
-#Note that ``fl.count(value)`` is equivalent to ``sum(f.equals(value)
-#for f in fl)``.
-#
-#.. seealso:: `cf.Field.equals`, `list.count`
-#
-#**Examples:**
-#
-#>>> f = cf.FieldList([a, b, c, a])
-#>>> f.count(a)
-#2
-#>>> f.count(b)
-#1
-#>>> f.count(a+1)
-#0
-#
-#        '''
-#        return len([None for f in self if f.equals(value)])
-#    #--- End def
-#
-#    def index(self, value, start=0, stop=None):
-#        '''Return first index of value.
-#
-#Each field in the field list is compared with the field's
-#`~cf.Field.equals` method, as aopposed to the ``==`` operator.
-#
-#It is an error if there is no such field.
-#
-#.. seealso:: `list.index`
-#
-#**Examples:**
-#
-#        '''      
-#        if start < 0:
-#            start = len(self) + start
-#
-#        if stop is None:
-#            stop = len(self)
-#        elif stop < 0:
-#            stop = len(self) + stop
-#
-#        for i, f in enumerate(self[start:stop]):
-#            if f.equals(value):
-#               return i + start
-#        #--- End: for
-#
-#        raise ValueError(
-#            "{0!r} is not in {1}".format(value, self.__class__.__name__))
-#    #--- End: def
-#
-#    # 0
-#    def remove(self, value):
-#        '''Remove first occurrence of value.
-#
-#Each field in the field list is compared with its `~cf.Field.equals`
-#method, as opposed to the ``==`` operator.
-#
-#.. seealso:: `list.remove`
-#
-#        '''
-#        for i, f in enumerate(self):
-#            if f.equals(value):
-#                del self[i]
-#                return
-#        #--- End: for
-#        
-#        raise ValueError(
-#            "{0}.remove(x): x not in {0}".format(self.__class__.__name__))
-#    #--- End: def
-#
-#
-#    def sort(self, key=None, reverse=False):
-#        '''Sort of the field list in place.
-#
-#    By default the field list is sorted by the identities of its field
-#    construct elements.
-#
-#    The sort is stable.
-#    
-#    .. versionadded:: 1.0.4
-#    
-#    .. seealso:: `reverse`
-#    
-#    :Parameters:
-#    
-#        key: function, optional
-#            Specify a function of one argument that is used to extract
-#            a comparison key from each field construct. By default the
-#            field list is sorted by field identity, i.e. the default
-#            value of *key* is ``lambda f: f.identity()``.
-#    
-#        reverse: `bool`, optional
-#            If set to `True`, then the field list elements are sorted
-#            as if each comparison were reversed.
-#    
-#    :Returns:
-#    
-#        `None`
-#    
-#    **Examples:**
-#    
-#    >>> fl
-#    [<CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>,
-#     <CF Field: ocean_meridional_overturning_streamfunction(time(12), region(4), depth(40), latitude(180)) m3 s-1>,
-#     <CF Field: air_temperature(time(12), latitude(64), longitude(128)) K>,
-#     <CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>]
-#    >>> fl.sort()
-#    >>> fl
-#    [<CF Field: air_temperature(time(12), latitude(64), longitude(128)) K>,
-#     <CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>,
-#     <CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>,
-#     <CF Field: ocean_meridional_overturning_streamfunction(time(12), region(4), depth(40), latitude(180)) m3 s-1>]
-#    >>> fl.sort(reverse=True)
-#    >>> fl
-#    [<CF Field: ocean_meridional_overturning_streamfunction(time(12), region(4), depth(40), latitude(180)) m3 s-1>,
-#     <CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>,
-#     <CF Field: eastward_wind(time(3), air_pressure(5), grid_latitude(110), grid_longitude(106)) m s-1>,
-#     <CF Field: air_temperature(time(12), latitude(64), longitude(128)) K>]
-#    
-#    >>> [f.datum(0) for f in fl]
-#    [masked,
-#     -0.12850454449653625,
-#     -0.12850454449653625,
-#     236.51275634765625]
-#    >>> fl.sort(key=lambda f: f.datum(0), reverse=True)
-#    >>> [f.datum(0) for f in fl]
-#    [masked,
-#     236.51275634765625,
-#     -0.12850454449653625,
-#     -0.12850454449653625]
-#    
-#    >>> from operator import attrgetter
-#    >>> [f.long_name for f in fl]
-#    ['Meridional Overturning Streamfunction',
-#     'U COMPNT OF WIND ON PRESSURE LEVELS',
-#     'U COMPNT OF WIND ON PRESSURE LEVELS',
-#     'air_temperature']
-#    >>> fl.sort(key=attrgetter('long_name'))
-#    >>> [f.long_name for f in fl]
-#    ['air_temperature',
-#     'Meridional Overturning Streamfunction',
-#     'U COMPNT OF WIND ON PRESSURE LEVELS',
-#     'U COMPNT OF WIND ON PRESSURE LEVELS']
-#
-#        '''
-#        if key is None:
-#            key = lambda f: f.identity()
-#            
-#        return super().sort(key=key, reverse=reverse)
-#
-#
-#
-#    def _deepcopy__(self, memo):
-#        '''Called by the `copy.deepcopy` standard library function.
-#
-#        '''
-#        return self.copy()
-#
-#    
-#    def concatenate(self, axis=0, _preserve=True):
-#        '''Join the sequence of fields together.
-#
-#    This is different to `cf.aggregate` because it does not account
-#    for all metadata. For example, it assumes that the axis order is
-#    the same in each field.
-#    
-#    .. versionadded:: 1.0
-#    
-#    .. seealso:: `cf.aggregate`, `Data.concatenate`
-#    
-#    :Parameters:
-#    
-#        axis: `int`, optional
-#            TODO
-#
-#    :Returns:
-#    
-#        `Field`
-#            TODO
-#
-#        '''
-#        return self[0].concatenate(self, axis=axis, _preserve=_preserve)
-#
-#
-#    def copy(self, data=True):
-#        '''Return a deep copy.
-#    
-#    ``f.copy()`` is equivalent to ``copy.deepcopy(f)``.
-#    
-#    :Returns:
-#    
-#            The deep copy.
-#    
-#    **Examples:**
-#    
-#    >>> g = f.copy()
-#    >>> g is f
-#    False
-#    >>> f.equals(g)
-#    True
-#    >>> import copy
-#    >>> h = copy.deepcopy(f)
-#    >>> h is f
-#    False
-#    >>> f.equals(g)
-#    True
-#
-#        '''
-#        return type(self)([f.copy(data=data) for f in self])
-#
-#    
-#    def equals(self, other, rtol=None, atol=None, verbose=False,
-#               ignore_data_type=False, ignore_fill_value=False,
-#               ignore_properties=(), ignore_compression=False,
-#               ignore_type=False, ignore=(), traceback=False,
-#               unordered=False):
-#        '''Whether two field lists are the same.
-#
-#    Equality requires the two field lists to have the same length and
-#    for the the field construct elements to be equal pair-wise, using
-#    their `~cf.Field.equals` methods.
-#    
-#    Any type of object may be tested but, in general, equality is only
-#    possible with another field list, or a subclass of one. See the
-#    *ignore_type* parameter.
-#    
-#    Equality is between teo field constructs is strict by
-#    default. This means that for two field constructs to be considered
-#    equal they must have corresponding metadata constructs and for
-#    each pair of constructs:
-#    
-#    * the same descriptive properties must be present, with the same
-#      values and data types, and vector-valued properties must also
-#      have same the size and be element-wise equal (see the
-#      *ignore_properties* and *ignore_data_type* parameters), and
-#    
-#    ..
-#    
-#    * if there are data arrays then they must have same shape and data
-#      type, the same missing data mask, and be element-wise equal (see
-#      the *ignore_data_type* parameter).
-#    
-#    Two real numbers ``x`` and ``y`` are considered equal if
-#    ``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
-#    differences) and ``rtol`` (the tolerance on relative differences)
-#    are positive, typically very small numbers. See the *atol* and
-#    *rtol* parameters.
-#    
-#    If data arrays are compressed then the compression type and the
-#    underlying compressed arrays must be the same, as well as the
-#    arrays in their uncompressed forms. See the *ignore_compression*
-#    parameter.
-#    
-#    NetCDF elements, such as netCDF variable and dimension names, do
-#    not constitute part of the CF data model and so are not checked on
-#    any construct.
-#    
-#    :Parameters:
-#        other: 
-#            The object to compare for equality.
-#    
-#        atol: float, optional
-#            The tolerance on absolute differences between real
-#            numbers. The default value is set by the `cf.ATOL`
-#            function.
-#            
-#        rtol: float, optional
-#            The tolerance on relative differences between real
-#            numbers. The default value is set by the `cf.RTOL`
-#            function.
-#    
-#        ignore_fill_value: `bool`, optional
-#            If `True` then the "_FillValue" and "missing_value"
-#            properties are omitted from the comparison, for the field
-#            construct and metadata constructs.
-#    
-#        verbose: `bool`, optional
-#            If `True` then print information about differences that lead
-#            to inequality.
-#    
-#        ignore_properties: sequence of `str`, optional
-#            The names of properties of the field construct (not the
-#            metadata constructs) to omit from the comparison. Note
-#            that the "Conventions" property is always omitted by
-#            default.
-#    
-#        ignore_data_type: `bool`, optional
-#            If `True` then ignore the data types in all numerical
-#            comparisons. By default different numerical data types
-#            imply inequality, regardless of whether the elements are
-#            within the tolerance for equality.
-#    
-#        ignore_compression: `bool`, optional
-#            If `True` then any compression applied to underlying arrays
-#            is ignored and only uncompressed arrays are tested for
-#            equality. By default the compression type and, if
-#            applicable, the underlying compressed arrays must be the
-#            same, as well as the arrays in their uncompressed forms
-#    
-#        ignore_type: `bool`, optional
-#            Any type of object may be tested but, in general, equality
-#            is only possible with another field list, or a subclass of
-#            one. If *ignore_type* is True then
-#            ``FieldList(source=other)`` is tested, rather than the
-#            ``other`` defined by the *other* parameter.
-#
-#        unordered: `bool`, optional
-#            TODO
-#    
-#    :Returns: 
-#      
-#        `bool`
-#            Whether the two field lists are equal.
-#    
-#    **Examples:**
-#    
-#    >>> fl.equals(fl)
-#    True
-#    >>> fl.equals(fl.copy())
-#    True
-#    >>> fl.equals(fl[:])
-#    True
-#    >>> fl.equals('not a FieldList instance')
-#    False
-#
-#        '''
-#        if traceback:
-#            _DEPRECATION_ERROR_KWARGS(self, 'equals', traceback=True) # pragma: no cover
-#            
-#        if ignore:
-#            _DEPRECATION_ERROR_KWARGS(self, 'equals', {'ignore': ignore},
-#                                      "Use keyword 'ignore_properties' instead.") # pragma: no cover
-#            
-#        # Check for object identity
-#        if self is other:
-#            return True
-#
-#        # Check that each object is of compatible type
-#        if ignore_type:
-#            if not isinstance(other, self.__class__):
-#                other = type(self)(source=other, copy=False)
-#        elif not isinstance(other, self.__class__):
-#            if verbose:
-#                print("{0}: Incompatible type: {1}".format(
-#		    self.__class__.__name__, other.__class__.__name__)) # pragma: no cover
-#            return False
-#
-#        # Check that there are equal numbers of fields
-#        len_self = len(self)
-#        if len_self != len(other): 
-#            if verbose:
-#                print("{0}: Different numbers of field construct: {1}, {2}".format(
-#		    self.__class__.__name__,
-#		    len_self, len(other))) # pragma: no cover
-#            return False
-#
-#        if not unordered or len_self == 1:
-#       	    # ----------------------------------------------------
-#    	    # Check the lists pair-wise
-#    	    # ----------------------------------------------------
-#    	    for i, (f, g) in enumerate(zip(self, other)):
-#    	        if not f.equals(g, rtol=rtol, atol=atol,
-#                                ignore_fill_value=ignore_fill_value,
-#                                ignore_properties=ignore_properties,
-#                                ignore_compression=ignore_compression,
-#                                ignore_data_type=ignore_data_type,
-#                                ignore_type=ignore_type,
-#                                verbose=verbose):
-#                    if verbose:
-#                        print("{0}: Different field constructs at element {1}: {2!r}, {3!r}".format(
-#    			    self.__class__.__name__, i, f, g)) # pragma: no cover
-#                    return False
-#        else:
-#    	    # ----------------------------------------------------
-#    	    # Check the lists set-wise
-#    	    # ----------------------------------------------------
-#    	    # Group the variables by identity
-#            self_identity = {}
-#            for f in self:
-#                self_identity.setdefault(f.identity(), []).append(f)
-#
-#            other_identity = {}
-#            for f in other:
-#                other_identity.setdefault(f.identity(), []).append(f)
-#
-#    	    # Check that there are the same identities
-#            if set(self_identity) != set(other_identity):
-#    	        if verbose:
-#                    print("{}: Different sets of identities: {}, {}".format(
-#    			self.__class__.__name__,
-#    			set(self_identity),
-#    			set(other_identity))) # pragma: no cover
-#    	        return False
-#
-#            # Check that there are the same number of variables
-#    	    # for each identity
-#            for identity, fl in self_identity.items():
-#    	        gl = other_identity[identity]
-#    	        if len(fl) != len(gl):
-#                    if verbose:
-#                        print("{0}: Different numbers of {1!r} {2}s: {3}, {4}".format(
-#    			    self.__class__.__name__,
-#    			    identity,
-#                            fl[0].__class__.__name__,
-#    			    len(fl), len(gl))) # pragma: no cover
-#                    return False
-#            #--- End: for
-#
-#    	    # For each identity, check that there are matching pairs
-#            # of equal fields.
-#            for identity, fl in self_identity.items():
-#                gl = other_identity[identity]
-#
-#                for f in fl:
-#                    found_match = False
-#                    for i, g in enumerate(gl):
-#                        if f.equals(g, rtol=rtol, atol=atol,
-#                                    ignore_fill_value=ignore_fill_value,
-#                                    ignore_properties=ignore_properties,
-#                                    ignore_compression=ignore_compression,
-#                                    ignore_data_type=ignore_data_type,
-#                                    ignore_type=ignore_type,
-#                                    verbose=verbose):
-#                            found_match = True
-#                            del gl[i]
-#                            break
-#                #--- End: for
-#                
-#                if not found_match:
-#                    if verbose:                        
-#                        print("{0}: No {1} equal to: {2!r}".format(
-#    			    self.__class__.__name__, g.__class__.__name__, f)) # pragma: no cover
-#                    return False
-#        #--- End: if
-#
-#        # ------------------------------------------------------------
-#    	# Still here? Then the field lists are equal
-#    	# ------------------------------------------------------------
-#        return True	    
-#
-#
-#    def select(self, *identities, **kwargs):
-#        '''Select field constructs by identity.
-#
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match` method of the field constucts. For example, to
-#    select all field constructs whose identity is *not*
-#    ``'air_temperature'``:
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match('air_temperature'))
-#    
-#    `select` is an alias of `filter_by_identity`.
-#    
-#    .. seealso:: `filter_by_identity`, `filter_by_units`,
-#                 `filter_by_construct`, `filter_by_naxes`,
-#                 `filter_by_rank`, `filter_by_property`
-#    
-#        identities: optional
-#            Select field constructs. By default all field constructs
-#            are selected. May be one or more of:
-#    
-#              * The identity of a field construct.
-#    
-#            A construct identity is specified by a string
-#            (e.g. ``'air_temperature'``, ``'long_name=Air
-#            Temperature', ``'ncvar%tas'``, etc.); or a compiled
-#            regular expression (e.g. ``re.compile('^air_')``) that
-#            selects the relevant constructs whose identities match via
-#            `re.search`.
-#    
-#            Each construct has a number of identities, and is selected
-#            if any of them match any of those provided. A construct's
-#            identities are those returned by its `!identities`
-#            method. In the following example, the construct ``x`` has
-#            five identities:
-#    
-#               >>> x.identities()
-#               ['air_temperature', 'long_name=Air Temperature', 'foo=bar', 'standard_name=air_temperature', 'ncvar%tas']
-#    
-#            Note that in the output of a `print` call or `!dump`
-#            method, a construct is always described by one of its
-#            identities, and so this description may always be used as
-#            an *identities* argument.
-#    
-#        kwargs: deprecated at version 3.0.0
-#                  
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    TODO
-#
-#        '''
-#        if kwargs:
-#            _DEPRECATION_ERROR_KWARGS(
-#                self, 'select', kwargs,
-#                "Use methods 'filter_by_units',  'filter_by_construct', 'filter_by_properties', 'filter_by_naxes', 'filter_by_rank' instead.") # pragma: no cover
-#
-#        if identities and isinstance(identities[0], (list, tuple, set)):
-#            _DEPRECATION_ERROR(
-#                "Use of a {!r} for identities has been deprecated. Use the * operator to unpack the arguments instead.".format(
-#                identities[0].__class__.__name__)) # pragma: no cover
-#
-#        for i in identities:
-#            if isinstance(i, dict):
-#                _DEPRECATION_ERROR_DICT(
-#                    "Use methods 'filter_by_units', 'filter_by_construct', 'filter_by_properties', 'filter_by_naxes', 'filter_by_rank' instead.") # pragma: no cover
-#            try:
-#                if ':' in i:
-#                    new = i.replace(':', '=', 1)
-#                    _DEPRECATION_ERROR(
-#                        "The ':' format has been deprecated. Use {!r} instead.".format(new)) # pragma: no cover
-#            except TypeError:
-#                pass
-#        #--- End: for
-#        
-#        return self.filter_by_identity(*identities)
-#
-#
-#
-#    def filter_by_construct(self, *mode, **constructs):
-#        '''TODO
-#
-#        '''    
-#        return type(self)(f for f in self if f.match_by_construct(*mode, **constructs))
-#
-#    
-#    def filter_by_identity(self, *identities):
-#        '''Select field constructs by identity.
-#
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match_by_identity` method of the field constucts. For
-#    example, to select all field constructs whose identity is *not*
-#    ``'air_temperature'``:
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match_by_identity('air_temperature'))
-#    
-#    `select` is an alias of `filter_by_identity`.
-#    
-#    .. versionadded:: 3.0.0
-#    
-#    .. seealso:: `select`, `filter_by_units`, `filter_by_construct`,
-#                 `filter_by_naxes`, `filter_by_rank`,
-#                 `filter_by_property`
-#    
-#        identities: optional
-#            Select field constructs. By default all field constructs
-#            are selected. May be one or more of:
-#    
-#              * The identity of a field construct.
-#    
-#            A construct identity is specified by a string (e.g.
-#            ``'air_temperature'``, ``'long_name=Air Temperature',
-#            ``'ncvar%tas'``, etc.); or a compiled regular expression
-#            (e.g. ``re.compile('^air_')``) that selects the relevant
-#            constructs whose identities match via `re.search`.
-#    
-#            Each construct has a number of identities, and is selected
-#            if any of them match any of those provided. A construct's
-#            identities are those returned by its `!identities`
-#            method. In the following example, the construct ``x`` has
-#            five identities:
-#    
-#               >>> x.identities()
-#               ['air_temperature', 'long_name=Air Temperature', 'foo=bar', 'standard_name=air_temperature', 'ncvar%tas']
-#    
-#            Note that in the output of a `print` call or `!dump`
-#            method, a construct is always described by one of its
-#            identities, and so this description may always be used as
-#            an *identities* argument.
-#    
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    TODO
-#
-#        '''       
-#        return type(self)(f for f in self if f.match_by_identity(*identities))
-#
-#    
-#    def filter_by_naxes(self, *naxes):
-#        '''Select field constructs by property.
-#
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match_by_naxes` method of the field constucts. For
-#    example, to select all field constructs which do *not* have
-#    3-dimensional data:
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match_by_naxes(3))
-#    
-#    .. versionadded:: 3.0.0
-#    
-#    .. seealso:: `select`, `filter_by_identity`,
-#                 `filter_by_construct`, `filter_by_property`,
-#                 `filter_by_rank`, `filter_by_units` :Parameters:
-#    
-#        naxes: optional
-#            Select field constructs whose data spans a particular
-#            number of domain axis constructs.
-#    
-#            A number of domain axis constructs is given by an `int`.
-#    
-#            If no numbers are provided then all field constructs are
-#            selected.
-#         
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    TODO
-#
-#        '''
-#        return type(self)(f for f in self if f.match_by_naxes(*naxes))
-#
-#    
-#    def filter_by_rank(self, *ranks):
-#        '''TODO'''
-#        
-#        return type(self)(f for f in self if f.match_by_rank(*ranks))
-#
-#    
-#    def filter_by_ncvar(self, *rank):
-#        '''Select field constructs by netCDF variable name.
-#    
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match_by_ncvar` method of the field constucts. For
-#    example, to select all field constructs which do *not* have a
-#    netCDF name of 'tas':
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match_by_ncvar('tas'))
-#    
-#    .. versionadded:: 3.0.0
-#    
-#    .. seealso:: `select`, `filter_by_identity`,
-#                 `filter_by_construct`, `filter_by_naxes`,
-#                 `filter_by_rank`, `filter_by_units`
-#    
-#        ncvars: optional
-#            Select field constructs. May be one or more:
-#    
-#              * The netCDF name of a field construct.
-#    
-#            A field construct is selected if it matches any of the
-#            given names.
-#    
-#            A netCDF variable name is specified by a string (e.g.
-#            ``'tas'``, etc.); a `Query` object
-#            (e.g. ``cf.eq('tas')``); or a compiled regular expression
-#            (e.g. ``re.compile('^air_')``) that selects the field
-#            constructs whose netCDF variable names match via
-#            `re.search`.
-#    
-#            If no netCDF variable names are provided then all field
-#            are selected.
-#    
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    TODO
-#
-#        '''     
-#        return type(self)(f for f in self if f.match_by_ncvar(*ncvars))
-#
-#    
-#    def filter_by_property(self, *mode, **properties):
-#        '''Select field constructs by property.
-#
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match_by_property` method of the field constucts. For
-#    example, to select all field constructs which do *not* have a
-#    long_name property of 'Air Pressure':
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match_by_property(long_name='Air Pressure))
-#    
-#    .. versionadded:: 3.0.0
-#    
-#    .. seealso:: `select`, `filter_by_identity`,
-#                 `filter_by_construct`, `filter_by_naxes`,
-#                 `filter_by_rank`, `filter_by_units`
-#    
-#        mode: optional
-#            Define the behaviour when multiple properties are
-#            provided.
-#    
-#            By default (or if the *mode* parameter is ``'and'``) a
-#            field construct is selected if it matches all of the given
-#            properties, but if the *mode* parameter is ``'or'`` then a
-#            field construct will be selected when at least one of its
-#            properties matches.
-#    
-#        properties: optional
-#            Select field constructs. May be one or more of:
-#    
-#              * The property of a field construct.
-#    
-#            By default a field construct is selected if it matches all
-#            of the given properties, but it may alternatively be
-#            selected when at least one of its properties matches (see
-#            the *mode* positional parameter).
-#    
-#            A property value is given by a keyword parameter of the
-#            property name. The value may be a scalar or vector
-#            (e.g. ``'air_temperature'``, ``4``, ``['foo', 'bar']``);
-#            or a compiled regular expression
-#            (e.g. ``re.compile('^ocean')``), for which all constructs
-#            whose methods match (via `re.search`) are selected.
-#            
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    TODO
-#
-#        '''
-#        return type(self)(f for f in self if f.match_by_property(*mode, **properties))
-#
-#    
-#    def filter_by_units(self, *units, exact=True):
-#        '''Select field constructs by units.
-#
-#    To find the inverse of the selection, use a list comprehension
-#    with `~Field.match_by_units` method of the field constucts. For
-#    example, to select all field constructs whose units are *not*
-#    ``'km'``:
-#            
-#       >>> gl = cf.FieldList(f for f in fl if not f.match_by_units('km'))
-#    
-#    .. versionadded:: 3.0.0
-#    
-#    .. seealso:: `select`, `filter_by_identity`,
-#                 `filter_by_construct`, `filter_by_naxes`,
-#                 `filter_by_rank`, `filter_by_property`
-#    
-#        units: optional
-#            Select field constructs. By default all field constructs
-#            are selected. May be one or more of:
-#    
-#              * The units of a field construct.
-#    
-#            Units are specified by a string or compiled regular
-#            expression (e.g. 'km', 'm s-1', ``re.compile('^kilo')``,
-#            etc.) or a `Units` object (e.g. ``Units('km')``,
-#            ``Units('m s-1')``, etc.).
-#            
-#        exact: `bool`, optional
-#            If `False` then select field constructs whose units are
-#            equivalent to any of those given by *units*. For example,
-#            metres and are equivelent to kilometres. By default, field
-#            constructs whose units are exactly one of those given by
-#            *units* are selected. Note that the format of the units is
-#            not important, i.e. 'm' is exactly the same as 'metres'
-#            for this purpose.
-#    
-#    :Returns:
-#    
-#        `FieldList`
-#            The matching field constructs.
-#    
-#    **Examples:**
-#    
-#    >>> gl = fl.filter_by_units('metres')
-#    >>> gl = fl.filter_by_units('m')
-#    >>> gl = fl.filter_by_units('m', 'kilogram')
-#    >>> gl = fl.filter_by_units(Units('m'))
-#    >>> gl = fl.filter_by_units('km', exact=False)
-#    >>> gl = fl.filter_by_units(Units('km'), exact=False)
-#    >>> gl = fl.filter_by_units(re.compile('^met'))
-#    >>> gl = fl.filter_by_units(Units('km'))
-#    >>> gl = fl.filter_by_units(Units('kg m-2'))
-#
-#        '''
-#        return type(self)(f for f in self
-#                          if f.match_by_units(*units, exact=exact))
-#
-#    
-##    def unordered_equals(self, other, rtol=None, atol=None,
-##                         verbose=False, ignore_data_type=False,
-##                         ignore_fill_value=False,
-##                         ignore_properties=(),
-##                         ignore_compression=False, ignore_type=False):
-##        '''TODO
-##
-##    Two real numbers ``x`` and ``y`` are considered equal if
-##    ``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
-##    differences) and ``rtol`` (the tolerance on relative differences)
-##    are positive, typically very small numbers. See the *atol* and
-##    *rtol* parameters.
-##    
-##    :Parameters:
-##    
-##        atol: `float`, optional
-##            The tolerance on absolute differences between real
-##            numbers. The default value is set by the `ATOL` function.
-##    
-##        rtol: `float`, optional
-##            The tolerance on relative differences between real
-##            numbers. The default value is set by the `RTOL` function.
-##
-##        '''
-##        kwargs = locals()
-##        del kwargs['self']
-##        kwargs['_set'] = True
-##        
-##        return self.equals(**kwargs)
-#
-#    
-#
-#    # ----------------------------------------------------------------
-#    # Deprecated attributes and methods
-#    # ----------------------------------------------------------------
-#    def _parameters(self, d):
-#        '''Deprecated at version 3.0.0.
-#
-#        '''
-#        _DEPRECATION_ERROR_METHOD(self, '_parameters') # pragma: no cover
-#
-#
-#    def _deprecated_method(self, name):
-#        '''Deprecated at version 3.0.0.
-#
-#        '''
-#        _DEPRECATION_ERROR_METHOD(self, '_deprecated_method') # pragma: no cover
-#
-#
-#    def set_equals(self, other, rtol=None, atol=None,
-#                   ignore_data_type=False, ignore_fill_value=False,
-#                   ignore_properties=(), ignore_compression=False,
-#                   ignore_type=False, traceback=False):
-#        '''Deprecated at version 3.0.0. Use method 'equals' instead.
-#        
-#        '''
-#        _DEPRECATION_ERROR_METHOD(self, 'set_equals',
-#                                  "Use method 'equals' instead.") # pragma: no cover
-#
-#
-#    def select_field(self, *args, **kwargs):
-#        '''Deprecated at version 3.0.0. Use 'fl.filter_by_*' methods instead.
-#
-#        '''
-#        _DEPRECATION_ERROR_METHOD(self, 'select_field',
-#                                  "Use 'fl.filter_by_*' methods instead.") # pragma: no cover
-#
-#
-#    def select1(self, *args, **kwargs):
-#        '''Deprecated at version 3.0.0. Use 'fl.filter_by_*' methods instead.
-#
-#        '''
-#        _DEPRECATION_ERROR_METHOD(self, 'select1', 
-#                                  "Use 'fl.filter_by_*' methods instead.") # pragma: no cover
-#
-#
-##--- End: class

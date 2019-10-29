@@ -14,13 +14,53 @@ Version |release| for version |version| of the CF conventions.
    :local:
    :backlinks: entry
 
+.. _Operating-systems:
+
+**Operating systems**
+---------------------
+
+cf works only for Linux and Mac operating systems.
+
+If you have a Windows operating system then you can either install the
+`Microsoft Windows Subsystem for Linux (WSL)
+<https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux>`_, or
+installing a Linux Virtual Machine also works.
+
+----
+
 .. _Python-versions:
 
 **Python versions**
 -------------------
 
-cf works only for Python 3.5 or later. (Versions 2.x of cf work only
-for Python 2.7.)
+cf at versions 3.0.0 or later works only for Python 3.5 or
+later. (Versions 2.x of cf work only for Python 2.7.)
+
+----
+
+.. _conda:
+  
+**conda**
+---------
+
+cf-python is in the ``ncas`` conda channel. To install cf with all of
+its :ref:`required <Required>` and :ref:`optional <Optional>`
+dependencies, and the `cf-plot visualisation package
+<http://ajheaps.github.io/cf-plot>`_, run
+
+.. code-block:: shell
+   :caption: *Install with conda.*
+	     
+   conda install -c ncas -c conda-forge cf-python cf-plot udunits2==2.2.25
+   conda install -c conda-forge mpich esmpy
+
+The second of the two ``conda`` commands is required for
+:ref:`regridding <Regridding>` to work. Note that the installation of
+``esmpy`` does not work for Anaconda version ``2019.10``.
+
+Note that :ref:`some environment variables might also need setting
+<UNIDATA-UDUNITS-2-library>` in order for the UDUNITS library to work
+properly, although the defaults are usually sufficient.
 
 ----
 
@@ -60,6 +100,11 @@ options.
 The :ref:`optional dependencies <Optional>` are **not** automatically
 installed via ``pip``.
 
+
+Note that :ref:`some environment variables might also need setting
+<UNIDATA-UDUNITS-2-library>` in order for the UDUNITS library to work
+properly, although the defaults are usually sufficient.
+
 ----
 
 .. _Source:
@@ -72,7 +117,7 @@ To install from source:
 1. Download the cf-python package from https://pypi.org/project/cf-python
 
 2. Unpack the library (replacing ``<version>`` with the version that
-   you want to install, e.g. ``1.7.0``):
+   you want to install, e.g. ``3.0.0``):
 
    .. code:: bash
 	 
@@ -100,6 +145,10 @@ To install from source:
 
        python setup.py install --home=<directory>
 
+Note that :ref:`some environment variables might also need setting
+<UNIDATA-UDUNITS-2-library>` in order for the UDUNITS library to work
+properly, although the defaults are usually sufficient.
+
 ----
 
 .. _cfa-utility:
@@ -116,19 +165,6 @@ installed, which
 * :ref:`creates new datasets aggregated from existing files
   <Creation-with-cfa>`.
 
-----
-
-.. _Tests:
-
-**Tests**
----------
-
-Tests are run from within the ``cf-python/test`` directory:
-
-.. code:: bash
- 
-   python run_tests.py
-       
 ----
 
 .. _Dependencies:
@@ -157,6 +193,8 @@ Required
   
 * `psutil <https://pypi.org/project/psutil/>`_, version 0.6.0 or newer.
 
+.. _UNIDATA-UDUNITS-2-library:
+
 * `UNIDATA UDUNITS-2 library
   <http://www.unidata.ucar.edu/software/udunits>`_, version 2.2.20 or
   newer.
@@ -164,22 +202,28 @@ Required
   This is a C library which provides support for units of physical
   quantities. If the UDUNITS-2 shared library file
   (``libudunits2.so.0`` on GNU/Linux or ``libudunits2.0.dylibfile`` on
-  MacOS) is in a non-standard location then its path should be added
-  to the ``LD_LIBRARY_PATH`` environment variable. It may also be
-  necessary to specify the location of the ``udunits2.xml`` file in
-  the ``UDUNITS2_XML_PATH`` environment variable (although the default
-  location is usually correct).
-
+  MacOS) is in a non-standard location then its directory path should
+  be added to the ``LD_LIBRARY_PATH`` environment variable. It may
+  also be necessary to specify the location (directory path *and*
+  file name) of the ``udunits2.xml`` file in the ``UDUNITS2_XML_PATH``
+  environment variable (although the default location is usually
+  correct). For example, ``export
+  UDUNITS2_XML_PATH=/home/user/anaconda3/share/udunits/udunits2.xml``.
+  If you get an error that looks like ``assert(0 ==
+  _ut_unmap_symbol_to_unit(_ut_system, _c_char_p(b'Sv'), _UT_ASCII))``
+  then setting the ``UDUNITS2_XML_PATH`` environment variable is the
+  likely solution.
+  
 .. _Optional:
 
 Optional
 ^^^^^^^^
 
-Some further dependencies that, enable further functionality, are
-optional. This to faciliate cf-python being installed in restricted
-environments:
+Some further dependencies that enable further functionality are
+optional. This to facilitate cf-python being installed in restricted
+environments in which these features are not required.
 
-**Regridding**
+.. rubric:: Regridding
 
 * `ESMF <https://www.earthsystemcog.org/projects/esmpy/>`_, version
   7.1.0r or newer. This is easily installed via conda with
@@ -190,19 +234,33 @@ environments:
 
   or may be installed from source.
 
-**Convolution filters, derivatives and relative vorticity**
+.. rubric:: Convolution filters, derivatives and relative vorticity
 
-* `scipy <https://pypi.org/project/scipy>`_, version 1.3.0 or newer.
+* `scipy <https://pypi.org/project/scipy>`_, version 1.1.0 or newer.
 
-**Subspacing based on N-d construct cells (N > 1) containing a given value**
+.. rubric:: Subspacing based on N-dimensional construct cells (N > 1)
+            containing a given value
 
 * `matplotlib <https://pypi.org/project/matplotlib>`_, version 3.0.0
   or newer.
 
-**Parallel processing**
+.. rubric:: Parallel processing
 
 * `mpi4py <https://pypi.org/project/mpi4py>`_
 
+----
+
+.. _Tests:
+
+**Tests**
+---------
+
+Tests are run from within the ``cf/test`` directory:
+
+.. code:: bash
+ 
+   python run_tests.py
+       
 ----
 
 .. _Code-repository:
@@ -210,7 +268,8 @@ environments:
 **Code repository**
 -------------------
 
-The complete source code is available at https://github.com/NCAS-CMS/cf-python
+The complete source code and issue tracker is available at
+https://github.com/NCAS-CMS/cf-python
 
 .. .. rubric:: Footnotes
 

@@ -1,13 +1,8 @@
-from re import sub    as re_sub
-from re import search as re_search
 from ast import literal_eval as ast_literal_eval
 import re
 
-from numpy import argsort as numpy_argsort
-
 import cfdm
 
-from .functions import equals
 from .functions import inspect as cf_inspect
 
 from .data.data import Data
@@ -34,18 +29,19 @@ _collapse_cell_methods = {
 class CellMethod(cfdm.CellMethod):
     '''A cell method construct of the CF data model.
 
-One or more cell method constructs describe how the cell values of the
-field construct represent the variation of the physical quantity
-within its cells, i.e. the structure of the data at a higher
-resolution.
-
-A single cell method construct consists of a set of axes, a "method"
-property which describes how a value of the field construct's data
-array describes the variation of the quantity within a cell over those
-axes (e.g. a value might represent the cell area average), and
-descriptive qualifiers serving to indicate more precisely how the
-method was applied (e.g. recording the spacing of the original data,
-or the fact that the method was applied only over El Nino years).
+    One or more cell method constructs describe how the cell values of
+    the field construct represent the variation of the physical
+    quantity within its cells, i.e. the structure of the data at a
+    higher resolution.
+    
+    A single cell method construct consists of a set of axes, a
+    "method" property which describes how a value of the field
+    construct's data array describes the variation of the quantity
+    within a cell over those axes (e.g. a value might represent the
+    cell area average), and descriptive qualifiers serving to indicate
+    more precisely how the method was applied (e.g. recording the
+    spacing of the original data, or the fact that the method was
+    applied only over El Nino years).
 
     '''
     def __repr__(self):
@@ -222,7 +218,7 @@ or the fact that the method was applied only over El Nino years).
 
     @property
     def within(self):
-        '''The cell method's within keyword.
+        '''The cell method's within qualifier.
     
     These describe how climatological statistics have been derived.
     
@@ -251,7 +247,7 @@ or the fact that the method was applied only over El Nino years).
 
     @property
     def where(self):
-        '''The cell method's where keyword.
+        '''The cell method's where qualifier.
 
     These describe how climatological statistics have been derived.
     
@@ -280,25 +276,25 @@ or the fact that the method was applied only over El Nino years).
 
     @property
     def over(self):
-        '''The cell method's over keyword.
+        '''The cell method's over qualifier.
 
-These describe how climatological statistics have been derived.
-
-.. seealso:: `within`
-
-:Examples:
-
->>> c
->>> c
-<CF CellMethod: time: minimum>
->>> print c.over
-None
->>> c.over = 'years'
->>> c
-<CF CellMethod: time: minimum over years>
->>> del c.over
->>> c
-<CF CellMethod: time: minimum>
+    These describe how climatological statistics have been derived.
+    
+    .. seealso:: `within`
+    
+    **Examples:**
+    
+    >>> c
+    >>> c
+    <CF CellMethod: time: minimum>
+    >>> print c.over
+    None
+    >>> c.over = 'years'
+    >>> c
+    <CF CellMethod: time: minimum over years>
+    >>> del c.over
+    >>> c
+    <CF CellMethod: time: minimum>
 
         '''
         return self.get_qualifier('over', default=AttributeError())
@@ -309,7 +305,7 @@ None
 
     @property
     def comment(self):
-        '''Each cell method's comment keyword.
+        '''The cell method's comment qualifier.
 
         '''
         return self.get_qualifier('comment', default=AttributeError())
@@ -320,22 +316,22 @@ None
 
     @property
     def method(self):
-        '''The cell method's method keyword.
+        '''The cell method's method qualifier.
 
-Describes how the cell values have been determined or derived.
-
-:Examples:
-
->>> c
-<CF CellMethod: time: minimum>
->>> c.method
-'minimum'
->>> c.method = 'variance'
->>> c
-<CF CellMethods: time: variance>
->>> del c.method
->>> c
-<CF CellMethod: time: >
+    Describes how the cell values have been determined or derived.
+    
+    **Examples:**
+    
+    >>> c
+    <CF CellMethod: time: minimum>
+    >>> c.method
+    'minimum'
+    >>> c.method = 'variance'
+    >>> c
+    <CF CellMethods: time: variance>
+    >>> del c.method
+    >>> c
+    <CF CellMethod: time: >
 
         '''
         return self.get_method(default=AttributeError())
@@ -347,35 +343,33 @@ Describes how the cell values have been determined or derived.
 
     @property
     def intervals(self):
-        '''
+        '''The cell method's interval qualifier(s).
 
-Each cell method's interval keyword(s).
-
-:Examples:
-
->>> c
-<CF CellMethod: time: minimum>
->>> c.intervals
-()
->>> c.intervals = ['1 hr']
->>> c
-<CF CellMethod: time: minimum (interval: 1 hr)>
->>> c.intervals
-(<CF Data: 1 hr>,)
->>> c.intervals = [cf.Data(7.5 'minutes')]
->>> c
-<CF CellMethod: time: minimum (interval: 7.5 minutes)>
->>> c.intervals
-(<CF Data: 7.5 minutes>,)
->>> del c.intervals        
->>> c
-<CF CellMethods: time: minimum>
-
->>> c
-<CF CellMethod: lat: lon: mean>
->>> c.intervals = ['0.2 degree_N', cf.Data(0.1 'degree_E')]
->>> c
-<CF CellMethod: lat: lon: mean (interval: 0.1 degree_N interval: 0.2 degree_E)>
+    **Examples:**
+    
+    >>> c
+    <CF CellMethod: time: minimum>
+    >>> c.intervals
+    ()
+    >>> c.intervals = ['1 hr']
+    >>> c
+    <CF CellMethod: time: minimum (interval: 1 hr)>
+    >>> c.intervals
+    (<CF Data: 1 hr>,)
+    >>> c.intervals = [cf.Data(7.5 'minutes')]
+    >>> c
+    <CF CellMethod: time: minimum (interval: 7.5 minutes)>
+    >>> c.intervals
+    (<CF Data: 7.5 minutes>,)
+    >>> del c.intervals        
+    >>> c
+    <CF CellMethods: time: minimum>
+    
+    >>> c
+    <CF CellMethod: lat: lon: mean>
+    >>> c.intervals = ['0.2 degree_N', cf.Data(0.1 'degree_E')]
+    >>> c
+    <CF CellMethod: lat: lon: mean (interval: 0.1 degree_N interval: 0.2 degree_E)>
 
         '''
         self.get_qualifier('interval', default=AttributeError())
@@ -384,8 +378,8 @@ Each cell method's interval keyword(s).
     def intervals(self, value):
         if not isinstance(value, (tuple, list)):
             raise ValueError(
-"intervals attribute must be a tuple or list, not {0!r}".format(
-    value.__class__.__name__))
+                "intervals attribute must be a tuple or list, not {0!r}".format(
+                    value.__class__.__name__))
         
         # Parse the intervals
         values = []
@@ -428,101 +422,30 @@ Each cell method's interval keyword(s).
         #--- End: for
 
         self.set_qualifier('interval', tuple(values))
-    #--- End: def
+
     @intervals.deleter
     def interval(self):
         self.del_qualifier('interval', default=AttributeError())
 
+        
     @property
     def axes(self):
+        '''TODO
         '''
-'''
         return self.get_axes(default=AttributeError())
     @axes.setter
     def axes(self, value):
         if not isinstance(value, (tuple, list)):
             raise ValueError(
-"axes attribute must be a tuple or list, not {0}".format(
-    value.__class__.__name__))
+                "axes attribute must be a tuple or list, not {0}".format(
+                    value.__class__.__name__))
         
         self.set_axes(tuple(value))
-    #--- End: def
     @axes.deleter
     def axes(self):
         self.del_axes(default=AttributeError())
 
-#    def dump(self, display=True, prefix=None, field=None, _level=0):
-#        '''Return a string containing a full description of the instance.
-#
-#If a cell methods 'name' is followed by a '*' then that cell method is
-#relevant to the data in a way which may not be precisely defined its
-#corresponding dimension or dimensions.
-#
-#:Parameters:
-#
-#    display: `bool`, optional
-#        If False then return the description as a string. By default
-#        the description is printed, i.e. ``c.dump()`` is equivalent to
-#        ``print c.dump(display=False)``.
-#
-#    field: `cf.Field`, optional
-#
-#:Returns:
-#
-#    out: `str` or `None`
-#        A string containing the description.
-#
-#:Examples:
-#
-#        '''
-#        if prefix is None:
-#            prefix = 'Cell Method: '
-#
-#        if not field:
-#            names = self.axes
-#        else:
-#            names = [field.axis_name(axis, default=axis) for axis in self.axes]
-#
-#        string = ['{0}{1}:'.format(prefix, axis) for axis in names]
-#
-#        method = self.method
-#        if method is None:
-#            method = ''
-#
-#        string.append(method)
-#
-#        for portion in ('within', 'where', 'over'):
-#            p = getattr(self, portion, None)
-#            if p is not None:
-#                string.extend((portion, p))
-#        #--- End: for
-#
-#        intervals = self.intervals
-#        if intervals:
-#            x = ['(']
-#
-#            y = ['interval: {0}'.format(data) for data in intervals]
-#            x.append(' '.join(y))
-#
-#            if self.comment is not None:
-#                x.append(' comment: {0}'.format(self.comment))
-#
-#            x.append(')')
-#
-#            string.append(''.join(x))
-#
-#        elif self.comment is not None:
-#            string.append('({0})'.format(self.comment))
-#
-#        string = ' '.join(string)
-#
-#        if display:
-#            print(string)
-#        else:
-#            return string
-#    #--- End: def
 
-    # 0
     def expand_intervals(self, inplace=False, i=False):
         '''TODO
         
@@ -543,17 +466,16 @@ Each cell method's interval keyword(s).
         if inplace:
             c = None
         return c
-    #--- End: def
 
-    # 0
+    
     def change_axes(self, axis_map, inplace=False, i=False):
         '''TODO
 
-:Parameters:
-
-    axis_map: `dict`
-
-    inplace: `bool`
+    :Parameters:
+    
+        axis_map: `dict`
+    
+        inplace: `bool`
 
         '''
         if i:
@@ -572,34 +494,36 @@ Each cell method's interval keyword(s).
         if inplace:
             c = None
         return c
-    #--- End: def
 
-    # 0
+
     def equivalent(self, other, rtol=None, atol=None, verbose=False,
                    traceback=False):
         '''True if two cell methods are equivalent, False otherwise.
 
-The `axes` and `intervals` attributes are ignored in the comparison.
-
-:Parameters:
-
-    other : 
-        The object to compare for equality.
-
-    atol : float, optional
-        The absolute tolerance for all numerical comparisons, By
-        default the value returned by the `ATOL` function is used.
-
-    rtol : float, optional
-        The relative tolerance for all numerical comparisons, By
-        default the value returned by the `RTOL` function is used.
-
-:Returns: 
-
-    `bool`
-        Whether or not the two instances are equivalent.
-
-**Examples:**
+    The `axes` and `intervals` attributes are ignored in the
+    comparison.
+    
+    :Parameters:
+    
+        other: 
+            The object to compare for equality.
+    
+        atol: `float`, optional
+            The absolute tolerance for all numerical comparisons, By
+            default the value returned by the `ATOL` function is used.
+    
+        rtol: `float`, optional
+            The relative tolerance for all numerical comparisons, By
+            default the value returned by the `RTOL` function is used.
+    
+    :Returns: 
+    
+        `bool`
+            Whether or not the two instances are equivalent.
+    
+    **Examples:**
+    
+    TODO
 
         '''
         if traceback:
@@ -659,38 +583,38 @@ The `axes` and `intervals` attributes are ignored in the comparison.
 
         # Still here? Then they are equivalent
         return True
-    #--- End: def
 
-    # 0
+
     def inspect(self):
         '''Inspect the attributes.
 
-.. seealso:: `cf.inspect`
-
-:Returns: 
-
-    None
+    .. seealso:: `cf.inspect`
+    
+    :Returns: 
+    
+        `None`
 
         '''
         print(cf_inspect(self))
-    #--- End: def
 
-    # 1
+
+    # ----------------------------------------------------------------    
+    # Deprecated attributes and methods
+    # ----------------------------------------------------------------    
     def write(self, axis_map={}):
         '''Return a string of the cell method.
 
-Deprecated at version 3.0.0. Use 'str(cell_method)' instead.
+    Deprecated at version 3.0.0. Use 'str(cell_method)' instead.
 
         '''
         _DEPRECATED_ERROR_METHOD(self, 'write', "Use 'str(cell_method)' instead.") # Pragma: no cover
-    #--- End: def
 
-    # 1
+
     def remove_axes(self, axes):
         '''Deprecated at version 3.0.0. Use method 'del_axes' instead."
 
         '''
         _DEPRECATION_ERROR_METHOD(self, 'remove_axes', "Use method 'del_axes' instead.") # pragma: no cover
-    #--- End: def
 
+        
 #--- End: class

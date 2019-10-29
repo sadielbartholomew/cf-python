@@ -79,12 +79,12 @@ except ImportError as error1:
 
 __Conventions__  = 'CF-1.7'
 __author__       = 'David Hassell'
-__date__         = '2019-09-24'
-__version__      = '3.0.0b12'
+__date__         = 'Not yet released'
+__version__      = '3.0.2'
 __cf_version__   = cfdm.core.__cf_version__
 
 from distutils.version import LooseVersion
-import imp
+import importlib
 import platform
 
 # Check the version of python
@@ -94,23 +94,14 @@ if LooseVersion(platform.python_version()) < LooseVersion(_minimum_vn):
         "Bad python version: cf requires python version {} or later. Got {}".format(
             _minimum_vn, platform.python_version()))
 
-try:
-    imp.find_module('ESMF')
-except ImportError:
-    _found_ESMF = False
-else:
-    _found_ESMF = True
+_found_ESMF = bool(importlib.util.find_spec('ESMF'))
 
-try:
+if importlib.util.find_spec('mpi4py'):
     from mpi4py import MPI
-except ImportError:
-    mpi_on = False
-    mpi_size = 1
-else:
     mpi_comm = MPI.COMM_WORLD
     mpi_size = mpi_comm.Get_size()
     mpi_rank = mpi_comm.Get_rank()
-
+    
     if mpi_size > 1:
         mpi_on = True
         if mpi_rank == 0:
@@ -120,7 +111,9 @@ else:
             print('===============================================')
     else:
         mpi_on = False
-#--- End: try
+else:
+    mpi_on = False
+    mpi_size = 1
 
 try:
     import netCDF4
@@ -188,8 +181,6 @@ from .units                import Units
 
 from .fieldlist            import FieldList
 
-from .abstract             import Coordinate
-
 from .dimensioncoordinate  import DimensionCoordinate
 from .auxiliarycoordinate  import AuxiliaryCoordinate
 from .coordinatereference  import CoordinateReference
@@ -215,7 +206,7 @@ from .query                import (Query, lt, le, gt, ge, eq, ne, contain, conta
                                    cellwi, cellwo, djf, mam, jja, son, seasons)
 from .constants            import *
 from .functions            import *
-from .maths                import relative_vorticity
+from .maths                import relative_vorticity, histogram
 
 
 from .read_write import (read,

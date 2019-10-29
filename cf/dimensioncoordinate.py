@@ -5,9 +5,8 @@ import cfdm
 
 from . import Bounds
 
-from .functions        import parse_indices
-from .timeduration     import TimeDuration
-from .units            import Units
+from .timeduration import TimeDuration
+from .units        import Units
 
 from .data.data import Data
 
@@ -16,7 +15,6 @@ from . import abstract
 
 from .functions import (_DEPRECATION_ERROR_KWARGS,
                         _DEPRECATION_ERROR_ATTRIBUTE,
-                        _DEPRECATION_ERROR_METHOD,
                         )
 
 
@@ -891,9 +889,14 @@ False
         if inplace:
             c = self
     
+        c.dtype = numpy_result_type(c.dtype, period.dtype)        
+
         b = c.get_bounds(None)
         bounds_data = b.get_data(None)
- 
+        if bounds_data is not None:
+            b.dtype = numpy_result_type(bounds_data.dtype, period.dtype)
+            bounds_data = b.get_data(None)
+        
         if direction:
             # Increasing
             c[:shift] -= period

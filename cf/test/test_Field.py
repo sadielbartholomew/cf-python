@@ -1,5 +1,6 @@
 import datetime
 import inspect
+import itertools
 import os
 import re
 import unittest
@@ -7,6 +8,12 @@ import unittest
 import numpy
 
 import cf
+
+def axes_combinations(f):
+    return [axes
+            for n in range(1, f.ndim+1)
+            for axes in itertools.permutations(range(f.ndim), n)]
+
 
 class FieldTest(unittest.TestCase):
     def setUp(self):
@@ -25,9 +32,10 @@ class FieldTest(unittest.TestCase):
 
         self.test_only = []
 #        self.test_only = ['NOTHING!!!!']
-#        self.test_only = ['test_Field_replace_construct']
 #        self.test_only = ['test_Field__add__']
-#        self.test_only = ['test_Field_indices']
+#        self.test_only = ['test_Field_cumsum']
+#        self.test_only = ['test_Field_flatten']
+#        self.test_only = ['test_Field_transpose']
 #        self.test_only = ['test_Field_item']
 #        self.test_only = ['test_Field_field_ancillary']
 #        self.test_only = ['test_Field_AUXILIARY_MASK']
@@ -43,18 +51,94 @@ class FieldTest(unittest.TestCase):
 #        self.test_only = ['test_Field_section']
 #        self.test_only = ['test_Field_flip']
 #        self.test_only = ['test_Field_Field_domain_mask']
+#        self.test_only = ['test_Field_bin']
 
 
-#    def test_Field_properties(self):
-#        if self.test_only and inspect.stack()[0][3] not in self.test_only:
-#            return
-#
-#        f = self.f.copy()
-#
-#        f.setprop('standard_name', 'qwerty')
-#        self.assertTrue(f.getprop('standard_name') == 'qwerty')
-#        f.delprop('standard_name')
-#        self.assertFalse(f.hasprop('standard_name'))
+    def test_Field_flatten(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+        
+        f = self.f.copy()
+#        print(f)
+#        print(f.constructs)
+        axis = f.set_construct(cf.DomainAxis(1))
+        d = cf.DimensionCoordinate()
+        d.standard_name = 'time'
+        d.set_data(cf.Data(123., 'days since 2000-01-02'))
+        f.set_construct(d, axes=axis)
+#        print(f)
+#        print(f.constructs)
+
+        g = f.flatten()
+        h = f.flatten(list(range(f.ndim)))
+        self.assertTrue(h.equals(g, verbose=True))
+
+        g = f.flatten('time')
+        self.assertTrue(g.equals(f, verbose=True))
+
+        for i in (0, 1, 2):
+            g = f.flatten(i)
+            self.assertTrue(g.equals(f, verbose=True))
+            g = f.flatten([i, 'time'])
+            self.assertTrue(g.equals(f, verbose=True))
+
+        for axes in axes_combinations(f):
+#            print (axes)
+            g = f.flatten(axes)
+#            print (g)
+
+            if len(axes) <= 1:
+                shape  = f.shape
+            else:                    
+                shape = [n for i, n in enumerate(f.shape) if i not in axes]
+                shape.insert(sorted(axes)[0],
+                             numpy.prod([n for i, n in enumerate(f.shape)
+                                         if i in axes]))
+                
+            self.assertTrue(g.shape == tuple(shape))
+            self.assertTrue(g.ndim == f.ndim-len(axes)+1)
+            self.assertTrue(g.size == f.size)
+        #--- End: for
+
+        self.assertTrue(f.equals(f.flatten([]), verbose=True))
+        self.assertTrue(f.flatten(inplace=True) is None)
+
+        
+    def test_Field_bin(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        
+        f = self.f.copy()
+
+        d = f.digitize(10)
+        b = f.bin('sample_size', digitized=d)
+
+        a = numpy.ma.masked_all((10,), dtype=int)
+        a[...] = 9
+        self.assertTrue((a==b.array).all())
+          
+        b = f.bin('sample_size', digitized=[d])
+
+        a = numpy.ma.masked_all((10,), dtype=int)
+        a[...] = 9
+        self.assertTrue((a==b.array).all())
+
+        b = f.bin('sample_size', digitized=[d, d])
+
+        a = numpy.ma.masked_all((10, 10), dtype=int)
+        for i in range(9):
+            a[i, i] = 9
+
+        self.assertTrue((a==b.array).all())
+
+        b = f.bin('sample_size', digitized=[d, d, d])
+
+        a = numpy.ma.masked_all((10, 10, 10), dtype=int)
+        for i in range(9):
+            a[i, i, i] = 9
+
+        self.assertTrue((a==b.array).all())
 
 
     def test_Field_direction(self):
@@ -73,6 +157,48 @@ class FieldTest(unittest.TestCase):
         self.assertIsInstance(f.directions(), dict)
         f.directions()
         
+
+    def test_Field_domain_axis_position(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        f = self.f
+
+        for i in range(f.ndim):
+            self.assertTrue(f.domain_axis_position(i) == i)
+
+        for i in range(1, f.ndim+1):
+            self.assertTrue(f.domain_axis_position(-i) == -i + 3)
+
+        data_axes =  f.get_data_axes()
+        for key in data_axes:
+            self.assertTrue(f.domain_axis_position(key) == data_axes.index(key))
+
+
+        self.assertTrue(f.domain_axis_position('Z') == 0)
+        self.assertTrue(f.domain_axis_position('grid_latitude') == 1)
+
+        
+    def test_Field_weights(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        f = self.f
+
+        w = f.weights()
+
+        x = f.weights(w)
+        self.assertTrue(x.equals(w, verbose=True))
+
+        for components in (False, True):
+            y = f.weights(w.data.transpose(), components=components)
+            y = f.weights(w.data.transpose()[0].squeeze(), components=components)
+            y = f.weights(w.data.transpose()[0], components=components)
+            y = f.weights(f.data.squeeze(), components=components)
+            y = f.weights('auto', components=components)
+            y = f.weights('grid_longitude', components=components)
+            y = f.weights(['grid_longitude'], components=components)
+            
 
     def test_Field_replace_construct(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -367,10 +493,10 @@ class FieldTest(unittest.TestCase):
         g = f[[7, 4, 1], slice(6, 8)]
         
         g = f.squeeze()
-        h = g[0:3, 5]
+        _ = g[0:3, 5]
         
         g = f[0].squeeze()
-        h = g[5]        
+        _ = g[5]        
 
 
     def test_Field__setitem__(self):
@@ -422,24 +548,62 @@ class FieldTest(unittest.TestCase):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
             return
 
-        f = cf.read(self.filename)[0].squeeze()
-        g = f.copy()
-        f_plus_g = f + g
-        g_plus_f = g + f
-#            self.assertTrue((f_plus_g).equals(g_plus_f, traceback=True),
-#                            'f\n{}\nf.copy()\n{}\nf+f.copy()\n{}\nf.copy()+f\n{}'.format(
-#                                str(f), str(g), str(f_plus_g), str(g_plus_f)))
+        f = cf.read(self.filename)[0] #.squeeze()
 
-        g = f[0]
-        f_plus_g = f + g
-        g_plus_f = g + f
-        #            self.assertTrue((f_plus_g).equals(g_plus_f, traceback=True),
-#                            'f\n{}\nf[0]\n{}\nf+f[0]\n{}\nf[0]+f\n{}'.format(
-#                                str(f), str(g), str(f_plus_g), str(g_plus_f)))
+        g = f * 0
+        self.assertTrue((f + g).equals(f, verbose=True))
+        self.assertTrue((g + f).equals(f, verbose=True))
+        
+        g.transpose(inplace=True)
+        self.assertTrue((f + g).equals(f, verbose=True))
+        
+        for g in (f, f.copy(), f * 0):
+            self.assertTrue((f + g).equals(g + f, verbose=True))        
+            self.assertTrue((g + f).equals(f + g, verbose=True))        
+            
+        g = f.subspace(grid_longitude=[0]) * 0
 
+        a = f + g
+        b = g + f
+
+        axis = a.domain_axis('grid_longitude', key=1)
+        for key in a.field_ancillaries.filter_by_axis('or', axis):
+            a.del_construct(key)
+
+        for key in a.cell_measures.filter_by_axis('or', axis):
+            a.del_construct(key)
+            
+        self.assertTrue(a.equals(b, verbose=True))        
+        self.assertTrue(b.equals(a, verbose=True))        
+        
         with self.assertRaises(Exception):
-            h = f + ('qwerty',)
+            _ = f + ('a string',)
 
+           
+    def test_Field__mul__(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        f = cf.read(self.filename)[0].squeeze()
+
+        f.standard_name= 'qwerty'
+        g = f * f
+
+        self.assertTrue(g.get_property('standard_name', None) is None)
+                
+
+    def test_Field__gt__(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        f = cf.read(self.filename)[0].squeeze()
+
+        f.standard_name= 'qwerty'
+        g = f > f.mean()
+            
+        self.assertTrue(g.Units.equals(cf.Units()))
+        self.assertTrue(g.get_property('standard_name', None) is None)
+        
 
     def test_Field_domain_mask(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -447,10 +611,46 @@ class FieldTest(unittest.TestCase):
 
         f = self.f.copy()
 
-        m = f.domain_mask()
-        m = f.domain_mask(grid_longitude=cf.wi(25, 31))
+        _ = f.domain_mask()
+        _ = f.domain_mask(grid_longitude=cf.wi(25, 31))
 
 
+    def test_Field_cumsum(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        for chunksize in self.chunk_sizes:
+            cf.CHUNKSIZE(chunksize)
+            f = cf.read(self.filename)[0]
+
+            g = f.copy()
+            h = g.cumsum(2)
+            self.assertTrue(g.cumsum(2, inplace=True) is None)
+            self.assertTrue(g.equals(h, verbose=True))
+
+            for i in range(f.ndim):
+                a = numpy.cumsum(f.array, axis=i)
+                self.assertTrue((f.cumsum(i).array == a).all())
+                
+            f[0, 0, 3] = cf.masked
+            f[0, 2, 7] = cf.masked
+            
+            for i in range(f.ndim):
+                a = f.array
+                a = numpy.cumsum(a, axis=i)
+                g = f.cumsum(i)
+                self.assertTrue(cf.functions._numpy_allclose(g.array, a))
+
+            for i in range(f.ndim):
+                a = f.array
+                a = a.filled(0)
+                a = numpy.cumsum(a, axis=i)
+                g = f.cumsum(i, masked_as_zero=True)
+                self.assertTrue(cf.functions._numpy_allclose(g.array, a))
+        #--- End: for
+        cf.CHUNKSIZE(self.original_chunksize)
+
+        
     def test_Field_flip(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
             return
@@ -511,8 +711,7 @@ class FieldTest(unittest.TestCase):
                 x1 = g.coordinate('grid_longitude').datum(0)
                 self.assertTrue(
                     x0 < anchor <= x1,
-                    'INCREASING period=%s, x0=%s, anchor=%s, x1=%s' % \
-                    (period, x0, anchor, x1))
+                    'INCREASING period=%s, x0=%s, anchor=%s, x1=%s' % (period, x0, anchor, x1))
             #--- End: for
 
             # Decreasing dimension coordinate    
@@ -523,8 +722,7 @@ class FieldTest(unittest.TestCase):
                 x0 = g.coordinate('grid_longitude').datum(0)
                 self.assertTrue(
                     x1 > anchor >= x0,
-                    'DECREASING period=%s, x0=%s, anchor=%s, x1=%s' % \
-                    (period, x1, anchor, x0))
+                    'DECREASING period=%s, x0=%s, anchor=%s, x1=%s' % (period, x1, anchor, x0))
             #--- End: for
         #--- End: for
 
@@ -584,15 +782,15 @@ class FieldTest(unittest.TestCase):
         f = self.f.copy()
         _ = f.del_data_axes()
         self.assertFalse(f.has_data_axes())
-        self.assertTrue(f.del_data_axes(default=None) == None)
+        self.assertTrue(f.del_data_axes(default=None) is None)
 
         f = self.f.copy()
         for key in f.constructs.filter_by_data():
             self.assertTrue(f.has_data_axes(key))
             _ = f.get_data_axes(key)
             _ = f.del_data_axes(key)
-            self.assertTrue(f.del_data_axes(key, default=None) == None)
-            self.assertTrue(f.get_data_axes(key, default=None) == None)
+            self.assertTrue(f.del_data_axes(key, default=None) is None)
+            self.assertTrue(f.get_data_axes(key, default=None) is None)
             self.assertFalse(f.has_data_axes(key))
 
         g = cf.Field()            
@@ -1198,6 +1396,10 @@ class FieldTest(unittest.TestCase):
         self.assertTrue(len(c.field_ancillaries) == 0)
         self.assertTrue(len(c.cell_methods) == 0)
 
+        # Cellsize
+        c = f.convert('grid_longitude', cellsize=True)
+        self.assertTrue((c.data == [1.,  1.,  1.,  1.,  1.,  1.,  1.,  3.5, 6. ]).all())
+        
         with self.assertRaises(ValueError):
             f.convert('qwerty')
 
@@ -1337,7 +1539,7 @@ class FieldTest(unittest.TestCase):
         self.assertTrue(f.coordinate_reference('rotated_latitude_longitude', key=True) == key)
 
         # Delete        
-        self.assertTrue(f.del_coordinate_reference('qwerty', default=None) == None)
+        self.assertTrue(f.del_coordinate_reference('qwerty', default=None) is None)
         
         self.assertTrue(len(f.coordinate_references) == 2)
         self.assertTrue(len(f.domain_ancillaries) == 3)
@@ -1506,6 +1708,7 @@ class FieldTest(unittest.TestCase):
         
         # Null transpose
         g = f.transpose([0, 1, 2])
+
         self.assertTrue(f0.equals(g, verbose=True))
         self.assertTrue(f.transpose([0, 1, 2], inplace=True) is None)
         self.assertTrue(f0.equals(f))
@@ -1594,7 +1797,7 @@ class FieldTest(unittest.TestCase):
 
         f = self.f.copy()
         g = f.mask_invalid()        
-        self.assertTrue(f.mask_invalid(inplace=True) == None)
+        self.assertTrue(f.mask_invalid(inplace=True) is None)
 
 
 #--- End: class

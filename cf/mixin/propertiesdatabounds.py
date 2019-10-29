@@ -1,20 +1,4 @@
-from copy      import deepcopy
-from functools import partial as functools_partial
-from re        import escape  as re_escape
-from re        import match   as re_match
-from re        import findall as re_findall
-from re        import search as re_search
-from netCDF4   import default_fillvals as _netCDF4_default_fillvals
-from operator  import truediv  as truediv
-from operator  import itruediv as itruediv
-from re        import compile as re_compile
-
-
-from numpy import array       as numpy_array
-from numpy import result_type as numpy_result_type
-from numpy import size        as numpy_size
-from numpy import vectorize   as numpy_vectorize
-
+from numpy import size as numpy_size
 
 from . import PropertiesData
 
@@ -117,7 +101,7 @@ bounds.
 #            interior ring from those of *source*.
 #     
 #        copy: `bool`, optional
-#            If `False` then do not deep copy input parameters prior to
+#            If False then do not deep copy input parameters prior to
 #            initialization. By default arguments are deep copied.
 #
 #        '''
@@ -269,103 +253,90 @@ bounds.
 
 
     def __eq__(self, y):
+        '''The rich comparison operator ``==``
+
+    x.__eq__(y) <==> x==y
+
         '''
-
-The rich comparison operator ``==``
-
-x.__eq__(y) <==> x==y
-
-'''
         return self._binary_operation(y, '__eq__', False)
-    #--- End: def
+
 
     def __ne__(self, y):
+        '''The rich comparison operator ``!=``
+
+    x.__ne__(y) <==> x!=y
+
         '''
-
-The rich comparison operator ``!=``
-
-x.__ne__(y) <==> x!=y
-
-'''
         return self._binary_operation(y, '__ne__', False)
-    #--- End: def
 
+    
     def __ge__(self, y):
+        '''The rich comparison operator ``>=``
+
+    x.__ge__(y) <==> x>=y
+
         '''
-
-The rich comparison operator ``>=``
-
-x.__ge__(y) <==> x>=y
-
-'''
         return self._binary_operation(y, '__ge__', False)
-    #--- End: def
+
 
     def __gt__(self, y):
+        '''The rich comparison operator ``>``
+
+    x.__gt__(y) <==> x>y
+
         '''
-
-The rich comparison operator ``>``
-
-x.__gt__(y) <==> x>y
-
-'''
         return self._binary_operation(y, '__gt__', False)
-    #--- End: def
+
 
     def __le__(self, y):
+        '''The rich comparison operator ``<=``
+
+    x.__le__(y) <==> x<=y
+
         '''
-
-The rich comparison operator ``<=``
-
-x.__le__(y) <==> x<=y
-
-'''
         return self._binary_operation(y, '__le__', False)
-    #--- End: def
+
 
     def __lt__(self, y):
+        '''The rich comparison operator ``<``
+
+    x.__lt__(y) <==> x<y
+
         '''
-
-The rich comparison operator ``<``
-
-x.__lt__(y) <==> x<y
-
-'''
         return self._binary_operation(y, '__lt__', False)
-    #--- End: def
+
     
     # ----------------------------------------------------------------
     # Private methods
     # ----------------------------------------------------------------
-    # 0
     def _binary_operation(self, other, method, bounds=True):
         '''Implement binary arithmetic and comparison operations.
 
-The operations act on the construct's data array with the numpy
-broadcasting rules.
-
-If the construct has bounds then they are operated on with the same
-data as the the construct's data.
-
-It is intended to be called by the binary arithmetic and comparison
-methods, such as `!__sub__` and `!__lt__`.
-
-:Parameters:
-
-    other:
-
-    method: `str`
-        The binary arithmetic or comparison method name (such as
-        ``'__imul__'`` or ``'__ge__'``).
-
-    bounds: `bool`, optional
-        If False then ignore the bounds and remove them from the
-        result. By default the bounds are operated on as well.
-
-:Returns:
-
-        A new construct, or the same construct if the operation was
-        in-place.
+    The operations act on the construct's data array with the numpy
+    broadcasting rules.
+    
+    If the construct has bounds then they are operated on with the
+    same data as the the construct's data.
+    
+    It is intended to be called by the binary arithmetic and comparison
+    methods, such as `!__sub__` and `!__lt__`.
+    
+    :Parameters:
+    
+        other:
+    
+        method: `str`
+            The binary arithmetic or comparison method name (such as
+            ``'__imul__'`` or ``'__ge__'``).
+    
+        bounds: `bool`, optional
+            If False then ignore the bounds and remove them from the
+            result. By default the bounds are operated on as well.
+    
+    :Returns:
+    
+            A new construct, or the same construct if the operation
+            was in-place.
 
         '''
         inplace = method[2] == 'i'
@@ -397,7 +368,7 @@ methods, such as `!__sub__` and `!__lt__`.
             return self
         else:
             return new
-    #--- End: def
+
 
 #    def _change_axis_names(self, dim_name_map):
 #        '''
@@ -445,33 +416,31 @@ methods, such as `!__sub__` and `!__lt__`.
 #            bounds._change_axis_names(dim_name_map)
 #    #--- End: def
 
-    # 0
+
     def _equivalent_data(self, other, rtol=None, atol=None,
                          verbose=False):
         '''TODO
 
-Two real numbers ``x`` and ``y`` are considered equal if
-``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
-differences) and ``rtol`` (the tolerance on relative differences) are
-positive, typically very small numbers. See the *atol* and *rtol*
-parameters.
-
-:Parameters:
-
-    atol: `float`, optional
-        The tolerance on absolute differences between real
-        numbers. The default value is set by the `ATOL` function.
-
-    rtol: `float`, optional
-        The tolerance on relative differences between real
-        numbers. The default value is set by the `RTOL` function.
-
-:Returns:
-
-    `bool`
-
-**Examples:**
-
+    Two real numbers ``x`` and ``y`` are considered equal if
+    ``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
+    differences) and ``rtol`` (the tolerance on relative differences) are
+    positive, typically very small numbers. See the *atol* and *rtol*
+    parameters.
+    
+    :Parameters:
+    
+        atol: `float`, optional
+            The tolerance on absolute differences between real
+            numbers. The default value is set by the `ATOL` function.
+    
+        rtol: `float`, optional
+            The tolerance on relative differences between real
+            numbers. The default value is set by the `RTOL` function.
+    
+    :Returns:
+    
+        `bool`
+    
         '''
         self_bounds = self.get_bounds(None)
         other_bounds = other.get_bounds(None)
@@ -505,48 +474,47 @@ parameters.
                                                 rtol=rtol, atol=atol,
                                                 verbose=verbose):
                 if verbose:
-                    print('non equivalent bounds data TODO') # pragma: no cover
+                    print('{}: Non-equivalent bounds data: {!r}, {!r}'.format(
+                        self.__class__.__name__, self_bounds.data, other_bounds.data)) # pragma: no cover
                 return False
         #--- End: if
 
         # Still here? Then the data are equivalent.
         return True
-    #--- End: def
 
-    # 0
+
     def _YMDhms(self, attr):
         '''TODO
         '''
         out = super()._YMDhms(attr)
         out.del_bounds(None)
         return out
-    #--- End: def
+
 
     # ----------------------------------------------------------------
     # Attributes
     # ----------------------------------------------------------------
-    # 1
     @property
     def cellsize(self):
         '''The cell sizes.
 
-If there are no cell bounds then the cell sizes are all zero.
+    If there are no cell bounds then the cell sizes are all zero.
 
-.. versionadded:: 2.0
+    .. versionadded:: 2.0
 
-**Examples:**
-
->>> print(c.bounds.array)
-[[-90. -87.]
- [-87. -80.]
- [-80. -67.]]
->>> c.cellsize
-<CF Data(3,): [3.0, 7.0, 13.0] degrees_north>
->>> print(d.cellsize.array)
-[  3.   7.  13.]
->>> b = c.del_bounds()
->>> c.cellsize
-<CF Data(3,): [0, 0, 0] degrees_north>
+    **Examples:**
+    
+    >>> print(c.bounds.array)
+    [[-90. -87.]
+     [-87. -80.]
+     [-80. -67.]]
+    >>> c.cellsize
+    <CF Data(3,): [3.0, 7.0, 13.0] degrees_north>
+    >>> print(d.cellsize.array)
+    [  3.   7.  13.]
+    >>> b = c.del_bounds()
+    >>> c.cellsize
+    <CF Data(3,): [0, 0, 0] degrees_north>
 
         '''
         data = self.get_bounds_data(None)
@@ -562,8 +530,8 @@ If there are no cell bounds then the cell sizes are all zero.
 
         raise AttributeError(
             "Can't get cell sizes when there are no bounds nor coordinate data")
-    #--- End: def
 
+    
     @property
     def dtype(self):
         '''Numpy data-type of the data array.
@@ -707,62 +675,63 @@ If there are no cell bounds then the cell sizes are all zero.
     def mask_invalid(self, inplace=False, i=False):
         '''Mask the array where invalid values occur.
 
-Note that:
-
-* Invalid values are Nan or inf
-
-* Invalid values in the results of arithmetic operations only occur if
-  the raising of `FloatingPointError` exceptions has been suppressed
-  by `cf.Data.seterr`.
-
-* If the raising of `FloatingPointError` exceptions has been allowed
-  then invalid values in the results of arithmetic operations it is
-  possible for them to be automatically converted to masked values,
-  depending on the setting of `cf.Data.mask_fpe`. In this case, such
-  automatic conversion might be faster than calling `mask_invalid`.
-
-.. seealso:: `cf.Data.mask_fpe`, `cf.Data.seterr`
-
-:Parameters:
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-
-TODO
-
-**Examples:**
-
->>> print(f.array)
-[ 0.  1.]
->>> print(g.array)
-[ 1.  2.]
-
->>> old = cf.data.seterr('ignore')
->>> h = g/f
->>> print(h.array)
-[ inf   2.]
->>> h.mask_invalid(inplace=True)
->>> print(h.array)
-[--  2.]
-
->>> h = g**12345
->>> print(h.array)
-[ 1.  inf]
->>> h.mask_invalid(inplace=True)
->>> print(h.array)
-[1.  --]
-
->>> old = cf.data.seterr('raise')
->>> old = cf.data.mask_fpe(True)
->>> print((g/f).array)
-[ --  2]
->>> print((g**12345).array)
-[1.  -- ]
+    Note that:
+    
+    * Invalid values are Nan or inf
+    
+    * Invalid values in the results of arithmetic operations only
+      occur if the raising of `FloatingPointError` exceptions has been
+      suppressed by `cf.Data.seterr`.
+    
+    * If the raising of `FloatingPointError` exceptions has been
+      allowed then invalid values in the results of arithmetic
+      operations it is possible for them to be automatically converted
+      to masked values, depending on the setting of
+      `cf.Data.mask_fpe`. In this case, such automatic conversion
+      might be faster than calling `mask_invalid`.
+    
+    .. seealso:: `cf.Data.mask_fpe`, `cf.Data.seterr`
+    
+    :Parameters:
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+    
+    TODO
+    
+    **Examples:**
+    
+    >>> print(f.array)
+    [ 0.  1.]
+    >>> print(g.array)
+    [ 1.  2.]
+    
+    >>> old = cf.data.seterr('ignore')
+    >>> h = g/f
+    >>> print(h.array)
+    [ inf   2.]
+    >>> h.mask_invalid(inplace=True)
+    >>> print(h.array)
+    [--  2.]
+    
+    >>> h = g**12345
+    >>> print(h.array)
+    [ 1.  inf]
+    >>> h.mask_invalid(inplace=True)
+    >>> print(h.array)
+    [1.  --]
+    
+    >>> old = cf.data.seterr('raise')
+    >>> old = cf.data.mask_fpe(True)
+    >>> print((g/f).array)
+    [ --  2]
+    >>> print((g**12345).array)
+    [1.  -- ]
 
         '''
         v = super().mask_invalid(inplace=inplace, i=i)
@@ -776,7 +745,7 @@ TODO
         if inplace:
             v = None
         return v
-    #--- End: def
+
 
     # ----------------------------------------------------------------
     # Attribute
@@ -972,11 +941,11 @@ x``.
             same units as the data are assumed.
     
         bounds: `bool`, optional
-            If `False` then do not alter any bounds. By default any bounds
+            If False then do not alter any bounds. By default any bounds
             are also altered.
     
         inplace: `bool`, optional
-            If `True` then do the operation in-place and return `None`.
+            If True then do the operation in-place and return `None`.
     
         i: deprecated at version 3.0.0
             Use *inplace* parameter instead.
@@ -1142,25 +1111,25 @@ The output units are '1' (nondimensionsal).
     def cyclic(self, axes=None, iscyclic=True):
         '''Set the cyclicity of axes of the data array.
 
-.. seealso:: `iscyclic`
-
-:Parameters:
-
-    axes: (sequence of) `int`
-        The axes to be set. Each axis is identified by its integer
-        position. By default no axes are set.
-        
-    iscyclic: `bool`, optional
-        If False then the axis is set to be non-cyclic. By default the
-        axis is set to be cyclic.
-
-:Returns:
-
-    `set`
-
-**Examples:**
-
-TODO
+    .. seealso:: `iscyclic`
+    
+    :Parameters:
+    
+        axes: (sequence of) `int`
+            The axes to be set. Each axis is identified by its integer
+            position. By default no axes are set.
+            
+        iscyclic: `bool`, optional
+            If False then the axis is set to be non-cyclic. By default
+            the axis is set to be cyclic.
+    
+    :Returns:
+    
+        `set`
+    
+    **Examples:**
+    
+    TODO
 
         '''
         out = super().cyclic(axes, iscyclic)
@@ -1174,30 +1143,30 @@ TODO
             bounds.cyclic(axes, iscyclic)
         
         return out
-    #--- End: def
+
             
     def equivalent(self, other, rtol=None, atol=None, traceback=False):
         '''True if two constructs are equal, False otherwise.
 
-Two real numbers ``x`` and ``y`` are considered equal if
-``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
-differences) and ``rtol`` (the tolerance on relative differences) are
-positive, typically very small numbers. See the *atol* and *rtol*
-parameters.
-
-:Parameters:
-
-    other: 
-        The object to compare for equality.
-
-
-    atol: `float`, optional
-        The tolerance on absolute differences between real
-        numbers. The default value is set by the `ATOL` function.
-
-    rtol: `float`, optional
-        The tolerance on relative differences between real
-        numbers. The default value is set by the `RTOL` function.
+    Two real numbers ``x`` and ``y`` are considered equal if
+    ``|x-y|<=atol+rtol|y|``, where ``atol`` (the tolerance on absolute
+    differences) and ``rtol`` (the tolerance on relative differences)
+    are positive, typically very small numbers. See the *atol* and
+    *rtol* parameters.
+    
+    :Parameters:
+    
+        other: 
+            The object to compare for equality.
+    
+    
+        atol: `float`, optional
+            The tolerance on absolute differences between real
+            numbers. The default value is set by the `ATOL` function.
+    
+        rtol: `float`, optional
+            The tolerance on relative differences between real
+            numbers. The default value is set by the `RTOL` function.
 
         '''     
         if self is other:
@@ -1210,7 +1179,6 @@ parameters.
                 self.__class__.__name__,
                 other.__class__.__name__))
             return False
-        #--- End: if
        
         identity0 = self.identity()
         identity1 = other.identity()
@@ -1230,7 +1198,6 @@ parameters.
                       (self.__class__.__name__,
                        set(self_special).symmetric_difference(other_special)))
             return False
-        #--- End: if
 
         for attr, x in self_special.items():
             y = other_special[attr]
@@ -1254,7 +1221,7 @@ parameters.
             return False
             
         return True
-    #--- End: def
+    
 
     def contiguous(self, overlap=True):
         '''Return True if a construct has contiguous cells.
@@ -1274,7 +1241,7 @@ parameters.
     :Parameters:
     
         overlap : bool, optional    
-            If `False` then overlapping cell boundaries are not
+            If False then overlapping cell boundaries are not
             considered contiguous. By default cell boundaries are
             considered contiguous.
     
@@ -1371,14 +1338,14 @@ parameters.
               calendar.
     
         calendar_months: `bool`, optional
-            If `True` then treat units of ``'months'`` as if they were
+            If True then treat units of ``'months'`` as if they were
             calendar months (in whichever calendar is originally
             specified), rather than a 12th of the interval between 2
             successive passages of the sun through vernal equinox
             (i.e. 365.242198781/12 days).
     
         calendar_years: `bool`, optional
-            If `True` then treat units of ``'years'`` as if they were
+            If True then treat units of ``'years'`` as if they were
             calendar years (in whichever calendar is originally
             specified), rather than the interval between 2 successive
             passages of the sun through vernal equinox
@@ -1439,42 +1406,105 @@ parameters.
         return v
 
     
-    # 1
+    def flatten(self, axes=None, inplace=False):
+        '''Flatten axes of the data
+
+    Any subset of the axes may be flattened.
+
+    The shape of the data may change, but the size will not.
+
+    The flattening is executed in row-major (C-style) order. For
+    example, the array ``[[1, 2], [3, 4]]`` would be flattened across
+    both dimensions to ``[1 2 3 4]``.
+
+    .. versionaddedd:: 3.0.2
+
+    .. seealso:: `insert_dimension`, `flip`, `swapaxes`, `transpose`
+
+    :Parameters:
+   
+        axes: (sequence of) int or str, optional
+            Select the axes.  By default all axes are flattened. The
+            *axes* argument may be one, or a sequence, of:
+    
+              * An internal axis identifier. Selects this axis.
+            ..
+    
+              * An integer. Selects the axis coresponding to the given
+                position in the list of axes of the data array.
+    
+            No axes are flattened if *axes* is an empty sequence.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+    :Returns:
+
+            The construct with flattened data, or `None` if the
+            operation was in-place.
+
+    **Examples**
+
+    >>> f.shape
+    (1, 2, 3, 4)
+    >>> f.flatten().shape
+    (24,)
+    >>> f.flatten([1, 3]).shape
+    (1, 8, 3)
+    >>> f.flatten([0, -1], inplace=True)
+    >>> f.shape
+    (4, 2, 3)
+
+        '''
+        v = super().flatten(axes, inplace=inplace)
+        if inplace:
+            v = self
+            
+        bounds = v.get_bounds(None)
+        if bounds is not None:
+            axes = self._parse_axes(axes)
+            bounds.flatten(axes, inplace=True)
+        
+        if inplace:
+            v = None
+        return v
+
+
     def floor(self, bounds=True, inplace=False, i=False):
         '''Floor the data array, element-wise.
 
-The floor of ``x`` is the largest integer ``n``, such that ``n <= x``.
-
-.. versionadded:: 1.0
-
-.. seealso:: `ceil`, `rint`, `trunc`
-
-:Parameters:
-
-    bounds: `bool`, optional
-        If False then do not alter any bounds. By default any bounds
-        are also altered.
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-        
-        The construct with floored data. If the operation was
-        in-place then `None` is returned.
-
-**Examples:**
-
->>> print(f.array)
-[-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
->>> print(f.floor().array)
-[-2. -2. -2. -1.  0.  1.  1.  1.  1.]
->>> f.floor(inplace=True)
->>> print(f.array)
-[-2. -2. -2. -1.  0.  1.  1.  1.  1.]
+    The floor of ``x`` is the largest integer ``n``, such that ``n <= x``.
+    
+    .. versionadded:: 1.0
+    
+    .. seealso:: `ceil`, `rint`, `trunc`
+    
+    :Parameters:
+    
+        bounds: `bool`, optional
+            If False then do not alter any bounds. By default any
+            bounds are also altered.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+            
+            The construct with floored data. If the operation was
+            in-place then `None` is returned.
+    
+    **Examples:**
+    
+    >>> print(f.array)
+    [-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
+    >>> print(f.floor().array)
+    [-2. -2. -2. -1.  0.  1.  1.  1.  1.]
+    >>> f.floor(inplace=True)
+    >>> print(f.array)
+    [-2. -2. -2. -1.  0.  1.  1.  1.  1.]
 
         '''
         if i:
@@ -1493,29 +1523,29 @@ The floor of ``x`` is the largest integer ``n``, such that ``n <= x``.
         if inplace:
             v = None
         return v
-    #--- End: def
+
 
     def direction(self):
         '''Return None, indicating that it is not specified whether the
-values are increasing or decreasing.
-
-.. versionadded:: 2.0 
-
-:Returns:
-
+    values are increasing or decreasing.
+    
+    .. versionadded:: 2.0 
+    
+    :Returns:
+    
+        None
+            
+    **Examples:**
+    
+    >>> print c.direction()
     None
-        
-**Examples:**
-
->>> print c.direction()
-None
-
-        ''' 
+    
+            ''' 
         return
-    #--- End: def
+
     
     def _matching_values(self, value0, value1, units=False):
-        '''
+        '''TODO
         '''
         if value1 is None:            
             return False
@@ -1533,7 +1563,7 @@ None
         #--- End: if
 
         return False
-    #--- End: def
+
     
     def match_by_property(self, *mode, **properties):
         '''Determine whether or not a variable satisfies conditions.
@@ -2062,87 +2092,86 @@ ValueError: Can't take the logarithm to the base 2.718281828459045 of <Units: >
         return v
     #--- End: def
 
-    # 1
+
     def squeeze(self, axes=None, inplace=False, i=False):
         '''Remove size 1 dimensions from the data array
 
-.. seealso:: `insert_dimension`, `flip`, `transpose`
-
-:Parameters:
-
-    axes: (sequence of) `int`, optional
-        The size 1 axes to remove. By default, all size 1 axes are
-        removed. Size 1 axes for removal are identified by their
-        integer positions in the data array.
+    .. seealso:: `insert_dimension`, `flip`, `transpose`
     
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-
-        The construct with squeezed data. If the operation was
-        in-place then `None` is returned.
-
-**Examples:**
-
-
-TODO
-
->>> f.squeeze()
-
->>> f.squeeze(1)
-
->>> f.squeeze([2, -1])
+    :Parameters:
+    
+        axes: (sequence of) `int`, optional
+            The size 1 axes to remove. By default, all size 1 axes are
+            removed. Size 1 axes for removal are identified by their
+            integer positions in the data array.
+        
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+    
+            The construct with squeezed data. If the operation was
+            in-place then `None` is returned.
+    
+    **Examples:**
+    
+    
+    TODO
+    
+    >>> f.squeeze()
+    
+    >>> f.squeeze(1)
+    
+    >>> f.squeeze([2, -1])
 
         '''
         if i:
             _DEPRECATION_ERROR_KWARGS(self, 'squeeze', i=True) # pragma: no cover
 
         return super().squeeze(axes=axes, inplace=inplace)
-    #--- End: def
     
-    # 1
+
     def trunc(self, bounds=True, inplace=False, i=False):
         '''Truncate the data, element-wise.
 
-The truncated value of the scalar ``x``, is the nearest integer ``i``
-which is closer to zero than ``x`` is. I.e. the fractional part of the
-signed number ``x`` is discarded.
-
-.. versionadded:: 1.0
-
-.. seealso:: `ceil`, `floor`, `rint`
-
-:Parameters:
-
-    bounds: `bool`, optional
-        If False then do not alter any bounds. By default any bounds
-        are also altered.
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-
-        The construct with truncated data. If the operation was
-        in-place then `None` is returned.
-
-**Examples:**
-
->>> print(f.array)
-[-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
->>> print(f.trunc().array)
-[-1. -1. -1. -1.  0.  1.  1.  1.  1.]
->>> f.trunc(inplace=True)
->>> print(f.array)
-[-1. -1. -1. -1.  0.  1.  1.  1.  1.]
+    The truncated value of the scalar ``x``, is the nearest integer
+    ``i`` which is closer to zero than ``x`` is. I.e. the fractional
+    part of the signed number ``x`` is discarded.
+    
+    .. versionadded:: 1.0
+    
+    .. seealso:: `ceil`, `floor`, `rint`
+    
+    :Parameters:
+    
+        bounds: `bool`, optional
+            If False then do not alter any bounds. By default any
+            bounds are also altered.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+    
+            The construct with truncated data. If the operation was
+            in-place then `None` is returned.
+    
+    **Examples:**
+    
+    >>> print(f.array)
+    [-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
+    >>> print(f.trunc().array)
+    [-1. -1. -1. -1.  0.  1.  1.  1.  1.]
+    >>> f.trunc(inplace=True)
+    >>> print(f.array)
+    [-1. -1. -1. -1.  0.  1.  1.  1.  1.]
 
         '''
         if i:
@@ -2161,52 +2190,57 @@ signed number ``x`` is discarded.
         if inplace:
             v = None
         return v
-    #--- End: def
+
     
     def identities(self):
         '''Return all possible identities.
 
-The identities comprise:
+    The identities comprise:
+    
+    * The "standard_name" property.
+    * The "id" attribute, preceeded by ``'id%'``.
+    * The "cf_role" property, preceeded by ``'cf_role='``.
+    * The "axis" property, preceeded by ``'axis='``.
+    * The "long_name" property, preceeded by ``'long_name='``.
+    * All other properties (including "standard_name"), preceeded by
+      the property name and an ``'='``.
+    * The coordinate type (``'X'``, ``'Y'``, ``'Z'`` or ``'T'``).
+    * The netCDF variable name, preceeded by ``'ncvar%'``.
+    
+    The identities of the bounds, if present, are included (with the
+    exception of the bounds netCDF variable name).
 
-* The "standard_name" property.
-* All properties, preceeded by the property name and a colon,
-  e.g. ``'long_name:Air temperature'``.
-* The netCDF variable name, preceeded by ``'ncvar%'``.
-* The coordinate type (one or none of ``'X'``, ``'Y'``, ``'Z'``,
-  ``'T'``).
-* The identities of the bounds, if any.
-
-.. versionadded:: 3.0.0
-
-.. seealso:: `identity`
-
-:Returns:
-
-    `list`
-        The identities.
-
-**Examples:**
-
->>> f.properties()
-{'foo': 'bar',
- 'long_name': 'Air Temperature',
- 'standard_name': 'air_temperature'}
->>> f.nc_get_variable()
-'tas'
->>> f.identities()
-['air_temperature',
- 'long_name=Air Temperature',
- 'foo=bar',
- 'standard_name=air_temperature',
- 'ncvar%tas']
-
->>> f.properties()
-{}
->>> f.bounds.properties()
-{'axis': 'Z',
- 'units': 'm'}
->>> f.identities()
-['axis=Z', 'units=m', 'ncvar%z']
+    .. versionadded:: 3.0.0
+    
+    .. seealso:: `id`, `identity`
+    
+    :Returns:
+    
+        `list`
+            The identities.
+    
+    **Examples:**
+    
+    >>> f.properties()
+    {'foo': 'bar',
+     'long_name': 'Air Temperature',
+     'standard_name': 'air_temperature'}
+    >>> f.nc_get_variable()
+    'tas'
+    >>> f.identities()
+    ['air_temperature',
+     'long_name=Air Temperature',
+     'foo=bar',
+     'standard_name=air_temperature',
+     'ncvar%tas']
+    
+    >>> f.properties()
+    {}
+    >>> f.bounds.properties()
+    {'axis': 'Z',
+     'units': 'm'}
+    >>> f.identities()
+    ['axis=Z', 'units=m', 'ncvar%z']
 
         '''
         identities = super().identities()
@@ -2218,25 +2252,28 @@ The identities comprise:
 # TODO ncvar AND?
 
         return identities
-    #--- End: def
 
 
-    def identity(self, default='', strict=False, nc_only=False,
-                 relaxed_identity=None):
+    def identity(self, default='', strict=False, relaxed=False,
+                 nc_only=False, relaxed_identity=None):
         '''Return the canonical identity.
 
     By default the identity is the first found of the following:
     
-    1. The "standard_name" property.
-    2. The "id" attribute, preceeded by ``'id%='``.
-    3. The "cf_role" property, preceeded by ``'cf_role='``.
-    4. The "axis" property, preceeded by ``'axis='``.
-    5. The "long_name" property, preceeded by ``'long_name='``.
-    6. The netCDF variable name, preceeded by ``'ncvar%'``.
-    7. The identity of the bounds, if any.
-    8. The value of the *default* parameter.
+    * The "standard_name" property.
+    * The "id" attribute, preceeded by ``'id%'``.
+    * The "cf_role" property, preceeded by ``'cf_role='``.
+    * The "axis" property, preceeded by ``'axis='``.
+    * The "long_name" property, preceeded by ``'long_name='``.
+    * The netCDF variable name, preceeded by ``'ncvar%'``.
+    * The coordinate type (``'X'``, ``'Y'``, ``'Z'`` or ``'T'``).
+    * The value of the *default* parameter.
+
+    If no identity can be found on the construct then the identity is
+    taken from the bounds, if present (with the exception of the
+    bounds netCDF variable name).
     
-    .. seealso:: `identities`
+    .. seealso:: `id`, `identities`
     
     :Parameters:
     
@@ -2244,6 +2281,21 @@ The identities comprise:
             If no identity can be found then return the value of the
             default parameter.
     
+        strict: `bool`, optional 
+            If True then only take the identity from the
+            "standard_name" property or the "id" attribute, in that
+            order.
+
+        relaxed: `bool`, optional
+            If True then only take the identity from the
+            "standard_name" property, the "id" attribute, the
+            "long_name" property or netCDF variable name, in that
+            order.
+
+        nc_only: `bool`, optional       
+            If True then only take the identity from the netCDF
+            variable name.
+
     :Returns:
     
             The identity.
@@ -2288,14 +2340,21 @@ The identities comprise:
         if relaxed_identity:
             _DEPRECATAION_ERROR_KWARGS(self, 'identity', relaxed_identity=True) # pragma: no cover
             
-        identity = super().identity(default=None, strict=strict, nc_only=nc_only)
+        identity = super().identity(default=None, strict=strict,
+                                    relaxed=relaxed, nc_only=nc_only)
+
         if identity is not None:
             return identity
 
         bounds = self.get_bounds(None)
         if bounds is not None:
-            return bounds.identity(default=default, strict=strict, nc_only=nc_only)
-        
+            out = bounds.identity(default=None, strict=strict,
+                                  relaxed=relaxed, nc_only=nc_only)
+
+            if out is not None and not out.startswith('ncvar%'):
+                return out
+        #--- End: if
+                
         return default
 
 
@@ -2312,40 +2371,39 @@ The identities comprise:
         print(cf_inspect(self)) # pragma: no cover
 
 
-    # 1
     def rint(self, bounds=True, inplace=False, i=False):
         '''Round the data to the nearest integer, element-wise.
 
-.. versionadded:: 1.0
-
-.. seealso:: `ceil`, `floor`, `trunc`
-
-:Parameters:
-
-    bounds: `bool`, optional
-        If False then do not alter any bounds. By default any bounds
-        are also altered.
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-        
-        The construct with rounded data. If the operation was in-place
-        then `None` is returned.
-
-**Examples:**
-
->>> print(f.array)
-[-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
->>> print(f.rint().array)
-[-2. -2. -1. -1.  0.  1.  1.  2.  2.]
->>> f.rint(inplace=True)
->>> print(f.array)
-[-2. -2. -1. -1.  0.  1.  1.  2.  2.]
+    .. versionadded:: 1.0
+    
+    .. seealso:: `ceil`, `floor`, `trunc`
+    
+    :Parameters:
+    
+        bounds: `bool`, optional
+            If False then do not alter any bounds. By default any
+            bounds are also altered.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+            
+            The construct with rounded data. If the operation was
+            in-place then `None` is returned.
+    
+    **Examples:**
+    
+    >>> print(f.array)
+    [-1.9 -1.5 -1.1 -1.   0.   1.   1.1  1.5  1.9]
+    >>> print(f.rint().array)
+    [-2. -2. -1. -1.  0.  1.  1.  2.  2.]
+    >>> f.rint(inplace=True)
+    >>> print(f.array)
+    [-2. -2. -1. -1.  0.  1.  1.  2.  2.]
 
         '''
         if i:
@@ -2364,57 +2422,56 @@ The identities comprise:
         if inplace:
             v = None            
         return v
-    #--- End: def
 
-    # 1
+
     def round(self, decimals=0, bounds=True, inplace=False, i=False):
         '''Round the data to the given number of decimals.
 
-Data elements are evenly rounded to the given number of decimals.
-
-.. note:: Values exactly halfway between rounded decimal values are
-          rounded to the nearest even value. Thus 1.5 and 2.5 round to
-          2.0, -0.5 and 0.5 round to 0.0, etc. Results may also be
-          surprising due to the inexact representation of decimal
-          fractions in the IEEE floating point standard and errors
-          introduced when scaling by powers of ten.
- 
-.. versionadded:: 1.1.4
-
-.. seealso:: `ceil`, `floor`, `rint`, `trunc`
-
-:Parameters:
-	
-    decimals: `int`, optional
-        Number of decimal places to round to (0 by default). If
-        decimals is negative, it specifies the number of positions to
-        the left of the decimal point.
-
-    bounds: `bool`, optional
-        If False then do not alter any bounds. By default any bounds
-        are also altered.
-
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parameter instead.
-
-:Returns:
-
-        The construct with rounded data. If the operation was in-place
-        then `None` is returned.
-
-**Examples:**
-
->>> print(f.array)
-[-1.81, -1.41, -1.01, -0.91,  0.09,  1.09,  1.19,  1.59,  1.99])
->>> print(f.round().array)
-[-2., -1., -1., -1.,  0.,  1.,  1.,  2.,  2.]
->>> print(f.round(1).array)
-[-1.8, -1.4, -1. , -0.9,  0.1,  1.1,  1.2,  1.6,  2. ]
->>> print(f.round(-1).array)
-[-0., -0., -0., -0.,  0.,  0.,  0.,  0.,  0.]
+    Data elements are evenly rounded to the given number of decimals.
+    
+    .. note:: Values exactly halfway between rounded decimal values
+              are rounded to the nearest even value. Thus 1.5 and 2.5
+              round to 2.0, -0.5 and 0.5 round to 0.0, etc. Results
+              may also be surprising due to the inexact representation
+              of decimal fractions in the IEEE floating point standard
+              and errors introduced when scaling by powers of ten.
+     
+    .. versionadded:: 1.1.4
+    
+    .. seealso:: `ceil`, `floor`, `rint`, `trunc`
+    
+    :Parameters:
+    	
+        decimals: `int`, optional
+            Number of decimal places to round to (0 by default). If
+            decimals is negative, it specifies the number of positions
+            to the left of the decimal point.
+    
+        bounds: `bool`, optional
+            If False then do not alter any bounds. By default any
+            bounds are also altered.
+    
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parameter instead.
+    
+    :Returns:
+    
+            The construct with rounded data. If the operation was
+            in-place then `None` is returned.
+    
+    **Examples:**
+    
+    >>> print(f.array)
+    [-1.81, -1.41, -1.01, -0.91,  0.09,  1.09,  1.19,  1.59,  1.99])
+    >>> print(f.round().array)
+    [-2., -1., -1., -1.,  0.,  1.,  1.,  2.,  2.]
+    >>> print(f.round(1).array)
+    [-1.8, -1.4, -1. , -0.9,  0.1,  1.1,  1.2,  1.6,  2. ]
+    >>> print(f.round(-1).array)
+    [-0., -0., -0., -0.,  0.,  0.,  0.,  0.,  0.]
 
         '''
         if i:
@@ -2434,32 +2491,32 @@ Data elements are evenly rounded to the given number of decimals.
         if inplace:
             v = None
         return v
-    #--- End: def
 
-    # 0
+
     def roll(self, iaxis, shift, inplace=False, i=False):
         '''Roll the data along an axis.
 
-.. seealso:: `insert_dimension`, `flip`, `squeeze`, `transpose`
+    .. seealso:: `insert_dimension`, `flip`, `squeeze`, `transpose`
+    
+    :Parameters:
+    
+        iaxis: `int`
+            TODO
+            
+        inplace: `bool`, optional
+            If True then do the operation in-place and return `None`.
+    
+        i: deprecated at version 3.0.0
+            Use *inplace* parmaeter instead.
+    
+    :Returns:
+    
+    TODO
+    
+    **Examples:**
+    
+    TODO
 
-:Parameters:
-
-    iaxis: `int`
-        TODO
-        
-    inplace: `bool`, optional
-        If True then do the operation in-place and return `None`.
-
-    i: deprecated at version 3.0.0
-        Use *inplace* parmaeter instead.
-
-:Returns:
-
-TODO
-
-**Examples:**
-
-TODO
         '''
         if i:
             _DEPRECATION_ERROR_KWARGS(self, 'roll', i=True) # pragma: no cover
@@ -2477,10 +2534,10 @@ TODO
         if inplace:
             v = None
         return v
-    #--- End: def
+
 
     # ----------------------------------------------------------------
-    # Deprecated attributes
+    # Deprecated attributes and methods
     # ----------------------------------------------------------------
     @property
     def hasbounds(self):
@@ -2490,20 +2547,18 @@ TODO
         _DEPRECATION_ERROR_ATTRIBUTE(
             self, 'hasbounds',
             "Use method 'has_bounds' instead.") # pragma: no cover
-    #--- End: def
-    
-    # ----------------------------------------------------------------
-    # Deprecated methods
-    # ----------------------------------------------------------------
+
+        
     def expand_dims(self, position=0, i=False):
         '''Insert a size 1 axis into the data array.
 
-Deprecated at version 3.0.0. Use method 'insert_dimension' instead.
+    Deprecated at version 3.0.0. Use method 'insert_dimension'
+    instead.
 
         '''
         _DEPRECATION_ERROR_METHOD(
             self, 'expand_dims',
             "Use method 'insert_dimension' instead.") # pragma: no cover
-    #--- End: def
 
+        
 #--- End: class

@@ -3,14 +3,14 @@ import os
 import platform
 import re
 import resource
-import copy
 import ctypes.util
 #import cPickle
 import netCDF4
-import psutil
 import warnings
-import cftime
 
+import psutil
+
+import cftime
 
 from numpy import __file__          as _numpy__file__
 from numpy import __version__       as _numpy__version__
@@ -18,13 +18,12 @@ from numpy import all               as _numpy_all
 from numpy import allclose          as _x_numpy_allclose
 from numpy import array             as _numpy_array
 from numpy import ascontiguousarray as _numpy_ascontiguousarray 
-from numpy import dtype             as _numpy_dtype
+from numpy import integer           as _numpy_integer
 from numpy import isclose           as _x_numpy_isclose
-from numpy import ndarray           as _numpy_ndarray
 from numpy import ndim              as _numpy_ndim
-from numpy import number            as _numpy_number
 from numpy import shape             as _numpy_shape
 from numpy import sign              as _numpy_sign
+from numpy import size              as _numpy_size
 from numpy import take              as _numpy_take
 from numpy import tile              as _numpy_tile
 from numpy import where             as _numpy_where
@@ -39,23 +38,19 @@ from collections import Iterable
 from hashlib     import md5 as hashlib_md5
 from marshal     import dumps as marshal_dumps
 from math        import ceil as math_ceil
-from os          import getpid, listdir, mkdir, curdir
-from os.path     import isfile       as _os_path_isfile
+from os          import getpid, listdir, mkdir
 from os.path     import abspath      as _os_path_abspath
-from os.path     import commonprefix as _os_path_commonprefix
 from os.path     import expanduser   as _os_path_expanduser
 from os.path     import expandvars   as _os_path_expandvars
 from os.path     import dirname      as _os_path_dirname
 from os.path     import join         as _os_path_join
 from os.path     import relpath      as _os_path_relpath 
-from inspect     import getargspec
-from itertools   import product as itertools_product
-#from platform    import system, platform, python_version
 from psutil      import virtual_memory, Process
 from sys         import executable as _sys_executable
 import urllib.parse
 
 import cfdm
+import cfunits
 
 from .          import __version__, __file__
 from .constants import CONSTANTS, _file_to_fh, _stash2standard_name
@@ -161,13 +156,13 @@ def FREE_MEMORY():
     **Examples:**
     
     >>> import numpy
-    >>> print 'Free memory =', cf.FREE_MEMORY()/2**30, 'GiB'
+    >>> print('Free memory =', cf.FREE_MEMORY()/2**30, 'GiB')
     Free memory = 88.2728042603 GiB
     >>> a = numpy.arange(10**9)
-    >>> print 'Free memory =', cf.FREE_MEMORY()/2**30, 'GiB'
+    >>> print('Free memory =', cf.FREE_MEMORY()/2**30, 'GiB')
     Free memory = 80.8082618713 GiB
     >>> del a
-    >>> print 'Free memory =', cf.FREE_MEMORY()/2**30, 'GiB'
+    >>> print('Free memory =', cf.FREE_MEMORY()/2**30, 'GiB')
     Free memory = 88.2727928162 GiB
 
     '''
@@ -544,7 +539,13 @@ def COLLAPSE_PARALLEL_MODE(*arg):
 
 
 def RELAXED_IDENTITIES(*arg):
-    '''TODO
+    '''Use 'relaxed' mode when getting a construct identity.
+
+    If set to True, sets ``relaxed=True`` as the default in calls to a
+    construct's `identity` method (e.g. `cf.Field.identity`).
+
+    This is used by construct arithmetic and field construct
+    aggregation.
 
     :Parameters:
     
@@ -559,7 +560,7 @@ def RELAXED_IDENTITIES(*arg):
     **Examples:**
     
     >>> org = cf.RELAXED_IDENTITIES()
-    >>> print org
+    >>> org
     False
     >>> cf.RELAXED_IDENTITIES(True)
     False
@@ -578,39 +579,39 @@ def RELAXED_IDENTITIES(*arg):
     return old
 
 
-def IGNORE_IDENTITIES(*arg):
-    '''TODO
-
-    :Parameters:
-    
-        arg: `bool`, optional
-          
-    :Returns:
-    
-        `bool`
-            The value prior to the change, or the current value if no
-            new value was specified.
-    
-    **Examples:**
-    
-    >>> org = cf.IGNORE_IDENTITIES()
-    >>> print org
-    False
-    >>> cf.IGNORE_IDENTITIES(True)
-    False
-    >>> cf.IGNORE_IDENTITIES()
-    True
-    >>> cf.IGNORE_IDENTITIES(org)
-    True
-    >>> cf.IGNORE_IDENTITIES()
-    False
-
-    '''
-    old = CONSTANTS['IGNORE_IDENTITIES']
-    if arg:
-        CONSTANTS['IGNORE_IDENTITIES'] = bool(arg[0])
-    
-    return old
+#def IGNORE_IDENTITIES(*arg):
+#    '''TODO
+#
+#    :Parameters:
+#    
+#        arg: `bool`, optional
+#          
+#    :Returns:
+#    
+#        `bool`
+#            The value prior to the change, or the current value if no
+#            new value was specified.
+#    
+#    **Examples:**
+#    
+#    >>> org = cf.IGNORE_IDENTITIES()
+#    >>> print(org)
+#    False
+#    >>> cf.IGNORE_IDENTITIES(True)
+#    False
+#    >>> cf.IGNORE_IDENTITIES()
+#    True
+#    >>> cf.IGNORE_IDENTITIES(org)
+#    True
+#    >>> cf.IGNORE_IDENTITIES()
+#    False
+#
+#    '''
+#    old = CONSTANTS['IGNORE_IDENTITIES']
+#    if arg:
+#        CONSTANTS['IGNORE_IDENTITIES'] = bool(arg[0])
+#    
+#    return old
 
 
 def dump(x, **kwargs):
@@ -618,8 +619,8 @@ def dump(x, **kwargs):
 
     If the object has a `!dump` method then this is used to create the
     output, so that ``cf.dump(f)`` is equivalent to ``print
-    f.dump()``. Otherwise ``cf.dump(x)`` is equivalent to ``print
-    x``.
+    f.dump()``. Otherwise ``cf.dump(x)`` is equivalent to
+    ``print(x)``.
     
     :Parameters:
     
@@ -686,10 +687,10 @@ if _linux:
     
     >>> cf.OF_FRACTION()
     0.5
-    >>> print cf.open_files_threshold_exceeded()
+    >>> cf.open_files_threshold_exceeded()
     True
     >>> cf.OF_FRACTION(0.9)
-    >>> print cf.open_files_threshold_exceeded()
+    >>> cf.open_files_threshold_exceeded()
     False
 
         '''
@@ -726,10 +727,10 @@ else:
     
     >>> cf.OF_FRACTION()
     0.5
-    >>> print cf.open_files_threshold_exceeded()
+    >>> cf.open_files_threshold_exceeded()
     True
     >>> cf.OF_FRACTION(0.9)
-    >>> print cf.open_files_threshold_exceeded()
+    >>> cf.open_files_threshold_exceeded()
     False
 
         '''
@@ -741,11 +742,11 @@ else:
 def close_files(file_format=None):
     '''Close open files containing sub-arrays of data arrays.
 
-    By default all such files are closed, but this may be restricted to
-    files of a particular format.
+    By default all such files are closed, but this may be restricted
+    to files of a particular format.
     
-    Note that closed files will be automatically reopened if subsequently
-    needed by a variable to access the sub-array.
+    Note that closed files will be automatically reopened if
+    subsequently needed by a variable to access the sub-array.
     
     If there are no appropriate open files then no action is taken.
     
@@ -1023,7 +1024,8 @@ def _numpy_isclose(a, b, rtol=None, atol=None):
         return a == b
 
 
-def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
+def parse_indices(shape, indices, cyclic=False, reverse=False,
+                  envelope=False, mask=False):
     '''TODO
 
     :Parameters:
@@ -1036,15 +1038,30 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
     
         `list` [, `dict`]
 
-    '''
-    parsed_indices = []
-    roll           = {}
-    flip           = []
-    compressed_indices = []
+    **Examples:**
+    
+    >>> cf.parse_indices((5, 8), ([1, 2, 4, 6],))
+    [array([1, 2, 4, 6]), slice(0, 8, 1)]
+    >>> cf.parse_indices((5, 8), ([2, 4, 6],))
+    [slice(2, 7, 2), slice(0, 8, 1)]
 
+    '''
+    parsed_indices     = []
+    roll               = {}
+    flip               = []
+    compressed_indices = []
+    mask_indices       = []
+    
     if not isinstance(indices, tuple):
         indices = (indices,)
 
+    if mask and indices:
+        arg0 = indices[0]
+        if isinstance(arg0, str) and arg0 == 'mask':
+            mask_indices = indices[1]
+            indices = indices[2:]
+    #--- End: if
+    
     # Initialize the list of parsed indices as the input indices with any
     # Ellipsis objects expanded
     length = len(indices)
@@ -1060,12 +1077,12 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
             n -= 1
 
         length -= 1
-    #--- End: for
+
     len_parsed_indices = len(parsed_indices)
 
     if ndim and len_parsed_indices > ndim:
-        raise IndexError("Invalid indices %s for array with shape %s" %
-                         (parsed_indices, shape))
+        raise IndexError("Invalid indices {} for array with shape {}".format(
+            parsed_indices, shape))
 
     if len_parsed_indices < ndim:
         parsed_indices.extend([slice(None)]*(ndim-len_parsed_indices))
@@ -1088,7 +1105,10 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
 
     for i, (index, size) in enumerate(zip(parsed_indices, shape)):
         is_slice = False
-        if isinstance(index, slice):            
+        if isinstance(index, slice):
+            # --------------------------------------------------------
+            # Index is a slice
+            # --------------------------------------------------------
             is_slice = True
             start = index.start
             stop  = index.stop
@@ -1166,12 +1186,16 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
                     (start < stop and step < 0) or
                     (start > stop and step > 0)):
                     raise IndexError(
-"Invalid indices {} for array with shape {}".format(parsed_indices, shape))
+                        "Invalid indices dimension with size {}: {}".format(
+                            size, index))
                 if step < 0 and stop < 0:
                     stop = None
                 index = slice(start, stop, step)
          
-        elif isinstance(index, int):
+        elif isinstance(index, (int, _numpy_integer)):
+            # --------------------------------------------------------
+            # Index is an integer
+            # --------------------------------------------------------            
             if index < 0: 
                 index += size
 
@@ -1179,18 +1203,21 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
             is_slice = True
         else:
             convert2positve = True
-            if getattr(getattr(index, 'dtype', None), 'kind', None) == 'b':
+            if (getattr(getattr(index, 'dtype', None), 'kind', None) == 'b' or
+                isinstance(index[0], bool)):
+                # ----------------------------------------------------
+                # Index is a sequence of booleans
+                # ----------------------------------------------------
                 # Convert booleans to non-negative integers. We're
                 # assuming that anything with a dtype attribute also
                 # has a size attribute.
-                if index.size != size:
+                if _numpy_size(index) != size:
                     raise IndexError(
-                        "Invalid indices %s for array with shape %s" %
-                        (parsed_indices, shape))
+                        "Incorrect number ({}) of boolean indices for dimension with size {}: {}".format(
+                            _numpy_size(index), size, index))
 
                 index = _numpy_where(index)[0]
                 convert2positve = False
-            #--- End: if
 
             if not _numpy_ndim(index):
                 if index < 0:
@@ -1231,7 +1258,8 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
                         if ((step > 0 and (steps <= 0).any()) or
                             (step < 0 and (steps >= 0).any()) or
                             not step):
-                            raise ValueError("Bad index (not strictly monotonic): %s" % index)
+                            raise ValueError(
+                                "Bad index (not strictly monotonic): {}".format(index))
                             
                         if reverse and step < 0:
                             # The array is strictly monotoniticall
@@ -1242,7 +1270,6 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
                             index = index[::-1]
                             flip.append(i)
                             step = -step
-                        #--- End: if
 
                         if envelope:
                             # Create an envelope slice for a parsed
@@ -1261,7 +1288,7 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
                             is_slice = True
                 else:
                     raise IndexError(
-                        "Invalid indices {0} for array with shape {1}".format(
+                        "Invalid indices {} for array with shape {}".format(
                             parsed_indices, shape))                
             #--- End: if
         #--- End: if
@@ -1316,16 +1343,23 @@ def parse_indices(shape, indices, cyclic=False, reverse=False, envelope=False):
         parsed_indices[i] = index    
     #--- End: for
 
-    if not (cyclic or reverse or envelope):
+    if not (cyclic or reverse or envelope or mask):
         return parsed_indices
 
     out = [parsed_indices]
+
     if cyclic:
         out.append(roll)
+
     if reverse:
         out.append(flip)
+
     if envelope:
         out.append(compressed_indices)
+
+    if mask:
+        out.append(mask_indices)
+
     return out
 
 
@@ -1628,40 +1662,46 @@ def flat(x):
     
     **Examples:**
     
-    >>> print cf.flat([1, [2, [3, 4]]])
+    >>> cf.flat([1, [2, [3, 4]]])
     <generator object flat at 0x3649cd0>
     
-    >>> print list(cf.flat([1, (2, [3, 4])]))
+    >>> list(cf.flat([1, (2, [3, 4])]))
     [1, 2, 3, 4]
     
     >>> import numpy
-    >>> print list(cf.flat((1, [2, numpy.array([[3, 4], [5, 6]])]))
+    >>> list(cf.flat((1, [2, numpy.array([[3, 4], [5, 6]])]))
     [1, 2, 3, 4, 5, 6]
     
     >>> for a in cf.flat([1, [2, [3, 4]]]):
-    ...     print a,
+    ...     print(a, end=' ')
+    ...
     1 2 3 4
     
     >>> for a in cf.flat(['a', ['bc', ['def', 'ghij']]]):
-    ...     print a, ' ',
+    ...     print(a, end=' ')
+    ...
     a bc def ghij
     
     >>> for a in cf.flat(2004):
-    ...     print a
+    ...     print(a)
+    ...
     2004
     
     >>> for a in cf.flat('abcdefghij'):
-    ...     print a
+    ...     print(a, end=' ')
+    ...
     abcdefghij
     
     >>> f
     <CF Field: eastward_wind(air_pressure(5), latitude(110), longitude(106)) m s-1>
     >>> for a in cf.flat(f):
-    ...     print repr(a)
+    ...     print(repr(a))
+    ...
     <CF Field: eastward_wind(air_pressure(5), latitude(110), longitude(106)) m s-1>
     
     >>> for a in cf.flat([f, [f, [f, f]]]):
-    ...     print repr(a)
+    ...     print(repr(a))
+    ...
     <CF Field: eastward_wind(air_pressure(5), latitude(110), longitude(106)) m s-1>
     <CF Field: eastward_wind(air_pressure(5), latitude(110), longitude(106)) m s-1>
     <CF Field: eastward_wind(air_pressure(5), latitude(110), longitude(106)) m s-1>
@@ -1690,8 +1730,9 @@ def flat(x):
 def abspath(filename):
     '''Return a normalized absolute version of a file name.
     
-    If a string containing URL is provided then it is returned unchanged.
-    x
+    If a string containing URL is provided then it is returned
+    unchanged.
+
     .. seealso:: `cf.dirname`, `cf.pathjoin`, `cf.relpath`
     
     :Parameters:
@@ -1715,7 +1756,7 @@ def abspath(filename):
     '/data/archive/file.nc'
     >>> cf.abspath('http://data/archive/file.nc')
     'http://data/archive/file.nc'
-    
+
     ''' 
     u = urllib.parse.urlparse(filename)
     if u.scheme != '':
@@ -1926,20 +1967,8 @@ def inspect(self):
 
     :Returns: 
     
-        `str`
+        `None`
     
-    **Examples:**
-    
-    >>> print x.inspect
-    <CF CoordinateReference: rotated_latitude_longitude>
-    ----------------------------------------------------
-    _dict: {'grid_north_pole_latitude': 38.0, 'grid_north_pole_longitude': 190.0}
-    coord_terms: set([])
-    coords: set(['dim2', 'dim1', 'aux2', 'aux3'])
-    name: 'rotated_latitude_longitude'
-    ncvar: 'rotated_latitude_longitude'
-    type: 'grid_mapping'
-
     '''
     name = repr(self)
     out = [name, ''.ljust(len(name), '-')]
@@ -1948,7 +1977,7 @@ def inspect(self):
         for key, value in sorted(self.__dict__.items()):
             out.append('%s: %s' % (key, repr(value)))
         
-    return '\n'.join(out)
+    print('\n'.join(out))
 
 
 def broadcast_array(array, shape):
@@ -1978,7 +2007,7 @@ def broadcast_array(array, shape):
     [[0 1 2 3]
      [4 5 6 7]]
     
-    >>> print cf.broadcast_array(a, (3, 2, 4))
+    >>> print(cf.broadcast_array(a, (3, 2, 4)))
     [[[0 1 2 3]
       [4 5 6 0]]
     
@@ -1993,7 +2022,7 @@ def broadcast_array(array, shape):
     
      [[4 5 6 7]]]
     
-    >>> print cf.broadcast_array(a, (2, 3, 4))
+    >>> print(cf.broadcast_array(a, (2, 3, 4)))
     [[[0 1 2 3]
       [0 1 2 3]
       [0 1 2 3]]
@@ -2004,7 +2033,7 @@ def broadcast_array(array, shape):
     
     >>> a = numpy.ma.arange(8).reshape(2, 4)
     >>> a[1, 3] = numpy.ma.masked
-    >>> print a
+    >>> print(a)
     [[0 1 2 3]
      [4 5 6 --]]
     
@@ -2155,7 +2184,10 @@ def _section(o, axes=None, data=False, stop=None, chunks=False,
     '''
     # retrieve the index of each axis defining the sections
     if data:
-        if axes == None:
+        if isinstance(axes, int):
+            axes = (axes,)
+
+        if not axes:            
             axis_indices = range(o.ndim)
         else:
             axis_indices = axes
@@ -2236,7 +2268,7 @@ def _section(o, axes=None, data=False, stop=None, chunks=False,
             return
         
         for i in range(0, sizes[current_index], steps[current_index]):
-            if not stop is None and nl_vars['count'] >= stop:
+            if stop is not None and nl_vars['count'] >= stop:
                 return
             indices[current_index] = slice(i, i + steps[current_index])
             loop_over_index(current_index - 1)
@@ -2270,30 +2302,41 @@ def environment(display=True):
     **Examples:**
     
     >>> cf.environment()
-    Platform: Linux-4.4.0-53-generic-x86_64-with-debian-stretch-sid
-    HDF5 library: 1.8.17
-    netcdf library: 4.4.1
-    udunits2: /home/space/anaconda2/lib/libudunits2.so.0
-    python: 2.7.13 /home/space/anaconda2/bin/python
-    netCDF4: 1.2.4 /home/space/anaconda2/lib/python2.7/site-packages/netCDF4/__init__.pyc
-    numpy: 1.11.3 /home/space/anaconda2/lib/python2.7/site-packages/numpy/__init__.pyc
-    psutil: 5.0.1 /home/space/anaconda2/lib/python2.7/site-packages/psutil/__init__.pyc
-    matplotlib: 1.5.1 /home/space/anaconda2/lib/python2.7/site-packages/matplotlib/__init__.pyc
-    ESMF: 7.0.0 /home/space/anaconda2/lib/python2.7/site-packages/ESMF/__init__.pyc
-    cfplot: 2.1.10 /home/space/anaconda2/lib/python2.7/site-packages/cfplot/__init__.pyc
-    cf: 2.0.2 /home/space/cf-python/cf/__init__.pyc
+    Platform: Linux-4.15.0-64-generic-x86_64-with-debian-stretch-sid
+    HDF5 library: 1.10.2
+    netcdf library: 4.6.1
+    udunits2 library: libudunits2.so.0
+    python: 3.7.3 /home/space/anaconda3/bin/python
+    netCDF4: 1.4.2 /home/space/anaconda3/lib/python3.7/site-packages/netCDF4/__init__.py
+    cftime: 1.0.3.4 /home/space/.local/lib/python3.7/site-packages/cftime-1.0.3.4-py3.7-linux-x86_64.egg/cftime/__init__.py
+    numpy: 1.16.2 /home/space/anaconda3/lib/python3.7/site-packages/numpy/__init__.py
+    psutil: 5.6.3 /home/space/anaconda3/lib/python3.7/site-packages/psutil/__init__.py
+    scipy: 1.2.1 /home/space/anaconda3/lib/python3.7/site-packages/scipy/__init__.py
+    matplotlib: 3.1.1 /home/space/anaconda3/lib/python3.7/site-packages/matplotlib/__init__.py
+    ESMF: 7.1.0r /home/space/anaconda3/lib/python3.7/site-packages/ESMF/__init__.py
+    cfdm: 1.7.8 /home/space/anaconda3/lib/python3.7/site-packages/cfdm/__init__.py
+    cfunits: 3.2.2 /home/space/anaconda3/lib/python3.7/site-packages/cfunits/__init__.py
+    cfplot: 3.0.0 /home/space/anaconda3/lib/python3.7/site-packages/cfplot/__init__.py
+    cf: 3.0.1 /home/space/anaconda3/lib/python3.7/site-packages/cf/__init__.py
 
     '''
     out = []
     out.append('Platform: ' + str(platform.platform()))
     out.append('HDF5 library: ' + str(netCDF4. __hdf5libversion__))
     out.append('netcdf library: ' + str(netCDF4.__netcdf4libversion__))
-    out.append('udunits2: ' + str(ctypes.util.find_library('udunits2')))
+    out.append('udunits2 library: ' + str(ctypes.util.find_library('udunits2')))
     out.append('python: ' + str(platform.python_version() + ' ' + str(_sys_executable)))
     out.append('netCDF4: ' + str(netCDF4.__version__) + ' ' + str(_os_path_abspath(netCDF4.__file__)))
     out.append('cftime: ' + str(cftime.__version__) + ' ' + str(_os_path_abspath(cftime.__file__)))
     out.append('numpy: ' + str(_numpy__version__) + ' ' + str(_os_path_abspath(_numpy__file__)))
     out.append('psutil: ' + str(psutil.__version__) + ' ' + str(_os_path_abspath(psutil.__file__)))
+
+    try:
+        import scipy
+    except:
+        out.append('scipy: not available')
+    else:
+        out.append('scipy: ' + str(scipy.__version__) + ' ' + str(_os_path_abspath(scipy.__file__)))
 
     try:
         import matplotlib
@@ -2308,6 +2351,9 @@ def environment(display=True):
         out.append('ESMF: not available')
     else:
         out.append('ESMF: ' + str(ESMF.__version__) + ' ' + str(_os_path_abspath(ESMF.__file__)))
+
+    out.append('cfdm: ' + str(cfdm.__version__) + ' ' + str(_os_path_abspath(cfdm.__file__)))
+    out.append('cfunits: ' + str(cfunits.__version__) + ' ' + str(_os_path_abspath(cfunits.__file__)))
 
     try:
         import cfplot
@@ -2326,7 +2372,7 @@ def environment(display=True):
         return(out)
 
 
-def default_fillvals():
+def default_netCDF_fillvals():
     '''Default data array fill values for each data type.
 
     :Returns:
@@ -2336,7 +2382,7 @@ def default_fillvals():
 
     **Examples:**
 
-    >>> cf.default_fillvals() 
+    >>> cf.default_netCDF_fillvals() 
     {'S1': '\x00',
      'i1': -127,
      'u1': 255,
@@ -2353,12 +2399,22 @@ def default_fillvals():
     return netCDF4.default_fillvals
 
 
-def _DEPRECATION_ERROR(message=''):  
-    raise DeprecationError("{0}".format(message))
+
+def _DEPRECATION_ERROR(message='', version='3.0.0'):
+    raise DeprecationError("{}".format(message))
+
+
+def _DEPRECATION_ERROR_ARG(instance, method, arg, message='', version='3.0.0'):  
+    raise DeprecationError("Argument {2!r} of method '{0}.{1}' has been deprecated at version 3.0.0 and is no longer available. {3}".format(
+            instance.__class__.__name__,
+            method,
+            arg,
+            message))
 
 
 def _DEPRECATION_ERROR_FUNCTION_KWARGS(func, kwargs={}, message='',
-                                       exact=False, traceback=False):
+                                       exact=False, traceback=False,
+                                       version='3.0.0'):
     if exact:
         kwargs={'exact': None}
         message = "Use 're.compile' objects instead."
@@ -2376,10 +2432,11 @@ def _DEPRECATION_ERROR_FUNCTION_KWARGS(func, kwargs={}, message='',
     
 def _DEPRECATION_ERROR_KWARGS(instance, method, kwargs={}, message='',
                               i=False, traceback=False, axes=False,
-                              exact=False, relaxed_identity=False):
+                              exact=False, relaxed_identity=False,
+                              version='3.0.0'):
     if relaxed_identity:
         kwargs={'relaxed_identity': None}
-        message = "Use keyword 'strict' instead."
+        message = "Use keywords 'strict' or 'relaxed' instead."
         
     if i:
         kwargs={'i': None}
@@ -2399,30 +2456,33 @@ def _DEPRECATION_ERROR_KWARGS(instance, method, kwargs={}, message='',
 
         
     for key in kwargs.keys():
-        raise DeprecationError("Keyword {2!r} of method '{0}.{1}' has been deprecated at version 3.0.0 and is no longer available. {3}".format(
+        raise DeprecationError("Keyword {2!r} of method '{0}.{1}' has been deprecated at version {} and is no longer available. {3}".format(
             instance.__class__.__name__,
             method,
             key,
+            version,
             message))
 
     
-def _DEPRECATION_ERROR_METHOD(instance, method, message=''):
+def _DEPRECATION_ERROR_METHOD(instance, method, message='', version='3.0.0'):
     raise DeprecationError("{} method {!r} has been deprecated at version 3.0.0 and is no longer available. {}".format(
         instance.__class__.__name__,
         method,
         message))
 
 
-def _DEPRECATION_ERROR_ATTRIBUTE(instance, attribute, message=''):
-    raise DeprecationError("{} attribute {!r} has been deprecate at version 3.0.0 and is no longer available. {}".format(
+def _DEPRECATION_ERROR_ATTRIBUTE(instance, attribute, message='', version='3.0.0'):
+    raise DeprecationError("{} attribute {!r} has been deprecate at version {} and is no longer available. {}".format(
         instance.__class__.__name__,
         attribute,
+        version,
         message))
 
 
-def _DEPRECATION_ERROR_FUNCTION(func, message=''):
-    raise DeprecationError("Function {!r} has been deprecated at version 3.0.0 and is no longer available. {}".format(
+def _DEPRECATION_ERROR_FUNCTION(func, message='', version='3.0.0'):
+    raise DeprecationError("Function {!r} has been deprecated at version {} and is no longer available. {}".format(
         func,
+        version,
         message))
 
 
@@ -2432,32 +2492,41 @@ def _DEPRECATION_ERROR_CLASS(cls, message=''):
         message))
 
 
-def _DEPRECATION_WARNING_METHOD(instance, method, message='', new=None):    
+def _DEPRECATION_WARNING_METHOD(instance, method, message='', new=None, version='3.0.0'):    
     warnings.warn(
         "{} method {!r} has been deprecated at version 3.0.0 and will be removed in a future version. {}".format(
             instance.__class__.__name__, method, message),
         DeprecationWarning)
 
 
-def _DEPRECATION_ERROR_DICT(message=''):
+def _DEPRECATION_ERROR_DICT(message='', version='3.0.0'):
     raise DeprecationError(
         "Use of a 'dict' to identify constructs has been deprecated and is no longer available. {}".format(
             message))
 
 
-def _DEPRECATION_ERROR_SEQUENCE(instance):
+def _DEPRECATION_ERROR_SEQUENCE(instance, version='3.0.0'):
     raise DeprecationError(
         "Use of a {!r} to identify constructs has been deprecated and is no longer available. Use the * operator to unpack the arguments instead.".format(
             instance.__class__.__name__))
 
 
-def _DEPRECATION_ERROR(message=''):
-    raise DeprecationError("{}".format(message))
-
-
 # --------------------------------------------------------------------
 # Deprecated functions
 # --------------------------------------------------------------------
+def default_fillvals():
+    '''Default data array fill values for each data type.
+
+    Deprecated at version 3.0.2 and is no longer available. Use
+    function `cf.default_netCDF_fillvals` instead.
+
+    '''
+    _DEPRECATION_ERROR_FUNCTION(
+        'default_fillvals',
+        "Use function 'cf.default_netCDF_fillvals' instead.",
+        version='3.0.2') # pragma: no cover
+
+
 def set_equals(x, y, rtol=None, atol=None, ignore_fill_value=False,
                traceback=False):
     '''Deprecated at version 3.0.0.

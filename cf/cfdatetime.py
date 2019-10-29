@@ -4,7 +4,6 @@ from functools import partial as functools_partial
 import numpy
 
 import cftime
-#from cfunits import Units
 
 from numpy import around     as numpy_around
 from numpy import array      as numpy_array
@@ -13,17 +12,13 @@ from numpy import ndarray    as numpy_ndarray
 from numpy import ndim       as numpy_ndim
 from numpy import vectorize  as numpy_vectorize
 
-from numpy.ma import array        as numpy_ma_array
 from numpy.ma import isMA         as numpy_ma_isMA
 from numpy.ma import is_masked    as numpy_ma_is_masked
-from numpy.ma import masked       as numpy_ma_masked
 from numpy.ma import masked_all   as numpy_ma_masked_all
 from numpy.ma import masked_where as numpy_ma_masked_where
 from numpy.ma import nomask       as numpy_ma_nomask
 
-from .functions import inspect as cf_inspect
 from .functions import _DEPRECATION_ERROR_CLASS
-from .units     import Units
 
 ## Define some usegful units
 #_calendar_years  = Units('calendar_years')
@@ -314,7 +309,12 @@ def st2dt(array, units_in=None, dummy0=None, dummy1=None):
 #    if date_string.count('-') != 2:
 #        raise ValueError("A string must contain a year, a month and a day")
 #
-#    year,month,day,hour,minute,second,utc_offset = cftime._parse_date(date_string)
+#    _ = cftime._parse_date(date_string)
+#    if len(_) == 7:
+#        year, month, day, hour, minute, second, utc_offset = _
+#    else:
+#        year, month, day, hour, minute, second, microsecond, utc_offset = _
+#
 #    if utc_offset:
 #        raise ValueError("Can't specify a time offset from UTC")
 #            
@@ -340,12 +340,18 @@ def st2datetime(date_string, calendar=None):
         raise ValueError(
             "Input date-time string must contain at least a year, a month and a day")
 
-    year,month,day,hour,minute,second,utc_offset = cftime._parse_date(date_string)
+    _ = cftime._parse_date(date_string)
+    if len(_) == 7:
+        year, month, day, hour, minute, second, utc_offset = _
+        microsecond = 0
+    else:
+        year, month, day, hour, minute, second, microsecond, utc_offset = _
+        
     if utc_offset:
         raise ValueError("Can't specify a time offset from UTC")
 
     #    return Datetime(year, month, day, hour, minute, second)
-    return dt(year, month, day, hour, minute, second, calendar=calendar)
+    return dt(year, month, day, hour, minute, second, microsecond, calendar=calendar)
 
 
 def st2elements(date_string):
@@ -364,11 +370,17 @@ def st2elements(date_string):
         raise ValueError(
             "Input date-time string must contain at least a year, a month and a day")
 
-    year,month,day,hour,minute,second,utc_offset = cftime._parse_date(date_string)
+    _ = cftime._parse_date(date_string)
+    if len(_) == 7:
+        year, month, day, hour, minute, second, utc_offset = _
+        microsecond = 0
+    else:
+        year, month, day, hour, minute, second, microsecond, utc_offset = _
+        
     if utc_offset:
         raise ValueError("Can't specify a time offset from UTC")
 
-    return (year, month, day, hour, minute, int(second), round((second % 1 )* 1e6))
+    return (year, month, day, hour, minute, second, microsecond) #round((second % 1 )* 1e6))
 
 
 #array_st2Datetime = numpy_vectorize(st2Datetime, otypes=[object])

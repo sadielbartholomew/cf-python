@@ -58,7 +58,7 @@ def _make_contiguous_file(filename):
     row_size[...] = [3, 7, 5, 9]
     
     time = n.createVariable('time', 'f8', ('obs',))
-    time.standard_name = "time";
+    time.standard_name = "time"
     time.long_name = "time of measurement" 
     time.units = "days since 1970-01-01 00:00:00"
     time[ 0: 3] = [-3, -2, -1]
@@ -83,7 +83,7 @@ def _make_contiguous_file(filename):
     n.close()
     
     return filename
-#--- End: def
+
 
 def _make_indexed_file(filename):        
     n = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
@@ -141,7 +141,7 @@ def _make_indexed_file(filename):
          range(-2, 7)]
     
     time = n.createVariable('time', 'f8', ('obs',))
-    time.standard_name = "time";
+    time.standard_name = "time"
     time.long_name = "time of measurement" 
     time.units = "days since 1970-01-01 00:00:00"
     ssi = [0, 0, 0, 0]
@@ -172,7 +172,7 @@ def _make_indexed_file(filename):
     n.close()
     
     return filename
-#--- End: def
+
 
 def _make_indexed_contiguous_file(filename):        
     n = netCDF4.Dataset(filename, 'w', format='NETCDF3_CLASSIC')
@@ -244,7 +244,7 @@ def _make_indexed_contiguous_file(filename):
                      2, 2, 2, 1, 2, 3, 3, 3, 2, 3, 1, 1] # sum = 118
     
     time = n.createVariable('time', 'f8', ('profile',))
-    time.standard_name = "time";
+    time.standard_name = "time"
     time.long_name = "time"
     time.units = "days since 1970-01-01 00:00:00"
     t0 = [3, 0, -3]
@@ -321,7 +321,7 @@ def _make_indexed_contiguous_file(filename):
     n.close()
     
     return filename
-#--- End: def
+
 
 contiguous_file = _make_contiguous_file('DSG_timeSeries_contiguous.nc')
 indexed_file    = _make_indexed_file('DSG_timeSeries_indexed.nc')
@@ -429,12 +429,11 @@ class DSGTest(unittest.TestCase):
         
         self.test_only = []
 #        self.test_only = ['test_DSG_indexed']
-    #--- End: def
+
  
     def tearDown(self):
-#        pass
         os.remove(self.tempfilename)
-    #--- End: def
+
     
     def test_DSG_contiguous(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -506,7 +505,7 @@ class DSGTest(unittest.TestCase):
         tas.set_data(cf.Data(array), axes=[Y, X])
         
         cf.write(tas, self.tempfilename)
-    #--- End: def   
+
 
     def test_DSG_indexed(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -541,7 +540,7 @@ class DSGTest(unittest.TestCase):
 
         for i in range(len(f)):
             self.assertTrue(g[i].equals(f[i], verbose=True))
-    #--- End: def        
+
 
     def test_DSG_indexed_contiguous(self):  
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -558,13 +557,13 @@ class DSGTest(unittest.TestCase):
 
         qa = q.data.array
 
-#        print (qa[0, 11])
-#        print (self.b[0, 11])
+#        print (qa[0, 12])
+#        print (self.b[0, 12])
 
         for n in range(qa.shape[0]):
             for m in range(qa.shape[1]):
                 self.assertTrue(q._equals(qa.mask[n, m], self.b.mask[n, m]),
-                                str(n)+ ' '+ str(m)+ ' '+repr(qa[n, m]) + repr(self.b[n, m]))
+                                str(n)+ ' '+ str(m)+ ' '+str(qa[n, m]) +' '+ str(self.b[n, m]))
         
         message= repr(qa-self.b) #+'\n'+repr(qa[2,0])+'\n'+repr(self.b[2, 0])
         self.assertTrue(q._equals(qa, self.b), message)
@@ -584,7 +583,7 @@ class DSGTest(unittest.TestCase):
 
         for i in range(len(f)):
             self.assertTrue(g[i].equals(f[i], verbose=True))
-    #--- End: def        
+
 
     def test_DSG_create_contiguous(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
@@ -628,7 +627,7 @@ class DSGTest(unittest.TestCase):
         
         self.assertTrue((z.data.get_count().data.array == numpy.array(
             [2, 3])).all())
-    #--- End: def
+
 
 #--- End: class
 

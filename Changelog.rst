@@ -1,3 +1,43 @@
+version 3.0.2
+-------------
+----
+
+**Not yet released**
+
+* Now reads CDL files (https://github.com/NCAS-CMS/cf-python/issues/1)
+* New methods: `cf.Field.cumsum`, `cf.Field.digitize`, `cf.Field.bin`,
+  `cf.Field.swapaxes`, `cf.Field.flatten`, `cf.Field.radius`.
+* New methods: `cf.histogram`.
+* New field construct collapse methods: ``integral``,
+  ``maximum_absolute_value``, ``minimum_absolute_value``,
+  ``sum_of_squares``, ``root_mean_square``.
+* New keywords to `cf.Field.collapse` and `cf.Field.weights`:
+  ``measure``, ``scale``, ``radius``
+* New methods: `cf.Data.cumsum`, `cf.Data.digitize`,
+  `cf.Data.masked_all`, `cf.Data.maximum_absolute_value`,
+  `cf.Data.minimum_absolute_value`, `cf.Data.sum_of_squares`,
+  `cf.Data.root_mean_square`, `cf.Data.flatten`.
+* Renamed `cf.default_fillvals` to `cf.default_netCDF_fillvals`.
+* Fixed occasional failure to delete all temporary directories at
+  exit.
+* Fixed bug in `cf.Data.func` when overriding units. Affects all
+  methods that call `cf.Data.func`, such as `cf.Data.tan` and
+  `cf.Field.tan`.
+* Fixed "relaxed units" behaviour in `cf.aggregate` and field
+  construct arithmetic.
+* Fixed bug that led to incorrect persistent entries in output of
+  `cf.Field.properties`.
+* Fixed bug in `cf.Data.squeeze` that sometimes created
+  inconsistencies with the cyclic dimensions.
+  
+version 3.0.1
+-------------
+----
+
+**2019-10-01**
+
+* Updated description in ``setup.py``
+
 version 3.0.0 (*first Python 3 version*)
 ----------------------------------------
 ----
@@ -6,13 +46,33 @@ version 3.0.0 (*first Python 3 version*)
 
 * Complete refactor for Python 3, including some API changes.
 
-  Version 2 scripts should either work as expected, or provide
-  informative error mesages on the new API usage. However, it is
-  advised that the outputs of older scripts be checked when running
-  with Python 3 versions of the cf library.
+  Scripts written for version 2.x but running under version 3.x should
+  either work as expected, or provide informative error mesages on the
+  new API usage. However, it is advised that the outputs of older
+  scripts be checked when running with Python 3 versions of the cf
+  library.
 
-version 2.3.5 (*last Python 2 version*)
----------------------------------------
+* Deprecated ``cfdump`` (its functionality is now included in
+  ``cfa``).
+  
+
+version 2.3.8 (*latest Python 2 version*)
+-----------------------------------------
+----
+
+**2019-10-07**
+
+* In `cf.write`, can set ``single=False`` to mean ``double=True``, and
+  vice versa.
+* Fixed bug in `cf.aggregate` - removed overly strict test on
+  dimension coordinate bounds.
+* Fixed bug in `cf.read` that set the climatology attribute to True
+  when there are no bounds.
+* Fixed bug in `cf.write` when writing missing values (set_fill was
+  off, now on)
+
+version 2.3.5
+-------------
 ----
 
 **2019-04-04**
@@ -27,8 +87,7 @@ version 2.3.4
 
 **2019-03-27**
 
-* Fix bug in creating a during cell method during a field
-  collapse.
+* Fix bug in creating a during cell method during a field collapse.
 	
 version 2.3.3
 -------------
@@ -36,11 +95,11 @@ version 2.3.3
 
 **2019-03-05**
 
-* Allow failure to compile to go through with a warning, rather
-  than failing to install. if this happens, reading a PP/UM file
-  will result in "Exception: Can't determine format of file
-  test2.pp"
-* Fixed bug in Field.convolution_filter giving false error over units.
+* Allow failure to compile to go through with a warning, rather than
+  failing to install. if this happens, reading a PP/UM file will
+  result in "Exception: Can't determine format of file test2.pp"
+* Fixed bug in `cf.Field.convolution_filter` giving false error over
+  units.
 	
 version 2.3.2
 -------------
@@ -69,11 +128,10 @@ version 2.3.0
 
 **2018-10-22**
 
-* The collapse method can now be parallelised by running any
-  cf-python script with mpirun if mpi4py is installed. This is an
-  experimental feature and is not recommended for operational
-  use. None of the parallel code is executed when a script is run in
-  serial.
+* The collapse method can now be parallelised by running any cf-python
+  script with mpirun if mpi4py is installed. This is an experimental
+  feature and is not recommended for operational use. None of the
+  parallel code is executed when a script is run in serial.
 	
 version 2.2.8
 -------------
@@ -81,8 +139,7 @@ version 2.2.8
 
 **2018-08-28**
 
-* Bug fix: better handle subspacing by multiple multidimensional
-  items
+* Bug fix: better handle subspacing by multiple multidimensional items
 	
 version 2.2.7
 -------------
@@ -90,9 +147,9 @@ version 2.2.7
 
 **2018-07-25**
 
-* Bug fix: correctly set units of bounds when the Data object
-  inserted with insert_bounds has units of ''. In this case the
-  bounds of the parent coordinate are now inherited.
+* Bug fix: correctly set units of bounds when the `cf.Data` object
+  inserted with insert_bounds has units of ''. In this case the bounds
+  of the parent coordinate are now inherited.
 	
 version 2.2.6
 -------------
@@ -101,8 +158,8 @@ version 2.2.6
 **2018-07-24**
 
 * Improved error messages
-* Changed behaviour when printing reference times with a calendar
-  of "none" - no longer attemps a to create a date-time
+* Changed behaviour when printing reference times with a calendar of
+  ``'none'`` - no longer attemps a to create a date-time
   representation
 	
 version 2.2.5
@@ -111,7 +168,8 @@ version 2.2.5
 
 **2018-7-02**
 
-* Fixed bug with HDF chunk sizes that prevented the writing of large files
+* Fixed bug with HDF chunk sizes that prevented the writing of large
+  files
 	
 version 2.2.4
 -------------
@@ -119,7 +177,8 @@ version 2.2.4
 
 **2018-06-29**
 
-* Interim fix for with HDF chunk sizes that prevented the writing of large files
+* Interim fix for with HDF chunk sizes that prevented the writing of
+  large files
 	
 version 2.2.3
 --------------
@@ -127,9 +186,8 @@ version 2.2.3
 
 **2018-06-21**
 
-* During writing, disallow the creation of netCDF variable names
-  that contain characters other than letters, digits, and
-  underscores.
+* During writing, disallow the creation of netCDF variable names that
+  contain characters other than letters, digits, and underscores.
 	
 version 2.2.3
 -------------
@@ -137,9 +195,8 @@ version 2.2.3
 
 **2018-06-21**
 
-* During writing, disallow the creation of netCDF variable names
-  that contain characters other than letters, digits, and
-  underscores.
+* During writing, disallow the creation of netCDF variable names that
+  contain characters other than letters, digits, and underscores.
 	
 version 2.2.2
 -------------
@@ -148,8 +205,8 @@ version 2.2.2
 **2018-06-06**
 
 
-* Fix for removing duplicated netCDF dimensions when writing data
-  on (e.g.) tripolar grids. 
+* Fix for removing duplicated netCDF dimensions when writing data on
+  (e.g.) tripolar grids.
 	
 version 2.2.1
 -------------
@@ -158,154 +215,221 @@ version 2.2.1
 **2018-06-05**
 
 * Fix for calculating are weights from projection coordinates
-	
-		
+			
 version 2.2.0
 -------------
 ----
 
 **2018-06-04**
 
-* Updated for netCDF4 v1.4 cftime API changes
+* Updated for `netCDF4` v1.4 `cftime` API changes
 	
-Version 2.1.9 - 31 May 2018
----------------------------
+version 2.1.9
+-------------
+----
+
+**2018-05-31**
 
 * Allowed invalid units through. Can test with `cf.Units.isvalid`.
 	
-Version 2.1.8 - 08 March 2018
------------------------------
+version 2.1.8
+-------------
+----
 
-* Fixed bug when weights parameter is a string in Field.collapse
-		
-Version 2.1.7 - 13 February 2018
---------------------------------
+**2018-03-08**
 
-* Fixed bug in Field.collapse when doing climatological time
-  collapse with only one persiod per year/day
+* Fixed bug when weights parameter is a string in `cf.Field.collapse`
 		
-Version 2.1.6 - 09 February 2018
---------------------------------
+version 2.1.7
+-------------
+----
+
+**2018-02-13**
+
+* Fixed bug in `cf.Field.collapse` when doing climatological time
+  collapse with only one period per year/day
+		
+version 2.1.6
+-------------
+----
+
+**2018-02-09**
 
 * Fixed bug in Variable.mask
 		
-Version 2.1.4 - 09 February 2018
---------------------------------
+version 2.1.4
+-------------
+----
 
-* Added override_calendar method to coordinates and domain
-  ancillaries that changes the calendar of the bounds, too
+**2018-02-09**
+
+* Added override_calendar method to coordinates and domain ancillaries
+  that changes the calendar of the bounds, too.
 * Fixed bug in `cf.Data.where` when the condition is a `cf.Query`
-  object (f5e0d43)
-
-* Fixed bug in Variable.mask
+  object.
+* Fixed bug in `cf.Variable.mask`
 		
-Version 2.1.3 - 07 February 2018
---------------------------------
+version 2.1.3
+-------------
+----
 
-* Allowed scipy and matplotlib imorts to be optional (23a4347)
-	
-Version 2.1.2 - 28 November 2017
---------------------------------
+**2018-02-07**
 
-* Added group_span and contiguous_group options to Field.collapse
+* Allowed `scipy` and `matplotlib` imorts to be optional
 	
-Version 2.1.1 - 10 November 2017
---------------------------------
+version 2.1.2
+-------------
+----
+
+**2017-11-28**
+
+* Added ``group_span`` and ``contiguous_group`` options to
+  `cf.Field.collapse`
+	
+version 2.1.1
+-------------
+----
+
+**2017-11-10**
 
 * Dissallowed raising offset units to a power (e.g. taking the square
   of data in units of K @ 273.15).
-* Removed len() of Field (previously always, and misleadingly,
+* Removed len() of `cf.Field` (previously always, and misleadingly,
   returned 1)
 * Fixed setting of cell methods after climatological time collapses
-* Added printing of ncvar in Field.__str__ and Field.dump
+* Added printing of ncvar in `cf.Field.__str__` and `cf.Field.dump`
 * Added user stash table option to ``cfa`` script
 	
-Version 2.1 - 30 October 2017
------------------------------
+version 2.1
+-----------
+----
+
+**2017-10-30**
 
 * Misc. bug fixes
 
-Version 2.0.6 - 28 September 2017
----------------------------------
+version 2.0.6
+-------------
+----
+
+**2017-09-28**
 
 * Removed error when `cf.read` finds no fields - an empty field list
   is now returned
-* Allowed the count method on a field (it was only on a data object
-  before)
+* New method `cf.Field.count`
 
-Version 2.0.5 - 19 September 2017
----------------------------------
+version 2.0.5
+-------------
+----
+
+**2017-09-19**
 
 * Bug fix when creating wrap-around subspaces from cyclic fields
 * Fix (partial?) for memory leak when reading UM PP and fields files
 
-Version 2.0.4 - 15 September 2017
----------------------------------
+version 2.0.4
+-------------
+----
+
+**2017-09-15**
 
 * submodel property for PP files
 * API change for `cf.Field.axis`: now returns a `cf.DomainAxis` object
   by default
 * Bug fix in `cf.Field.where`
-* Bug fix when initializing a field with the source parameter	
+* Bug fix when initializing a field with the source parameter
 * Changed default ouptut format to NETCDF4 (from NETCDF3_CLASSIC)
 
-Vesion 2.0.1.post1 - 12 July 2017
----------------------------------
+version 2.0.1.post1
+-------------------
+----
+
+**2017-07-12**
 
 * Bug fix for reading DSG ragged arrays
 
-Vesion 2.0.1 - 11 July 2017
----------------------------
+version 2.0.1
+-------------
+----
+
+**2017-07-11**
 
 * Updated `cf.FieldList` behaviour (with reduced methods)
 
-Vesion 2.0 - 07 July 2017
--------------------------
+version 2.0
+-----------
+----
+
+**2017-07-07**
 
 * First release with full CF data model and full CF-1.6 compliance
   (including DSG)
 
-Version 1.5.4.post4 - 07 July 2017
-----------------------------------
+version 1.5.4.post4
+-------------------
+----
+
+**2017-07-07**
 
 * Bug fixes to `cf.Field.regridc`
 
-Version 1.5.4.post1 - 13 June 2017
-----------------------------------
+version 1.5.4.post1
+-------------------
+----
+
+**2017-06-13**
 
 * removed errant scikit import
 
-Version 1.5.4 - 09 June 2017 
-----------------------------
+version 1.5.4
+-------------
+----
+
+**2017-06-09**
 
 * Tripolar regridding
 	
-Version 1.5.3 - 
------------------------------
+version 1.5.3 
+-------------
+----
+
+**2017-05-10**
 
 * Updated STASH code to standard_name table (with thanks to Jeff Cole)
 * Fixed bug when comparing masked arrays for equality
 
-Version 1.5.2 - 17 March 2017
------------------------------
+version 1.5.2 
+-------------
+----
 
-* Fixed bug when accessing PP file whose format/endian/word-size
-  has been specified
+**2017-03-17**
 
-Version 1.5.1 - 14 March 2017
------------------------------
+* Fixed bug when accessing PP file whose format/endian/word-size has
+  been specified
+
+version 1.5.1 
+-------------
+----
+
+**2017-03-14**
 
 * Can specify 'pp' or 'PP' in um option to `cf.read`
 
-Version 1.5 - 24 February 2017
-------------------------------
+version 1.5
+-----------
+----
 
-* Changed weights in calculation of variance to reliability
-  weights (from frequency weights). This not only scientifically
-  better, but faster, too.
+**2017-02-24**
 
-Version 1.4 - 22 February 2017
-------------------------------
+* Changed weights in calculation of variance to reliability weights
+  (from frequency weights). This not only scientifically better, but
+  faster, too.
+
+version 1.4
+-----------
+----
+
+**2017-02-22**
 
 * Rounded datetime to time-since conversions to the nearest
   microsecond, to reflect the accuracy of netCDF4.netcdftime
@@ -313,16 +437,22 @@ Version 1.4 - 22 February 2017
 * New option --um to ``cfa``, ``cfdump``
 * New parameter um to `cf.read`
 
-Version 1.3.3 - 31 January 2017
--------------------------------
+version 1.3.3
+-------------
+----
+
+**2017-01-31**
 
 * Rounded datetime to time-since conversions to the nearest
   microsecond, to reflect the accuracy of netCDF4.netcdftime
 * Fix for netCDF4.__version__ > 1.2.4 do to with datetime.calendar
   *handle with care*
 
-Version 1.3.2 - 21 September 2016
----------------------------------
+version 1.3.2
+-------------
+----
+
+**2016-09-21**
 
 * Added --build-id to LDFLAGS in umread Makefile, for sake of RPM
   builds (otherwise fails when building debuginfo RPM). Pull request
@@ -335,26 +465,38 @@ Version 1.3.2 - 21 September 2016
   instead carried out programmatically in units.py. Pull request #20,
   thanks to Klaus Zimmerman.
 
-Version 1.3.1 - 09 September 2016
----------------------------------
+version 1.3.1
+-------------
+----
+
+**2016-09-09**
 
 * New method: `cf.Field.unlimited`, and new 'unlimited' parameter to
   `cf.write` and ``cfa``
 
-Version 1.3 - 05 September 2016
--------------------------------
+version 1.3
+-----------
+----
+
+**2016-09-05**
 
 * Removed asreftime, asdatetime and dtvarray methods
-* New method: convert_reference_time for converting reference time
+* New method: `convert_reference_time` for converting reference time
   data values to have new units.
 
-Version 1.2.3 - 23 August 2016
-------------------------------
+version 1.2.3
+-------------
+----
 
-* Fixed bug in Data.equals
+**2016-08-23**
 
-Version 1.2.2 - 22 August 2016
-------------------------------
+* Fixed bug in `cf.Data.equals`
+
+version 1.2.2
+-------------
+----
+
+**2016-08-22**
 
 * Fixed bug in binary operations to do with the setting of
   Partition.part
@@ -362,27 +504,39 @@ Version 1.2.2 - 22 August 2016
   parameter. Also new parameter flt ("fraction less than") to position
   the coordinate within the cell.
 
-Version 1.2 - 05 July 2016
---------------------------
+version 1.2
+-----------
+----
+
+**2016-07-05**
 
 * Added HDF_chunks methods
 
-Version 1.1.11 - 01 July 2016
------------------------------
+version 1.1.11
+--------------
+----
 
-* Added cellsize option to `cf.Coordinate.get_bounds`, and fixed bugs
+**2016-07-01**
+
+* Added cellsize option to `cf.Coordinate.get_bounds`, and fixed bugs.
 * Added variable_attributes option to `cf.write`
 * Added `cf.ENVIRONMENT` method
 
-Version 1.1.10 - 23 June 2016
------------------------------
+version 1.1.10
+--------------
+----
+
+**2016-06-23**
 
 * Added reference_datetime option to cf.write	
 * Fixed bug in `cf.um.read.read` which incorrectly ordered vertical
   coordinates
   	
-Version 1.1.9 - 17 June 2016
-----------------------------
+version 1.1.9
+-------------
+----
+
+**2016-06-17**
 
 * New methods `cf.Variable.files` and `cf.Data.files`,
   `cf.Field.files` which report which files are referenced by the data
@@ -396,8 +550,11 @@ Version 1.1.9 - 17 June 2016
 * Fixed bug in `cf.Field.subspace` when accessing axes derived from UM
   format files
 	
-Version 1.1.8 - 18 May 2016
----------------------------
+version 1.1.8
+-------------
+----
+
+**2016-05-18**
 
 * Slightly changed the compression API to `cf.write`
 * Added compression support to the ``cfa`` command line script
@@ -406,8 +563,11 @@ Version 1.1.8 - 18 May 2016
   common case of double to single (and vice versa).
 * Removed annoying debug print statements from `cf.um.read.read`
 
-Version 1.1.7 - 04 May 2016
----------------------------
+version 1.1.7
+-------------
+----
+
+**2016-05-04**
 
 * Added fix for change in numpy behaviour (`numpy.number` types do not
   support assingment)
@@ -415,16 +575,22 @@ Version 1.1.7 - 04 May 2016
   `cf.um.read.load_stash2standard_name`
 	
 	
-Version 1.1.6 - 27 April 2016
------------------------------
+version 1.1.6
+-------------
+----
+
+**2016-04-27**
 
 * Added --reference_datetime option to ``cfa``
 * Bug fix to `cf.Field.collapse` when providing `cf.Query` objects via
   the group parameter
 * Added auto regridding method, which is now the default
 	
-Version 1.1.5 - 03 March 2016
------------------------------
+version 1.1.5 
+-------------
+----
+
+**2016-03-03**
 
 * Bug fix in `cf.Field.where` when using `cf.masked`
 * conda installation (with thanks to Andy Heaps)
@@ -434,42 +600,57 @@ Version 1.1.5 - 03 March 2016
 * Fixed incorrect assignment of cyclicity in `cf.Field.regrids`
 * Nearest neighbour regridding in `cf.Field.regrids`
 	
-Version 1.1.4 - 09 February 2016
---------------------------------
+version 1.1.4 
+-------------
+----
+
+**2016-02-09**
 
 * Bug fix to `cf.Field.autocyclic`
 * Bug fix to `cf.Field.clip` - now works when limit units are supplied
 * New methods: `cf.Data.round`, `cf.Field.Round`
-* Added lbtim as a Field property when reading UM files
+* Added ``lbtim`` as a `cf.Field` property when reading UM files
 * Fixed coordinate creation for UM atmosphere_hybrid_height_coordinate
 * Bug fix to handling of cyclic fields by `cf.Field.regrids`
 * Added nearest neighbour field regridding
 * Changed keyword ignore_dst_mask in `cf.Field.regrids` to
   use_dst_mask, which is false by default
 	
-Version 1.1.3 - 10 December 2015
---------------------------------
+version 1.1.3 
+-------------
+----
+
+**2015-12-10**
 
 * Bug fixes to `cf.Field.collapse` when the "group" parameter is used
 * Correct setting of cyclic axes on regridded fields
 * Updates to STASH_to_CF.txt table: 3209, 3210
 	
-Version 1.1.2 - 01 December 2015
---------------------------------
+version 1.1.2 
+-------------
+----
+
+**2015-12-01**
 
 * Updates to STASH_to_CF.txt table
 * Fixed bug in decoding UM version in `cf.um.read.read`
 * Fixed bug in `cf.units.Utime.num2date`
 * Fixed go-slow behaviour for silly BZX, BDX in PP and fields file
   lookup headers
-	
-Version 1.1.1 - 05 November 2015
---------------------------------
+
+version 1.1.1
+-------------
+----
+
+**2015-11-05**
 
 * Fixed bug in decoding UM version in `cf.read`
 	
-Version 1.1 - 28 October 2015
------------------------------
+version 1.1
+-----------
+----
+
+**2015-10-28**
 
 * Fixed bug in `cf.Units.conform`
 * Changed `cf.Field.__init__` so that it works with just a data object
@@ -490,27 +671,36 @@ Version 1.1 - 28 October 2015
 * In items method (and friends), removed strict_axes keyword and added
   axes_all, axes_superset and axes_subset keywords
 
-Version 1.0.3 - 23 June 2015
-----------------------------
+version 1.0.3
+-------------
+----
+
+**2015-06-23**
 
 * Added default keyword to fill_value() and fixed bugs when doing
   delattr on _fillValue and missinge_value properties.
 
-Version 1.0.2 - 05 June 2015
+version 1.0.2 - 05 June 2015
 ----------------------------
 
 * PyPI release
 
-Version 1.0.1 - 01 June 2015
-----------------------------
+version 1.0.1
+-------------
+----
+
+**2015-06-01**
 
 * Fixed bug in when using the select keyword to `cf.read`
 
-Version 1.0 - 27 May 2015
--------------------------
+version 1.0
+-----------
+----
 
-* Max OS support
-* Limited Nd funtionality to Field.indices
+**2015-05-27**
+
+* Mac OS support
+* Limited Nd funtionality to `cf.Field.indices`
 * Correct treatment of add_offset and scale_factor
 * Replaced -a with -x in ``cfa`` and ``cfdump`` scripts
 * added ncvar_identities parameter to `cf.aggregate`
@@ -522,18 +712,24 @@ Version 1.0 - 27 May 2015
 * `cf.collapse` replaced by `cf.Field.collapse`
 * `cf.Field.collapse` includes CF climatological time statistics
 
-Version 0.9.9.1 - 09 January 2015
----------------------------------
+version 0.9.9.1
+---------------
+----
+
+**2015-01-09**
 
 * Fixed bug for changes to netCDF4-python library versions >= 1.1.2
 * Miscellaneous bug fixes
 
-Version 0.9.9 - 05 January 2015
--------------------------------
+version 0.9.9
+-------------
+----
+
+**2015-01-05**
 
 * Added netCDF4 compression options to `cf.write`.
-* Added __mod__, __imod__, __rmod__, ceil, floor, trunc, rint
-  methods to `cf.Data` and `cf.Variable`
+* Added `__mod__`, `__imod__`, `__rmod__`, `ceil`, `floor`, `trunc`,
+  `rint` methods to `cf.Data` and `cf.Variable`
 * Added ceil, floor, trunc, rint to `cf.Data` and `cf.Variable`
 * Fixed bug in which array `cf.Data.array` sometimes behaved like
   `cf.Data.varray`
@@ -543,8 +739,11 @@ Version 0.9.9 - 05 January 2015
 * Cyclic axes functionality
 * Documentation updates
 
-Version 0.9.8.3 - 14 July 2014
-------------------------------
+version 0.9.8.3
+---------------
+----
+
+**2014-07-14**
 
 * Implemented multiple grid_mappings (CF trac ticket #70)
 * Improved functionality and speed of field aggregation and ``cfa``a
@@ -553,18 +752,21 @@ Version 0.9.8.3 - 14 July 2014
   sum, range, mid_range).
 * Improved match/select functionality
 
-Version 0.9.8.2 - 13 March 2014
--------------------------------
+version 0.9.8.2
+---------------
+----
+
+**2014-03-13**
 
 * Copes with PP fields with 365_day calendars
 * Revamped CFA files in line with the evolving standard. CFA files
   from PP data created with a previous version will no longer work.
 
-Version 0.9.8.1 - December 2013
---------------------------------
+version 0.9.8
+-------------
+----
 
-Version 0.9.8 - 06 December 2013
---------------------------------
+**2013-12-06**
 
 * Improved API.
 * Plenty of speed and memory optimizations.
@@ -579,21 +781,26 @@ Version 0.9.8 - 06 December 2013
   `cf.AuxiliaryCoordinate`.
 * A `cf.Units` object is now immutable.
 
-Version 0.9.7.1 - 26 April 2013
--------------------------------
+version 0.9.7.1
+---------------
+----
+
+**2013-04-26**
 
 * Fixed endian bug in CFA-netCDF files referring to PP files
 * Changed default output format to NETCDF3_CLASSIC and trap error when
   when writing unsigned integer types and the 64-bit integer type to
   file formats other than NETCDF4.
-
 * Changed unhelpful history created when aggregating
 
-Version 0.9.7 - 24 April 2013
------------------------------
+version 0.9.7
+-------------
+----
+
+**2013-04-24**
 
 * Read and write CFA-netCDF files
-* Field creation interface
+* `cf.Field` creation interface
 * New command line utilities: ``cfa``, ``cfdump``
 * Redesigned repr, str and dump() output (which is shared with ``cfa``
   and ``cfdump``)
@@ -602,20 +809,29 @@ Version 0.9.7 - 24 April 2013
 * Renamed the 'subset' method to 'select'
 * Now needs netCDF4-python 0.9.7 or later (and numpy 1.6 or later)
 
-Version 0.9.6.2 - 27 March 2013
--------------------------------
+version 0.9.6.2
+---------------
+----
 
-* Fixed bug in cf/pp.py which caused the creation of incorrect
+**2013-03-27**
+
+* Fixed bug in ``cf/pp.py`` which caused the creation of incorrect
   latitude coordinate arrays.
 
-Version 0.9.6.1 - 20 February 2013
-----------------------------------
+version 0.9.6.1
+---------------
+----
 
-* Fixed bug in cf/netcdf.py which caused a failure when a file with
-  badly formatted units was encountered.
+**2013-02-20**
 
-Version 0.9.6 - 27 November 2012
---------------------------------
+* Fixed bug in ``cf/netcdf.py`` which caused a failure when a file
+  with badly formatted units was encountered.
+
+version 0.9.6
+-------------
+----
+
+**2012-11-27**
 
 * Assignment to a field's data array with metadata-aware broadcasting,
   assigning to subspaces, assignment where data meets conditions,
@@ -628,8 +844,11 @@ Version 0.9.6 - 27 November 2012
   Gregory). Also aggregates fields transforms, ancillary variables and
   flags.
 
-Version 0.9.5 - 01 October 2012
--------------------------------
+version 0.9.5
+-------------
+----
+
+**2012-10-01**
 
 * Restructured documentation and package code files.
 * Large Amounts of Massive Arrays (LAMA) functionality.
@@ -643,31 +862,43 @@ Version 0.9.5 - 01 October 2012
 * Added 'TEMPDIR' to the `cf.CONSTANTS` dictionary
 * This is a snapshot of the trunk at revision r195.
 
-Version 0.9.5.dev - 19 September 2012
--------------------------------------
+version 0.9.5.dev
+-----------------
+----
+
+**2012-09-19**
 
 * Loads of exciting improvements - mainly LAMA functionality,
   metadata-aware field manipulation and documentation.
 * This is a snapshot of the trunk at revision r185. A proper vn0.9.5
   release is imminent.
 
-Version 0.9.4.2 - 17 April 2012
--------------------------------
+version 0.9.4.2
+---------------
+----
+
+**2012-04-17**
 
 * General bug fixes and code restructure
 
-Version 0.9.4 - 15 March 2012
------------------------------
+version 0.9.4
+-------------
+----
+
+**2012-03-15**
 
 * A proper treatment of units using the Udunits C library and the
   extra time functionality provided by the netCDF4 package.
 * A command line script to do CF-netCDF to CF-netCDF via cf-python.
 
-Version 0.9.3.3 - 08 February 2012
-----------------------------------
+version 0.9.3.3
+---------------
+----
 
-* Objects renamed in line with the CF data model: 'Space' becomes
-  'Field' and 'Grid' becomes 'Space'.
+**2018-02-08**
+
+* Objects renamed in line with the CF data model: `cf.Space` becomes
+  `cf.Field` and `cf.Grid` becomes `cf.Space`.
 * Field aggregation using the CF aggregation rules is available when
   reading fields from disk and on fields in memory. The data of a
   field resulting from aggregation are stored as a collection of the
@@ -680,26 +911,33 @@ Version 0.9.3.3 - 08 February 2012
 * A command line script for PP to CF-netCDF file conversion is
   provided.
 
-Version 0.9.3 - 05 January 2012
--------------------------------
+version 0.9.3
+-------------
+----
 
-* A more consistent treatment of spaces and lists of spaces (Space and
-  SpaceList objects respectively).
+**2012-01-05**
+
+* A more consistent treatment of spaces and lists of spaces
+  (`cf.Space` and `cf.SpaceList` objects respectively).
 * A corrected treatment of scalar or 1-d, size 1 dimensions in the
   space and its grid.
-* Data stored in Data objects which contain metadata need to correctly
-  interpret and manipulate the data. This will be particularly useful
-  when data arrays spanning many files/arrays is implemented
+* Data stored in `cf.Data` objects which contain metadata need to
+  correctly interpret and manipulate the data. This will be
+  particularly useful when data arrays spanning many files/arrays is
+  implemented.
 
-Version 0.9.2 - 26 August 2011
--------------------------------
+version 0.9.2
+-------------
+----
 
-* Created a setup.py script for easier installation (with thanks to
-  Jeff Whitaker).
+**2011-08-26**
+
+* Created a ``setup.py`` script for easier installation (with thanks
+  to Jeff Whitaker).
 * Added support for reading OPeNDAP-hosted datasets given by URLs.
 * Restructured the documentation.
 * Created a test directory with scripts and sample output.
-* No longer fails for unknown calendar types (such as '360d').
+* No longer fails for unknown calendar types (such as ``'360d'``).
 
 version 0.9.1
 -------------
