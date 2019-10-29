@@ -1943,130 +1943,130 @@ x.__repr__() <==> repr(x)
         #--- End: if
     #--- End: if
 
-    # @classmethod
-    # def _share_partitions(cls, processed_partitions, parallelise):
-    #     # Share the partitions processed on each rank with every other
-    #     # rank. If parallelise is False then there is nothing to be done
-    #     if parallelise:
-    #         # List to contain sublists of processed partitions from each
-    #         # rank
-    #         partition_list = []
+    @classmethod
+    def _share_partitions(cls, processed_partitions, parallelise):
+        # Share the partitions processed on each rank with every other
+        # rank. If parallelise is False then there is nothing to be done
+        if parallelise:
+            # List to contain sublists of processed partitions from each
+            # rank
+            partition_list = []
 
-    #         for rank in range(mpi_size):
-    #             # Get the numper of processed partitions on each rank
-    #             if mpi_rank == rank:
-    #                 n_partitions = len(processed_partitions)
-    #             else:
-    #                 n_partitions = None
-    #             #--- End: if
-    #             n_partitions = mpi_comm.bcast(n_partitions, root=rank)
+            for rank in range(mpi_size):
+                # Get the numper of processed partitions on each rank
+                if mpi_rank == rank:
+                    n_partitions = len(processed_partitions)
+                else:
+                    n_partitions = None
+                #--- End: if
+                n_partitions = mpi_comm.bcast(n_partitions, root=rank)
 
-    #             # Share each of the processed partitions on each rank with
-    #             # all the other ranks using broadcasting
-    #             if mpi_rank != rank:
-    #                 shared_partitions = []
-    #             #--- End: if
+                # Share each of the processed partitions on each rank with
+                # all the other ranks using broadcasting
+                if mpi_rank != rank:
+                    shared_partitions = []
+                #--- End: if
 
-    #             for i in range(n_partitions):
-    #                 if mpi_rank == rank:
-    #                     partition = processed_partitions[i]
-    #                     if isinstance(partition._subarray, numpy_ndarray):
-    #                         # If the subarray is a numpy array, swap it
-    #                         # out before broadcasting the partition
-    #                         subarray = partition._subarray
-    #                         partition._subarray = None
-    #                         partition._subarray_is_in_memory = True
-    #                         partition._subarray_dtype = subarray.dtype
-    #                         partition._subarray_shape = subarray.shape
-    #                         partition._subarray_isMA = numpy_ma_isMA(subarray)
-    #                         if partition._subarray_isMA:
-    #                             partition._subarray_is_masked = not subarray.mask is numpy_ma_nomask
-    #                         else:
-    #                             partition._subarray_is_masked = False
-    #                         #--- End: if
-    #                     else:
-    #                         partition._subarray_is_in_memory = False
-    #                     #--- End: if
-    #                 else:
-    #                     partition = None
-    #                 #--- End: if
-    #                 partition = mpi_comm.bcast(partition, root=rank)
+                for i in range(n_partitions):
+                    if mpi_rank == rank:
+                        partition = processed_partitions[i]
+                        if isinstance(partition._subarray, numpy_ndarray):
+                            # If the subarray is a numpy array, swap it
+                            # out before broadcasting the partition
+                            subarray = partition._subarray
+                            partition._subarray = None
+                            partition._subarray_is_in_memory = True
+                            partition._subarray_dtype = subarray.dtype
+                            partition._subarray_shape = subarray.shape
+                            partition._subarray_isMA = numpy_ma_isMA(subarray)
+                            if partition._subarray_isMA:
+                                partition._subarray_is_masked = not subarray.mask is numpy_ma_nomask
+                            else:
+                                partition._subarray_is_masked = False
+                            #--- End: if
+                        else:
+                            partition._subarray_is_in_memory = False
+                        #--- End: if
+                    else:
+                        partition = None
+                    #--- End: if
+                    partition = mpi_comm.bcast(partition, root=rank)
 
-    #                 if partition._subarray_is_in_memory:
-    #                     # If the subarray is a numpy array broadcast it
-    #                     # without serialising and swap it back into the
-    #                     # partition
-    #                     if partition._subarray_isMA:
-    #                         # If the subarray is a masked array broadcast
-    #                         # the data and the mask separately
-    #                         if mpi_rank != rank:
-    #                             if partition._subarray_is_masked:
-    #                                 subarray = numpy_ma_masked_all(partition._subarray_shape,
-    #                                                                dtype=partition._subarray_dtype)
-    #                             else:
-    #                                 subarray = numpy_ma_empty(partition._subarray_shape,
-    #                                                           dtype=partition._subarray_dtype)
-    #                             #--- End: if
-    #                         #--- End: if
-    #                         mpi_comm.Bcast(subarray.data, root=rank)
-    #                         if partition._subarray_is_masked:
-    #                             mpi_comm.Bcast(subarray.mask, root=rank)
-    #                         #--- End: if
-    #                     else:
-    #                         if mpi_rank != rank:
-    #                             subarray = numpy_empty(partition._subarray_shape,
-    #                                                    dtype=partition._subarray_dtype)
-    #                         #--- End: if
-    #                         mpi_comm.Bcast(subarray, root=rank)
-    #                     #--- End: if
+                    if partition._subarray_is_in_memory:
+                        # If the subarray is a numpy array broadcast it
+                        # without serialising and swap it back into the
+                        # partition
+                        if partition._subarray_isMA:
+                            # If the subarray is a masked array broadcast
+                            # the data and the mask separately
+                            if mpi_rank != rank:
+                                if partition._subarray_is_masked:
+                                    subarray = numpy_ma_masked_all(partition._subarray_shape,
+                                                                   dtype=partition._subarray_dtype)
+                                else:
+                                    subarray = numpy_ma_empty(partition._subarray_shape,
+                                                              dtype=partition._subarray_dtype)
+                                #--- End: if
+                            #--- End: if
+                            mpi_comm.Bcast(subarray.data, root=rank)
+                            if partition._subarray_is_masked:
+                                mpi_comm.Bcast(subarray.mask, root=rank)
+                            #--- End: if
+                        else:
+                            if mpi_rank != rank:
+                                subarray = numpy_empty(partition._subarray_shape,
+                                                       dtype=partition._subarray_dtype)
+                            #--- End: if
+                            mpi_comm.Bcast(subarray, root=rank)
+                        #--- End: if
 
-    #                     # Swap the subarray back into the partition
-    #                     partition._subarray = subarray
-    #                     if mpi_rank == rank:
-    #                         # The result of broadcasting an object is
-    #                         # different to the original object even on the
-    #                         # root PE, so the new partition with the numpy
-    #                         # subarray must be put back in the list of
-    #                         # processed partitions
-    #                         processed_partitions[i] = partition
-    #                     #--- End: if
+                        # Swap the subarray back into the partition
+                        partition._subarray = subarray
+                        if mpi_rank == rank:
+                            # The result of broadcasting an object is
+                            # different to the original object even on the
+                            # root PE, so the new partition with the numpy
+                            # subarray must be put back in the list of
+                            # processed partitions
+                            processed_partitions[i] = partition
+                        #--- End: if
 
-    #                     # Clean up temporary attributes
-    #                     del partition._subarray_dtype
-    #                     del partition._subarray_shape
-    #                     del partition._subarray_isMA
-    #                     del partition._subarray_is_masked
-    #                 elif mpi_rank == rank:
-    #                     # Remove the subarray from partition so that
-    #                     # when it is deleted it does not delete the
-    #                     # temporary file
-    #                     partition._subarray = None
-    #                 #--- End: if
+                        # Clean up temporary attributes
+                        del partition._subarray_dtype
+                        del partition._subarray_shape
+                        del partition._subarray_isMA
+                        del partition._subarray_is_masked
+                    elif mpi_rank == rank:
+                        # Remove the subarray from partition so that
+                        # when it is deleted it does not delete the
+                        # temporary file
+                        partition._subarray = None
+                    #--- End: if
 
-    #                 # Clean up temporary attribute
-    #                 del partition._subarray_is_in_memory
+                    # Clean up temporary attribute
+                    del partition._subarray_is_in_memory
 
-    #                 if mpi_rank != rank:
-    #                     shared_partitions.append(partition)
-    #                 #--- End: if
-    #             #--- End: for
+                    if mpi_rank != rank:
+                        shared_partitions.append(partition)
+                    #--- End: if
+                #--- End: for
 
-    #             # Add the sublist of processed partitions from each rank
-    #             # to a list
-    #             if mpi_rank == rank:
-    #                 partition_list.append(processed_partitions)
-    #             else:
-    #                 partition_list.append(shared_partitions)
-    #             #--- End: if
-    #         #--- End: for
+                # Add the sublist of processed partitions from each rank
+                # to a list
+                if mpi_rank == rank:
+                    partition_list.append(processed_partitions)
+                else:
+                    partition_list.append(shared_partitions)
+                #--- End: if
+            #--- End: for
 
-    #         # Flatten the list of lists of processed partitions
-    #         processed_partitions = [item
-    #                                 for sublist in partition_list
-    #                                 for item in sublist]
-    #     #--- End: if
-    #     return processed_partitions
-    # #--- End: def
+            # Flatten the list of lists of processed partitions
+            processed_partitions = [item
+                                    for sublist in partition_list
+                                    for item in sublist]
+        #--- End: if
+        return processed_partitions
+    #--- End: def
     
     def dumps(self):
         '''Return a JSON string serialization of the data array.
