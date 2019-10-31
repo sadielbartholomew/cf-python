@@ -1771,7 +1771,7 @@ place.
             dst_ranks = {}
 
             for i, partition in enumerate(self.partitions.matrix.flat):
-                data_on_partition = getattr(partition._process_partition, True)
+                subarray_is_removed = getattr(partition, '_subarray_is_removed', False)
                 
                 # Add a flag `_process_partition` to each partition defining
                 # whether this partition will be processed on this process
@@ -1785,9 +1785,8 @@ place.
                 # will not be processed on this process then the data
                 # needs to be moved to the process where it will be
                 # processed
-                if data_on_partition and not partition._process_partition:
-                    src_ranks[i] = mpi_rank
-                elif partition._process_partition and not data_on_partition:
+                if partition._process_partition and subarray_is_removed:
+                    src_ranks[i] = partition._subarray_rank
                     dst_ranks[i] = mpi_rank
                 #--- End: if
             #--- End: for
@@ -1807,76 +1806,42 @@ place.
             #--- End: for
 
             # Redistribute the data across the processes if necessary
-            for i, partition in enumerate(self.partition.matrix.flat):
+            for i, partition in enumerate(self.partitions.matrix.flat):
                 src_rank = src_ranks.get(i, None)
                 dst_rank = dst_ranks.get(i, None)
                 if src_rank is not None and dst_rank is not None:
                     if mpi_rank == src_rank:
-                        if isinstance(partition._subarray, numpy_ndarray):
-                            # If the subarray is a numpy array, swap it
-                            # out before broadcasting the partition
-                            subarray = partition._subarray
-                            partition._subarray = None
-                            partition._subarray_is_in_memory = True
-                            partition._subarray_dtype = subarray.dtype
-                            partition._subarray_shape = subarray.shape
-                            partition._subarray_isMA = numpy_ma_isMA(subarray)
-                            if partition._subarray_isMA:
-                                partition._subarray_is_masked = not subarray.mask is numpy_ma_nomask
-                            else:
-                                partition._subarray_is_masked = False
+                        # Send data to destination rank
+                        if partition._subarray_isMA:
+                            mpi_comm.Ssend(subarray.data, dest=dst_rank)
+                            if partition._subarray_is_masked:
+                                mpi_comm.Ssend(subarray.mask, dest=dst_rank)
                             #--- End: if
                         else:
-                            partition._subarray_is_in_memory = False
-                        #--- End: if
-
-                        # Send data to destination rank
-                        comm.ssend(partition, dest=dst_rank)
-
-                        if partition._subarray_is_in_memory:
-                            if partition._subarray_isMA:
-                                mpi_comm.Ssend(subarray.data, dest=dst_rank)
-                                if partition._subarray_is_masked:
-                                    mpi_comm.Ssend(subarray.mask, dest=dst_rank)
-                                #--- End: if
-                            else:
-                                mpi_comm.Ssend(subarray, dest=dst_rank)
-                            #--- End: if
+                            mpi_comm.Ssend(subarray, dest=dst_rank)
                         #--- End: if
                     elif mpi_rank == dst_rank:
-                        # Receive data from source rank
-                        partition.update_inplace_from(comm.recv(source=src_rank))
-
-                        if partition._subarray_is_in_memory:
-                            if partition._subarray_isMA::
-                                if partition._subarray_is_masked:
-                                    subarray = numpy_ma_masked_all(partition._subarray_shape,
-                                                                   dtype=partition._subarray_dtype)
-                                else:
-                                    subarray = numpy_ma_empty(partition._subarray_shape,
-                                                              partition._subarray_dtype)
-                                #--- End: if
-                                mpi_comm.Recv(subarray.data, source=src_rank)
-                                if partition._subarray_is_masked:
-                                    mpi_comm.Recv(subarray.mask, source=src_rank)
-                                #--- End: if
+                        if partition._subarray_isMA:
+                            if partition._subarray_is_masked:
+                                subarray = numpy_ma_masked_all(partition._subarray_shape,
+                                                               dtype=partition._subarray_dtype)
+                            else:
+                                subarray = numpy_ma_empty(partition._subarray_shape,
+                                                          partition._subarray_dtype)
                             #--- End: if
+                            mpi_comm.Recv(subarray.data, source=src_rank)
+                            if partition._subarray_is_masked:
+                                mpi_comm.Recv(subarray.mask, source=src_rank)
+                            #--- End: if
+                        else:
+                            subarray = numpy_empty(partition._subarray_shape,
+                                                   dtype=partition._subarray_dtype)
+                            mpi_comm.Recv(subarray, source=src_rank)
                         #--- End: if
 
                         # Put the subarray back into the partition
                         # only on the destination rank
                         partition._subarray = subarray
-                    #--- End: if
-
-                    # Clean up temporary attributes
-                    if mpi_rank == src_rank or mpi_rank == dst_rank:
-                        if partition._subarray_is_in_memory:
-                            del partition._subarray_dtype
-                            del partition._subarray_shape
-                            del partition._subarray_isMA
-                            del partition._subarray_is_masked
-                        #--- End: if
-                        del partition._subarray_is_in_memory
                     #--- End: if
                 #--- End: if
             #--- End: for
@@ -1939,6 +1904,7 @@ place.
                             subarray = partition._subarray
                             partition._subarray = None
                             partition._subarray_removed = True
+                            partition._subarray_rank = mpi_rank
                             partition._subarray_dtype = subarray.dtype
                             partition._subarray_shape = subarray.shape
                             partition._subarray_isMA = numpy_ma_isMA(subarray)
@@ -1962,37 +1928,66 @@ place.
                     # without the subarray
                     partition = mpi_comm.bcast(partition, root=rank)
 
-                    if partition._subarray_removed:
-                        # If the subarray is a supported numpy array
-                        # broadcast it without pickling and swap it
-                        # back into the partition
-                        if partition._subarray_isMA:
-                            # If the subarray is a masked array broadcast
-                            # the data and the mask separately
-                            if mpi_rank != rank:
-                                if partition._subarray_is_masked:
-                                    subarray = numpy_ma_masked_all(partition._subarray_shape,
-                                                                   dtype=partition._subarray_dtype)
-                                else:
-                                    subarray = numpy_ma_empty(partition._subarray_shape,
-                                                              dtype=partition._subarray_dtype)
-                                #--- End: if
-                            #--- End: if
-                            mpi_comm.Bcast(subarray.data, root=rank)
-                            if partition._subarray_is_masked:
-                                mpi_comm.Bcast(subarray.mask, root=rank)
-                            #--- End: if
-                        else:
-                            if mpi_rank != rank:
-                                subarray = numpy_empty(partition._subarray_shape,
-                                                       dtype=partition._subarray_dtype)
-                            #--- End: if
-                            mpi_comm.Bcast(subarray, root=rank)
-                        #--- End: if
+                    # if partition._subarray_removed:
+                    #     # If the subarray is a supported numpy array
+                    #     # broadcast it without pickling and swap it
+                    #     # back into the partition
+                    #     if partition._subarray_isMA:
+                    #         # If the subarray is a masked array broadcast
+                    #         # the data and the mask separately
+                    #         if mpi_rank != rank:
+                    #             if partition._subarray_is_masked:
+                    #                 subarray = numpy_ma_masked_all(partition._subarray_shape,
+                    #                                                dtype=partition._subarray_dtype)
+                    #             else:
+                    #                 subarray = numpy_ma_empty(partition._subarray_shape,
+                    #                                           dtype=partition._subarray_dtype)
+                    #             #--- End: if
+                    #         #--- End: if
+                    #         mpi_comm.Bcast(subarray.data, root=rank)
+                    #         if partition._subarray_is_masked:
+                    #             mpi_comm.Bcast(subarray.mask, root=rank)
+                    #         #--- End: if
+                    #     else:
+                    #         if mpi_rank != rank:
+                    #             subarray = numpy_empty(partition._subarray_shape,
+                    #                                    dtype=partition._subarray_dtype)
+                    #         #--- End: if
+                    #         mpi_comm.Bcast(subarray, root=rank)
+                    #     #--- End: if
 
-                        # Swap the subarray back into the partition
-                        partition._subarray = subarray
+                    #     # Swap the subarray back into the partition
+                    #     partition._subarray = subarray
+                    #     if mpi_rank == rank:
+                    #         # The result of broadcasting an object is
+                    #         # different to the original object even on the
+                    #         # root PE, so the new partition with the numpy
+                    #         # subarray must be put back in the list of
+                    #         # processed partitions
+                    #         processed_partitions[i] = partition
+                    #     #--- End: if
+
+                    #     # Clean up temporary attributes
+                    #     del partition._subarray_dtype
+                    #     del partition._subarray_shape
+                    #     del partition._subarray_isMA
+                    #     del partition._subarray_is_masked
+                    # elif mpi_rank == rank:
+                    #     # Remove the subarray from partition so that
+                    #     # when it is deleted it does not delete the
+                    #     # temporary file
+                    #     partition._subarray = None
+                    # #--- End: if
+
+                    # # Clean up temporary attribute
+                    # del partition._subarray_removed
+
+                    if partition._subarray_removed:
                         if mpi_rank == rank:
+                            # Place the subarray back in the partition
+                            partition._subarray = subarray
+                            partition._subarray_removed = False
+
                             # The result of broadcasting an object is
                             # different to the original object even on the
                             # root PE, so the new partition with the numpy
@@ -2000,21 +1995,12 @@ place.
                             # processed partitions
                             processed_partitions[i] = partition
                         #--- End: if
-
-                        # Clean up temporary attributes
-                        del partition._subarray_dtype
-                        del partition._subarray_shape
-                        del partition._subarray_isMA
-                        del partition._subarray_is_masked
                     elif mpi_rank == rank:
                         # Remove the subarray from partition so that
                         # when it is deleted it does not delete the
                         # temporary file
                         partition._subarray = None
-                    #--- End: if
-
-                    # Clean up temporary attribute
-                    del partition._subarray_removed
+                    #--- End: if        
 
                     if mpi_rank != rank:
                         shared_partitions.append(partition)
@@ -5363,8 +5349,7 @@ place.
                 # assuming this will always be the same in each one and
                 # compare to the number of partitions in the new partition
                 # matrix times the maximum number of partitions per process in
-                # each case. The latter is calculated by
-                # _flag_partitions_for_processing
+                # each case.
                 partition  = new.partitions.matrix.item((0,) * new._pmndim) # "first" partition of new
                 indices = partition.indices[:n_non_collapse_axes] + c_slice
                 data = d[indices]
@@ -5406,11 +5391,16 @@ place.
         # flagged partitions.
         new._prepare_partitions_for_processing(_parallelise_collapse)
 
-        for partition in new.partitions.matrix.flat:
+        processed_partitions = []
+        for pmindex, partition in new.partitions.ndenumerate():
             if partition._process_partition:
                 # Only process the partition if it is flagged
                 partition.open(config)
 
+                # Save the position of the partition in the partition
+                # matrix
+                partition._pmindex = pmindex
+                
                 partition.axes  = p_axes
                 partition.flip  = []
                 partition.part  = []
@@ -5429,16 +5419,33 @@ place.
                     _parallelise_collapse_subspace=_parallelise_collapse_subspace,
                     **kwargs)
 
-                p_datatype = partition.subarray.dtype
-                if datatype != p_datatype:
-                    datatype = numpy_result_type(p_datatype, datatype)
-                #--- End: if
-
                 partition.close(keep_in_memory=keep_in_memory)
+
+                # Add each partition to a list of processed partitions
+                processed_partitions.append(partition)
             #--- End: if
         #--- End: for
 
-        # TODO ensure consistency of datatypes in parallel mode
+        # processed_partitions contains a list of all the partitions
+        # that have been processed on this rank. In the serial case
+        # this is all of them and this line of code has no
+        # effect. Otherwise the processed partitions from each rank
+        # are distributed to every rank and processed_partitions now
+        # contains all the processed partitions from every rank.
+        processed_partitions = new._share_partitions(processed_partitions,
+                                                      parallelise=mpi_on)
+
+        # Put the processed partitions back in the partition matrix
+        # according to each partitions _pmindex attribute set above.
+        pm = new.partitions.matrix
+        for partition in processed_partitions:
+            pm[partition._pmindex] = partition
+
+            p_datatype = getattr(partition.subarray, 'dtype', partition._subarray_dtype)
+            if datatype != p_datatype:
+                datatype = numpy_result_type(p_datatype, datatype)
+            #--- End: if
+        #--- End: for
 
         # Share the lock files created by each rank for each partition
         # now in a temporary file so that __del__ knows which lock
@@ -8499,7 +8506,7 @@ returned.
         
         n = 0
 
-        self._flag_partitions_for_processing(parallelise=mpi_on)
+        self._prepare_partitions_for_processing(parallelise=mpi_on)
 
         processed_partitions = []
         for pmindex, partition in self.partitions.ndenumerate():
@@ -9631,7 +9638,7 @@ returned.
                 partition.close()
 
 
-    def to_memory(self, regardless=False, parallelise=False):
+    def to_memory(self, regardless=False, parallelise=mpi_on):
         '''Store each partition's data in memory in place if the master array is
     smaller than the chunk size.
     
@@ -9664,20 +9671,46 @@ returned.
 
         # If parallelise is False then all partitions are flagged for
         # processing on this rank, otherwise only a subset are
-        self._flag_partitions_for_processing(parallelise)
+        self._prepare_partitions_for_processing(parallelise)
 
-        for partition in self.partitions.matrix.flat:
+        processed_partitions = []
+        for pmindex, partition in self.partitions.ndenumerate():
             if partition._process_partition:
                 # Only move the partition to memory if it is flagged
                 # for processing
                 partition.open(config)
+                partition._pmindex = pmindex
                 if partition.on_disk and partition.nbytes <= FREE_MEMORY() - fm_threshold:
                     partition.array
-                    
+                #--- End: if
                 partition.close()
+                processed_partitions.append(partition)
+            #--- End: if
         #--- End: for
 
+        # processed_partitions contains a list of all the partitions
+        # that have been processed on this rank. In the serial case
+        # this is all of them and this line of code has no
+        # effect. Otherwise the processed partitions from each rank
+        # are distributed to every rank and processed_partitions now
+        # contains all the processed partitions from every rank.
+        processed_partitions = self._share_partitions(processed_partitions,
+                                                      parallelise=parallelise)
 
+        # Put the processed partitions back in the partition matrix
+        # according to each partitions _pmindex attribute set above.
+        pm = self.partitions.matrix
+        for partition in processed_partitions:
+            pm[partition._pmindex] = partition
+        #--- End: for
+
+        # Share the lock files created by each rank for each partition
+        # now in a temporary file so that __del__ knows which lock
+        # files to check if present
+        self._share_lock_files(parallelise=parallelise)
+
+    #--- End: def
+    
     @property
     def in_memory(self):
         '''TODO
