@@ -1907,6 +1907,7 @@ place.
                             partition._subarray_rank = mpi_rank
                             partition._subarray_dtype = subarray.dtype
                             partition._subarray_shape = subarray.shape
+                            partition._subarray_size = subarray.size
                             partition._subarray_isMA = numpy_ma_isMA(subarray)
                             if partition._subarray_isMA:
                                 partition._subarray_is_masked = subarray.mask is not numpy_ma_nomask
@@ -5441,7 +5442,10 @@ place.
         for partition in processed_partitions:
             pm[partition._pmindex] = partition
 
-            p_datatype = getattr(partition.subarray, 'dtype', partition._subarray_dtype)
+            p_datatype = getattr(partition.subarray, 'dtype', None)
+            if p_datatype is None:
+                p_datatype = partition._subarray_dtype
+            #--- End: if
             if datatype != p_datatype:
                 datatype = numpy_result_type(p_datatype, datatype)
             #--- End: if

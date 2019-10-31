@@ -1445,6 +1445,16 @@ array.
 ''' 
         shape = self.shape
 
+        subarray_size = getattr(self._subarray, 'size', None)
+        if subarray_size is None:
+            subarray_size = self._subarray_size
+        #--- End: if
+
+        subarray_shape = getattr(self._subarray, 'shape', None)
+        if subarray_shape is None:
+            subarray_shape = self._subarray_shape
+        #--- End: if
+
         if indices == [slice(0, stop, 1) for stop in shape]:
             return
         
@@ -1467,7 +1477,7 @@ array.
         # [6, 4, 2]
         # ------------------------------------------------------------
 
-        if self._subarray.size > 1:
+        if subarray_size > 1:
             indices = indices[:]
 
             p_flip = self.flip
@@ -1528,7 +1538,7 @@ array.
         p_part = []
         for part_index, index, size in zip(part,
                                            indices, 
-                                           self._subarray.shape):
+                                           subarray_shape):
 
             if index == slice_None:
                 p_part.append(part_index)
