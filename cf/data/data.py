@@ -5802,49 +5802,51 @@ dimensions.
                 out = self._collapse_finalise(ffinalise, out,
                                               sub_samples, masked, Nmax, mtol, data,
                                               n_non_collapse_axes)
-            #--- End: if
-
-            # Broadcast the aggregated result back from process 0 to
-            # all processes.
-
-            # First communicate information about the result's
-            # properties.
-            if mpi_rank == 0:
-                out_props = {}
-                out_props['isMA'] = numpy_ma_isMA(out)
-                if out_props['isMA']:
-                    out_props['is_masked'] = out.mask is not numpy_ma_nomask
-                else:
-                    out_props['is_masked'] = False
-                #--- End: if
-                out_props['shape'] = out.shape
-                out_props['dtype'] = out.dtype
             else:
-                out_props = None
+                out = None
             #--- End: if
-            out_props = mpi_comm.bcast(out_props, root=0)
 
-            # Do the broadcast.
-            if out_props['is_masked']:
-                if mpi_rank != 0:
-                    out = numpy_ma_masked_all(out_props['shape'],
-                                              dtype=out_props['dtype'])
-                #--- End: if
-                mpi_comm.Bcast(out.data, root=0)
-                mpi_comm.Bcast(out.mask, root=0)
-            elif out_props['isMA']:
-                if mpi_rank != 0:
-                    out = numpy_ma_empty(out_props['shape'],
-                                         dtype=out_props['dtype'])
-                #--- End: if
-                mpi_comm.Bcast(out.data, root=0)
-            else:
-                if mpi_rank != 0:
-                    out = numpy_empty(out_props['shape'],
-                                      dtype=out_props['dtype'])
-                #--- End: if
-                mpi_comm.Bcast(out, root=0)
-            #--- End: if
+            # # Broadcast the aggregated result back from process 0 to
+            # # all processes.
+
+            # # First communicate information about the result's
+            # # properties.
+            # if mpi_rank == 0:
+            #     out_props = {}
+            #     out_props['isMA'] = numpy_ma_isMA(out)
+            #     if out_props['isMA']:
+            #         out_props['is_masked'] = out.mask is not numpy_ma_nomask
+            #     else:
+            #         out_props['is_masked'] = False
+            #     #--- End: if
+            #     out_props['shape'] = out.shape
+            #     out_props['dtype'] = out.dtype
+            # else:
+            #     out_props = None
+            # #--- End: if
+            # out_props = mpi_comm.bcast(out_props, root=0)
+
+            # # Do the broadcast.
+            # if out_props['is_masked']:
+            #     if mpi_rank != 0:
+            #         out = numpy_ma_masked_all(out_props['shape'],
+            #                                   dtype=out_props['dtype'])
+            #     #--- End: if
+            #     mpi_comm.Bcast(out.data, root=0)
+            #     mpi_comm.Bcast(out.mask, root=0)
+            # elif out_props['isMA']:
+            #     if mpi_rank != 0:
+            #         out = numpy_ma_empty(out_props['shape'],
+            #                              dtype=out_props['dtype'])
+            #     #--- End: if
+            #     mpi_comm.Bcast(out.data, root=0)
+            # else:
+            #     if mpi_rank != 0:
+            #         out = numpy_empty(out_props['shape'],
+            #                           dtype=out_props['dtype'])
+            #     #--- End: if
+            #     mpi_comm.Bcast(out, root=0)
+            # #--- End: if
         else:
             # In the case that the inner loop is not parallelised,
             # just finalise.
