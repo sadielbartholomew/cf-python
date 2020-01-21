@@ -1413,7 +1413,6 @@ dtype('float64')
             *axes* argument may be one, or a sequence, of:
 
               * An internal axis identifier. Selects this axis.
-            ..
 
               * An integer. Selects the axis coresponding to the given
                 position in the list of axes of the data array.

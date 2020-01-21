@@ -14271,7 +14271,7 @@ class Field(mixin.PropertiesData,
             *Parameter example:*
               ``identity='ncdim%y'``
 
-        key: `bool, optional
+        key: `bool`, optional
             If True then return the selected construct key. By default
             the construct itself is returned.
 
@@ -14375,7 +14375,7 @@ class Field(mixin.PropertiesData,
             *Parameter example:*
               ``identity=2``
 
-        key: `bool, optional
+        key: `bool`, optional
             If True then return the selected construct key. By
             default the construct itself is returned.
 
@@ -17086,7 +17086,7 @@ class Field(mixin.PropertiesData,
 
     :Returns:
 
-        `Field` or `None
+        `Field` or `None`
             The regridded field construct, or `None` if the operation
             was in-place.
 
