@@ -4382,7 +4382,7 @@ place.
     def creation_commands(self, name='data', namespace='cf', string=True):
         '''Return the commands that would create the data object.
 
-    .. versionaddedd:: 3.0.4
+    .. versionadded:: 3.0.4
 
     :Parameters:
 
@@ -9888,7 +9888,7 @@ False
     example, the array ``[[1, 2], [3, 4]]`` would be flattened across
     both dimensions to ``[1 2 3 4]``.
 
-    .. versionaddedd:: 3.0.2
+    .. versionadded:: 3.0.2
 
     .. seealso:: `insert_dimension`, `flip`, `swapaxes`, `transpose`
 

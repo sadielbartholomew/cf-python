@@ -1402,7 +1402,7 @@ dtype('float64')
     example, the array ``[[1, 2], [3, 4]]`` would be flattened across
     both dimensions to ``[1 2 3 4]``.
 
-    .. versionaddedd:: 3.0.2
+    .. versionadded:: 3.0.2
 
     .. seealso:: `insert_dimension`, `flip`, `swapaxes`, `transpose`
 
