@@ -70,11 +70,11 @@ class DataTest(unittest.TestCase):
             for n in range(1, self.a.ndim+1)
             for axes in itertools.permutations(range(self.a.ndim), n)]
 
-        self.test_only = []
+        #self.test_only = []
 #        self.test_only = ['NOTHING!!!!!']
 
-#        self.test_only = [
-#                          'test_Data_trigonometric_hyperbolic']
+        self.test_only = [
+                          'test_Data_trigonometric_hyperbolic']
 #                          'test_Data_AUXILIARY_MASK',
 #                          'test_Data_datum',
 ##                         'test_Data_ERROR',
@@ -2488,6 +2488,16 @@ class DataTest(unittest.TestCase):
                         )
         # --- End: for
 
+        #### TO REMOVE, SADIE
+        # Test masking options for the 4 methods with a restricted domain
+        d = cf.Data([2, 1.5, 1, 0.5, 0], mask=[1, 0, 0, 0, 1])
+        for restricted_method in ['arccos', 'arcsin', 'arccosh', 'arctanh']:
+            e = getattr(d, restricted_method)()
+            e
+            print(method, "gives:\n", e.array, "\n")
+            e.mask_invalid(inplace=True)
+            print(method, "gives:\n", e.array, "\n")
+
         # AT2
         #
         ## Treat arctan2 separately (as is a class method & takes two inputs)
@@ -2511,6 +2521,7 @@ class DataTest(unittest.TestCase):
         #            self.assertTrue((d1.mask.array == c.mask).all())
 
         cf.CHUNKSIZE(self.original_chunksize)
+
 
 
 # --- End: class

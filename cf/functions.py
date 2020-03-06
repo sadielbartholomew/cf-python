@@ -596,6 +596,32 @@ def RELAXED_IDENTITIES(*arg):
     return old
 
 
+def FORCE_MASK_INVALID(*arg):
+    '''Always return a masked data point instead of invalid values.
+
+    TODO
+
+    :Parameters:
+
+        arg: `bool`, optional
+
+    :Returns:
+
+        `bool`
+            The value prior to the change, or the current value if no
+            new value was specified.
+
+    **Examples:**
+
+    TODO
+    '''
+    old = CONSTANTS['FORCE_MASK_INVALID']
+    if arg:
+        CONSTANTS['FORCE_MASK_INVALID'] = bool(arg[0])
+
+    return old
+
+
 #def IGNORE_IDENTITIES(*arg):
 #    '''TODO
 #

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from .functions import _DEPRECATION_ERROR_KWARGS
+from .functions import _DEPRECATION_ERROR_KWARGS, FORCE_MASK_INVALID
 
 
 # Identifier for 'inplace_enabled' to use as internal '_custom' dictionary key,
@@ -104,3 +104,15 @@ def _deprecated_kwarg_check(depr_kwargs):
 
         return precede_with_kwarg_deprecation_check
     return deprecated_kwarg_check_decorator
+
+
+def _force_mask_invalid(operation_method):
+    '''Force all invalid values to be masked if FORCE_MASK_INVALID is True.
+    '''
+    @wraps(operation_method)
+    def mask_invalid_wrapper(self):
+        if cf.FORCE_MASK_INVALID():
+            self.mask_invalid(inplace=True)
+        return self
+
+    return mask_invalid_wrapper
