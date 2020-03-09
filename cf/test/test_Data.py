@@ -70,11 +70,11 @@ class DataTest(unittest.TestCase):
             for n in range(1, self.a.ndim+1)
             for axes in itertools.permutations(range(self.a.ndim), n)]
 
-        self.test_only = []
+        #self.test_only = []
 #        self.test_only = ['NOTHING!!!!!']
 
-#        self.test_only = [
-#                          'test_Data_trigonometric_hyperbolic']
+        self.test_only = [
+                          'test_Data_trigonometric_hyperbolic']
 #                          'test_Data_AUXILIARY_MASK',
 #                          'test_Data_datum',
 ##                         'test_Data_ERROR',
@@ -2457,7 +2457,7 @@ class DataTest(unittest.TestCase):
             'arc' + method for method in trig_methods_root]
         trig_and_hyperbolic_methods = trig_methods + [
             method + 'h' for method in trig_methods]
-        
+
         for method in trig_and_hyperbolic_methods:
             for x in (1, -1):
                 a = 0.9 * x * self.ma
@@ -2488,21 +2488,21 @@ class DataTest(unittest.TestCase):
                         )
         # --- End: for
 
-        # Uncomment below to reveal a bug!? When commented the test passes,
-        # but uncommented, changing the chunksize, it fails (adds masking):
-        ### cf.CHUNKSIZE(self.original_chunksize)
 
         # Also test masking behaviour: under-the-hood masking of invalid data
-        # was once observed so we must check that invalid values emerge.
+        # was once observed so we must check that invalid values emerge:
+
+        cf.CHUNKSIZE(self.original_chunksize)  # reset chunksize first
         inverse_methods = [method for method in trig_and_hyperbolic_methods
                            if method.startswith('arc')]
         d = cf.Data([2, 1.5, 1, 0.5, 0], mask=[1, 0, 0, 0, 1])
+
         for method in inverse_methods:
             e = getattr(d, method)()
-            ### print(e.mask.array, d.mask.array)
+            print("method", e.array, e.mask.array, d.array, d.mask.array)
             self.assertTrue(
                 (e.mask.array == d.mask.array).all(),
-                "{}, {}, {}".format(method, units, e.array-d)
+                "{}, {}".format(method, e.array-d)
             )
 
         # AT2

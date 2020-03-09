@@ -7860,6 +7860,13 @@ False
 
         return d
 
+    def manage_numpyma_mask_invalid()
+        '''
+        See e.g.
+        https://github.com/numpy/numpy/issues/5384 (old-ish Issue but
+        still accurate).
+        '''
+    
     @_inplace_enabled
     def arcsin(self, inplace=False):
         '''Take the trigonometric inverse sine of the data element-wise.
