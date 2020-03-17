@@ -12819,12 +12819,15 @@ False
 
     def preserve_invalid_values(array_before, array_after):
         ''' DESCRIBE 'nan' or positive/negative infinity (inf)'''
-        if (numpy_isfinite(array_after).all() and not
+        # Method: treat as unmasked array, then re-apply mask 
+        '''if (numpy_isfinite(array_after).all() and not
                 numpy_isnan(array_after).any()):  # no nan or +/- inf values
             return array_after
         else:  # override numpy.ma behaviour to preserve all invalid values
             original_mask = numpy_ma_getmask(array_before)
-            return output_array
+            new_mask = 
+            return output_array'''
+        if mas
     
     @_deprecated_kwarg_check('i')
     def range(self, axes=None, squeeze=False, mtol=1, inplace=False,
