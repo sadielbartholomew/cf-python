@@ -22,6 +22,7 @@ from numpy import empty             as numpy_empty
 from numpy import exp               as numpy_exp
 from numpy import floor             as numpy_floor
 from numpy import finfo             as numpy_finfo
+from numpy import isfinite          as numpy_isfinite
 from numpy import isnan             as numpy_isnan
 from numpy import linspace          as numpy_linspace
 from numpy import log               as numpy_log
@@ -64,6 +65,7 @@ from numpy.ma import array          as numpy_ma_array
 from numpy.ma import count          as numpy_ma_count
 from numpy.ma import empty          as numpy_ma_empty
 from numpy.ma import filled         as numpy_ma_filled
+from numpy.ma import getmask        as numpy_ma_getmask
 from numpy.ma import is_masked      as numpy_ma_is_masked
 from numpy.ma import isMA           as numpy_ma_isMA
 from numpy.ma import masked         as numpy_ma_masked
@@ -12815,6 +12817,15 @@ False
 
         return d
 
+    def preserve_invalid_values(array_before, array_after):
+        ''' DESCRIBE 'nan' or positive/negative infinity (inf)'''
+        if (numpy_isfinite(array_after).all() and not
+                numpy_isnan(array_after).any()):  # no nan or +/- inf values
+            return array_after
+        else:  # override numpy.ma behaviour to preserve all invalid values
+            original_mask = numpy_ma_getmask(array_before)
+            return output_array
+    
     @_deprecated_kwarg_check('i')
     def range(self, axes=None, squeeze=False, mtol=1, inplace=False,
               _preserve_partitions=False, i=False):
