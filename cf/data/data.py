@@ -7856,17 +7856,35 @@ False
         '''
         d = _inplace_enabled_define_and_cleanup(self)
 
-        d.func(numpy_arctanh, units=_units_radians, inplace=True)
+        print("d:", d.array)
+        d = self._func_manage_mask_invalid(
+            d, numpy_arctanh, units=_units_radians)
+        #print("d after:", d.array)
 
         return d
 
-    def manage_numpyma_mask_invalid()
+    @classmethod
+    def _func_manage_mask_invalid(cls, d, *args, **kwargs):
         '''
-        See e.g.
-        https://github.com/numpy/numpy/issues/5384 (old-ish Issue but
-        still accurate).
+    Effectively always done in place as that is the only need for.
+        SADIE:
+        * d is masked cf.Data input
+        * pass args & kwargs through to func()
         '''
-    
+
+        # Step 1. extract the non-masked data and the mask separately
+        input_mask = d.mask
+        input_data = d.array.data
+
+        # Step 2. apply the operation on the data detatched from the mask
+        cf_input_data = cls(input_data)
+        output_data = cf_input_data.func(*args, **kwargs)
+
+        # Step 3. reapply the original mask onto the data
+        d = cls(output_data, mask=input_mask)
+        print("output:", d)
+        return d
+
     @_inplace_enabled
     def arcsin(self, inplace=False):
         '''Take the trigonometric inverse sine of the data element-wise.
