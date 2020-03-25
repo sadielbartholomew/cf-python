@@ -2489,9 +2489,9 @@ class DataTest(unittest.TestCase):
         # --- End: for
 
 
-        # Also test masking behaviour: under-the-hood masking of invalid data
-        # was once observed so we must check that invalid values emerge:
-
+        # Also test masking behaviour: masking of invalid data occurs for
+        # numpy.ma module by default but we don't want that so there is logic
+        # to prevent it. So now check that invalid values emerge.
         cf.CHUNKSIZE(self.original_chunksize)  # reset chunksize first
         inverse_methods = [method for method in trig_and_hyperbolic_methods
                            if method.startswith('arc')]
@@ -2504,6 +2504,10 @@ class DataTest(unittest.TestCase):
                 (e.mask.array == d.mask.array).all(),
                 "{}, {}".format(method, e.array-d)
             )
+        # Also test that both 'inf' and 'nan' emerge distinctly
+        f = d.arctanh(inplace=True).array  # expect [-- nan inf ~0.549 --]
+        self.assertTrue(numpy.isnan(f[1]))
+        self.assertTrue(numpy.isposinf(f[2]))
 
         # AT2
         #
