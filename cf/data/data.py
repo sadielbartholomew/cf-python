@@ -7857,14 +7857,12 @@ False
         d = _inplace_enabled_define_and_cleanup(self)
 
         print("d:", d.array)
-        d = self._func_manage_mask_invalid(
-            d, numpy_arctanh, units=_units_radians)
+        d._func_manage_mask_invalid(numpy_arctanh, units=_units_radians)
         #print("d after:", d.array)
 
         return d
 
-    @classmethod
-    def _func_manage_mask_invalid(cls, d, *args, **kwargs):
+    def _func_manage_mask_invalid(self, *args, **kwargs):
         '''
     Effectively always done in place as that is the only need for.
         SADIE:
@@ -7872,16 +7870,19 @@ False
         * pass args & kwargs through to func()
         '''
 
+        d = self
         # Step 1. extract the non-masked data and the mask separately
         input_mask = d.mask
         input_data = d.array.data
 
         # Step 2. apply the operation on the data detatched from the mask
-        cf_input_data = cls(input_data)
-        output_data = cf_input_data.func(*args, **kwargs)
+        d.hardmask = False
+        d.mask = False
+        d.data = Data(input_data)
+        d.func(*args, inplace=True, **kwargs)
 
         # Step 3. reapply the original mask onto the data
-        d = cls(output_data, mask=input_mask)
+        d.mask = input_mask
         print("output:", d)
         return d
 
