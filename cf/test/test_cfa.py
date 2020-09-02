@@ -14,8 +14,14 @@ class cfaTest(unittest.TestCase):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
             return
 
-        subprocess.run(' '.join(['.', './cfa_test.sh']),
-                       shell=True, check=True)
+        try:
+            subprocess.run(' '.join(['.', './cfa_test.sh']),
+                           shell=True, check=True)
+        except subprocess.CalledProcessError as e:
+            self.fail(
+                "A cfa command failed (see the cfa_test.sh line exiting with "
+                "value of {})".format(e.returncode)
+            )
 
 
 # --- End: class
