@@ -131,6 +131,26 @@ class DataTest(unittest.TestCase):
     #    test_only = ['test_Data_clip']
     #    test_only = ['test_Data__init__dtype_mask']
 
+    def test_Data_equals(self):
+        if self.test_only and inspect.stack()[0][3] not in self.test_only:
+            return
+
+        a = np.arange(12).reshape(3, 4)
+
+        d = cf.Data(a, "m")
+        self.assertTrue(d.equals(d))
+
+        e = cf.Data(a, "s")
+        self.assertFalse(e.equals(d))  # due to different units
+
+        f = d.copy()
+        d[1, 1] = 1000
+        print("F IS", f)
+        print(d)
+        self.assertFalse(f.equals(d))  # due to different element value(s)
+
+        print(">>>>>>>>>>>>>>>>>", d.Units)
+
     @unittest.skipIf(TEST_DASKIFIED_ONLY, "hits unexpected kwarg 'ndim'")
     def test_Data_halo(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
