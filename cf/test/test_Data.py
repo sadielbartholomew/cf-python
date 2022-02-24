@@ -2019,7 +2019,6 @@ class DataTest(unittest.TestCase):
         self.assertTrue(d.minute.equals(cf.Data([[37, 25]])))
         self.assertTrue(d.second.equals(cf.Data([[26, 26]])))
 
-    @unittest.skipIf(TEST_DASKIFIED_ONLY, "'NoneType' is not iterable")
     def test_Data_BINARY_AND_UNARY_OPERATORS(self):
         if self.test_only and inspect.stack()[0][3] not in self.test_only:
             return
@@ -2033,8 +2032,14 @@ class DataTest(unittest.TestCase):
 
         for a0 in arrays:
             for a1 in arrays[::-1]:
-                d = cf.Data(a0[(slice(None, None, -1),) * a0.ndim], "metre")
-                d.flip(inplace=True)
+                a = a0[(slice(None, None, -1),) * a0.ndim]
+                a1 = np.flip(a)
+                d = cf.Data(a1, "metre")
+
+                # TODODASK: do above flip via cf not np once flip bug is fixed
+                # d = cf.Data(a0[(slice(None, None, -1),) * a0.ndim], "metre")
+                # d.flip(inplace=True)
+
                 x = cf.Data(a1, "metre")
 
                 message = "Failed in {!r}+{!r}".format(d, x)
