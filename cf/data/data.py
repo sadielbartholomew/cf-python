@@ -3855,7 +3855,9 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
 
         """
         inplace = method[2] == "i"
-        method_type = method[-5:-2]
+        method_type = method.strip("_")
+        comparison_method_type = ("eq", "ne", "lt", "le", "gt", "ge")
+        print("TYPE IS", method_type)
 
         # ------------------------------------------------------------
         # Ensure that other is an independent Data object
@@ -3889,7 +3891,8 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
         # ------------------------------------------------------------
         # Bring other into memory, if appropriate.
         # ------------------------------------------------------------
-        other.to_memory()
+        # SADIE UP TO HERE
+        ### other.to_memory()  # pass for now - need to ask DH what to do here
 
         # ------------------------------------------------------------
         # Find which dimensions need to be broadcast in one or other
@@ -3923,8 +3926,8 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
         #     slice(None))
         #
         # ------------------------------------------------------------
-        data0_shape = data0._shape
-        data1_shape = other._shape
+        data0_shape = data0.shape
+        data1_shape = other.shape
 
         if data0_shape == data1_shape:
             # self and other have the same shapes
@@ -3933,16 +3936,16 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
             align_offset = 0
 
             new_shape = data0_shape
-            new_ndim = data0._ndim
+            new_ndim = data0.ndim
             new_axes = data0._axes
-            new_size = data0._size
+            new_size = data0.size
 
         else:
             # self and other have different shapes
             broadcasting = True
 
-            data0_ndim = data0._ndim
-            data1_ndim = other._ndim
+            data0_ndim = data0.ndim
+            data1_ndim = other.ndim
 
             align_offset = data0_ndim - data1_ndim
             if align_offset >= 0:
@@ -4014,15 +4017,15 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
         # ------------------------------------------------------------
 
         result = data0.copy()
-        result._shape = new_shape
-        result._ndim = new_ndim
-        result._size = new_size
+        result.shape = new_shape
+        result.ndim = new_ndim
+        result.size = new_size
         result._axes = new_axes
 
         # ------------------------------------------------------------
         # Set the data-type of the result
         # ------------------------------------------------------------
-        if method_type in ("_eq", "_ne", "_lt", "_le", "_gt", "_ge"):
+        if method_type in comparison_method_type:
             new_dtype = np.dtype(bool)
             rtol = self._rtol
             atol = self._atol
@@ -4160,7 +4163,7 @@ class Data(Container, cfdm.Data, DataClassDeprecationsMixin):
             if broadcasting:
                 result.partitions.set_location_map(result._axes)
 
-            if method_type in ("_eq", "_ne", "_lt", "_le", "_gt", "_ge"):
+            if method_type in comparison_method_type:
                 result.override_units(Units(), inplace=True)
 
             return result
