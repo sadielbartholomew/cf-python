@@ -877,14 +877,22 @@ class read_writeTest(unittest.TestCase):
         self.assertFalse(np.ma.count(g.array))
         self.assertTrue(np.ma.count(g.construct("grid_latitude").array))
 
-    #    @unittest.skipUnless(
-    #        True, "URL TEST: UNRELIABLE FLAKEY URL DESTINATION. TODO REPLACE URL"
-    #    )
     def test_read_url(self):
         """Test reading remote url."""
         for scheme in ("http", "https"):
-            remote = f"{scheme}://psl.noaa.gov/thredds/dodsC/Datasets/cru/crutem5/Monthlies/air.mon.anom.nobs.nc"
-            f = cf.read(remote, netcdf_backend="netCDF4")
+            remote = (
+                f"{scheme}://psl.noaa.gov/thredds/dodsC/"
+                "Datasets/cru/crutem5/Monthlies/air.mon.anom.nobs.nc"
+            )
+
+            # Use this instead of a 'unittest.skip*' decorator so that the
+            # availability is checked at runtime, not import-time.
+            try:
+                f = cf.read(remote, netcdf_backend="netCDF4")
+            except DatasetTypeError as err:
+                # Skip if remote DAP server is unavailable
+                self.skipTest(f"Remote DAP server unavailable: {err}")
+
             self.assertEqual(len(f), 1)
 
     @unittest.skipUnless(
