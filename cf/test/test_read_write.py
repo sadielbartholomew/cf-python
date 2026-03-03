@@ -883,7 +883,7 @@ class read_writeTest(unittest.TestCase):
     def test_read_url(self):
         """Test reading remote url."""
         for scheme in ("http", "https"):
-            remote = f"{scheme}:///psl.noaa.gov/thredds/dodsC/Datasets/cru/crutem5/Monthlies/air.mon.anom.nobs.nc"
+            remote = f"{scheme}://psl.noaa.gov/thredds/dodsC/Datasets/cru/crutem5/Monthlies/air.mon.anom.nobs.nc"
             f = cf.read(remote, netcdf_backend="netCDF4")
             self.assertEqual(len(f), 1)
 
