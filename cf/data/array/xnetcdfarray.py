@@ -11,6 +11,6 @@ class XnetcdfArray(
 ):
     """A netCDF array accessed with `xnetcdf`.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     """

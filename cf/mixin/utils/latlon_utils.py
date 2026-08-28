@@ -29,7 +29,7 @@ def create_2d_latlon_coordinates(f, cr, cr_latlon, longitude_at_pole=None):
     See CF Appendix F: Grid Mappings
     (https://doi.org/10.5281/zenodo.14274886).
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -276,7 +276,7 @@ def create_2d_latlon_coordinates(f, cr, cr_latlon, longitude_at_pole=None):
 def _get_1d_coordinates(f, cr):
     """Get 1-d dimension coordinates and axes.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 

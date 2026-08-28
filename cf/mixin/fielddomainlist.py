@@ -342,7 +342,7 @@ class FieldDomainList:
         mixture of fields and domains to be written to the
         same `xarray` dataset.
 
-        .. versionadded:: NEXTVERSION
+        .. versionadded:: 3.21.0
 
         .. seealso:: `cf.write`
 

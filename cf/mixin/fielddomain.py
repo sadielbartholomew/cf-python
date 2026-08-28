@@ -2540,7 +2540,7 @@ class FieldDomain:
 
             {{verbose: `int` or `str` or `None`, optional}}
 
-            pole_longitude: Deprecated at version NEXTVERSION
+            pole_longitude: Deprecated at version 3.21.0
                 Use *longitude_at_pole* instead.
 
         :Returns:
@@ -2582,7 +2582,7 @@ class FieldDomain:
                 "create_latlon_coordinates",
                 {"pole_longitude": pole_longitude},
                 message="Use 'longitude_at_pole' instead.",
-                version="NEXTVERSION",
+                version="3.21.0",
                 removed_at="4.0.0",
             )  # pragma: no cover
 
@@ -3942,7 +3942,7 @@ class FieldDomain:
         with ``f = {{package}}.read(ds)``, or domains with ``f =
         {{package}}.read(ds, domain=True)``.
 
-        .. versionadded:: NEXTVERSION
+        .. versionadded:: 3.21.0
 
         .. seealso:: `cf.{{class}}List.to_xarray`, `cf.write`
 

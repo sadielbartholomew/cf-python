@@ -223,11 +223,11 @@ class read(cfdm.read):
 
         {{read backend: `None` or (sequence of) `str`, optional}}
 
-            .. versionadded:: NEXTVERSION
+            .. versionadded:: 3.21.0
 
         {{read backend_options: `None` or `dict`, optional}}
 
-            .. versionadded:: NEXTVERSION
+            .. versionadded:: 3.21.0
 
         {{read storage_options: `dict` or `None`, optional}}
 
@@ -259,15 +259,15 @@ class read(cfdm.read):
 
         {{read cfa_filesystem: `None` or filesystem, optional}}
 
-            .. versionadded:: NEXTVERSION
+            .. versionadded:: 3.21.0
 
         {{read cfa_backend: `None` or (sequence of) `str`, optional}}
 
-            .. versionadded:: NEXTVERSION
+            .. versionadded:: 3.21.0
 
         {{cfa_backend_options: `None` or `dict`, optional}}
 
-            .. versionadded:: NEXTVERSION
+            .. versionadded:: 3.21.0
 
         {{read to_memory: (sequence of) `str`, optional}}
 
@@ -283,7 +283,7 @@ class read(cfdm.read):
 
         {{read _noncompliance_report: `bool`, optional}}
 
-            ..versionadded:: NEXTVERSION
+            ..versionadded:: 3.21.0
 
         umversion: deprecated at version 3.0.0
             Use the *um* parameter instead.
@@ -315,7 +315,7 @@ class read(cfdm.read):
         file_type: deprecated at version 3.18.0
             Use the *dataset_type* parameter instead.
 
-        netcdf_backend: Deprecated at version NEXTVERSION
+        netcdf_backend: Deprecated at version 3.21.0
             Use *backend* instead.
 
     :Returns:

@@ -94,7 +94,7 @@ def _ellipsoid_parameters(cr):
 
     https://proj.org/en/stable/usage/projections.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -160,7 +160,7 @@ def _ellipsoid_parameters(cr):
 def _crs_wkt_parameters(cr):
     """Get `pyproj.CRS` parameters from a crs_wkt parameter.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -187,7 +187,7 @@ def _crs_wkt_parameters(cr):
 def _create_pyproj_CRS(kwargs, cr, ellipsoid_only=False):
     """Create a `pyproj.CRS` instance.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -270,7 +270,7 @@ def _cc_parameter(p, parameter, default=None):
     for a missing CF grid mapping parameter (which happens later on in
     `_create_pyproj_CRS`).
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -309,7 +309,7 @@ def albers_equal_area(cr):
 
     https://proj.org/en/stable/operations/projections/aea.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -355,7 +355,7 @@ def azimuthal_equidistant(cr):
 
     https://proj.org/en/stable/operations/projections/aeqd.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -386,7 +386,7 @@ def geostationary(cr):
 
     https://proj.org/en/stable/operations/projections/geos.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -458,7 +458,7 @@ def lambert_azimuthal_equal_area(cr):
 
     https://proj.org/en/stable/operations/projections/laea.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -488,7 +488,7 @@ def lambert_conformal_conic(cr):
 
     https://proj.org/en/stable/operations/projections/lcc.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -533,7 +533,7 @@ def lambert_cylindrical_equal_area(cr):
 
     https://proj.org/en/stable/operations/projections/cea.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -568,7 +568,7 @@ def lambert_cylindrical_equal_area(cr):
 def latitude_longitude(cr):
     """Create a latitude_longitude CRS.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -597,7 +597,7 @@ def mercator(cr):
 
     https://proj.org/en/stable/operations/projections/merc.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -634,7 +634,7 @@ def oblique_mercator(cr):
 
     https://proj.org/en/stable/operations/projections/omerc.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -666,7 +666,7 @@ def orthographic(cr):
 
     https://proj.org/en/stable/operations/projections/ortho.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -696,7 +696,7 @@ def polar_stereographic(cr):
 
     https://proj.org/en/stable/operations/projections/stere.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -764,7 +764,7 @@ def rotated_latitude_longitude(cr):
 
     https://proj.org/en/stable/operations/projections/ob_tran.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -808,7 +808,7 @@ def sinusoidal(cr):
 
     https://proj.org/en/stable/operations/projections/sinu.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -838,7 +838,7 @@ def stereographic(cr):
 
     https://proj.org/en/stable/operations/projections/stere.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -869,7 +869,7 @@ def transverse_mercator(cr):
 
     https://proj.org/en/stable/operations/projections/tmerc.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -901,7 +901,7 @@ def vertical_perspective(cr):
 
     https://proj.org/en/stable/operations/projections/nsper.html
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
@@ -930,7 +930,7 @@ def vertical_perspective(cr):
 def create_projection_CRS(cr, grid_mapping_name):
     """Create a projection CRS.
 
-    .. versionadded:: NEXTVERSION
+    .. versionadded:: 3.21.0
 
     :Parameters:
 
