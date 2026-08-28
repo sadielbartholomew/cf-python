@@ -37,6 +37,7 @@ Version NEXTVERSION
   (https://github.com/NCAS-CMS/cf-python/issues/933)
 * New optional dependency: ``umfive>=0.3.0``
 * New optional dependency: ``xarray>=2026.7.0``
+* Changed dependency: ``cfdm>=1.13.3.0, <1.13.4.0``
 
 ----
 
