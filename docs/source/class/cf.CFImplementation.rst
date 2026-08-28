@@ -146,6 +146,7 @@ Methods
    ~cf.CFImplementation.initialise_SubsampledArray
    ~cf.CFImplementation.initialise_TiePointIndex
    ~cf.CFImplementation.initialise_ZarrArray
+   ~cf.CFImplementation.initialise_XnetcdfArray
    ~cf.CFImplementation.is_climatology
    ~cf.CFImplementation.is_domain
    ~cf.CFImplementation.is_field

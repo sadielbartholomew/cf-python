@@ -31,11 +31,17 @@ Methods
    ~cf.AggregatedArray.file_directory
    ~cf.AggregatedArray.get_address
    ~cf.AggregatedArray.get_attributes
+   ~cf.AggregatedArray.get_backend
+   ~cf.AggregatedArray.get_backend_options
    ~cf.AggregatedArray.get_calendar
    ~cf.AggregatedArray.get_compression_type
    ~cf.AggregatedArray.get_filename
+   ~cf.AggregatedArray.get_filesystem
    ~cf.AggregatedArray.get_fragment_array
    ~cf.AggregatedArray.get_fragment_array_shape
+   ~cf.AggregatedArray.get_fragment_backend
+   ~cf.AggregatedArray.get_fragment_backend_options
+   ~cf.AggregatedArray.get_fragment_filesystem
    ~cf.AggregatedArray.get_fragment_type
    ~cf.AggregatedArray.get_fragmented_dimensions
    ~cf.AggregatedArray.get_mask
