@@ -279,8 +279,6 @@ environments for which these features are not required.
 
   For converting fields and domains to `xarray` datasets in memory.
 
-.. rubric:: Regridding
-
 .. rubric:: umfive
 
 * `umfive <https://pypi.org/project/umfive>`_, version 0.3.0 or newer.
