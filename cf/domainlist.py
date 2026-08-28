@@ -8,7 +8,7 @@ class DomainList(mixin.FieldDomainList, ConstructList):
     indexing and methods like `!append`). These methods provide
     functionality similar to that of a built-in list. The main
     difference is that when a domain construct element needs to be
-    assesed for equality its `~cf.Domain.equals` method is used,
+    assessed for equality its `~cf.Domain.equals` method is used,
     rather than the ``==`` operator.
 
     .. versionadded:: 3.11.0

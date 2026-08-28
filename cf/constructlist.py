@@ -42,7 +42,7 @@ class ConstructList(list, Container, cfdm.Container):
 
     Such methods provide functionality similar to that of a
     :ref:`built-in list <python:tut-morelists>`. The main difference
-    is that when an element needs to be assesed for equality its
+    is that when an element needs to be assessed for equality its
     `!equals` method is used, rather than the ``==`` operator.
 
     """

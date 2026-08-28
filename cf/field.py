@@ -4970,7 +4970,7 @@ class Field(mixin.FieldDomain, mixin.PropertiesData, cfdm.Field):
 
         Set the refinement level to 0, showing that every 4 cells
         (i.e. the number of cells at the original refinement level
-        that lie in one cell of the lower refinement leve1) in the
+        that lie in one cell of the lower refinement level) in the
         original field correspond to one cell at the lower level:
 
         >>> g = f.healpix_decrease_refinement_level(0, 'maximum')
