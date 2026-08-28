@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cf.Domain.create_latlon_coordinates &#8212; Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/customise-alabaster.css?v=5dec66a6" />
+    <script src="../_static/documentation_options.js?v=be4f90db"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=a56c686a"></script>
+    <script src="../_static/toggleprompt.js?v=99cb1901"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cf.Domain.create_regular" href="cf.Domain.create_regular.html" />
+    <link rel="prev" title="cf.Domain.copy" href="cf.Domain.copy.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.svg" alt="Logo of Python cf package"/>
+            </a></p>
+
+
+
+<h1 class="logo"><a href="../index.html">cf 3.21.0</a></h1>
+
+
+
+<p class="blurb">A CF-compliant earth science data analysis library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=NCAS-CMS&repo=cf-python&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html"><strong>Installation</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cheat_sheet.html"><strong>Cheat Sheet</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recipes/index.html"><strong>Recipes using cf</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html"><strong>Tutorial</strong></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html"><strong>API reference</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aggregation_rules.html"><strong>Aggregation rules</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance.html"><strong>Performance</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html"><strong>Releases</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html"><strong>Change log</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html"><strong>Contributing</strong></a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api_reference.html"><strong>API reference</strong></a><ul>
+  <li><a href="../class.html"><strong>cf classes</strong></a><ul>
+  <li><a href="../class/cf.Domain.html">cf.Domain</a><ul>
+      <li>Previous: <a href="cf.Domain.copy.html" title="previous chapter">cf.Domain.copy</a></li>
+      <li>Next: <a href="cf.Domain.create_regular.html" title="next chapter">cf.Domain.create_regular</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+<br>
+cf development has been supported by
+the <a href="https://erc.europa.eu/">ERC</a>
+through <a href="https://cordis.europa.eu/project/id/247220">Seachange</a>
+and
+<a href="https://cordis.europa.eu/project/id/786427">Couplet</a>; by
+the <a href="https://ec.europa.eu/programmes/horizon2020/">EC Horizon
+2020 programme</a> through
+<a href="https://cordis.europa.eu/project/id/824084">IS-ENES3</a>;
+by <a href="https://nerc.ukri.org/">NERC</a> through
+<a href="https://gtr.ukri.org/project/0D95A6DB-0B95-48F7-8A8B-7B9A47DEA117">UKFAFMIP</a>;
+and by <a href="https://ncas.ac.uk/">NCAS</a>.
+<br>
+<br>
+<img src="../_static/logo_EC.png" height="40">
+<img src="../_static/logo_ERC.png" height="40">
+<img src="../_static/logo_NERC.png" height="40">
+<br>
+<img src="../_static/logo_NCAS.png" height="40">
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cf-domain-create-latlon-coordinates">
+<h1>cf.Domain.create_latlon_coordinates<a class="headerlink" href="#cf-domain-create-latlon-coordinates" title="Link to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="cf.Domain.create_latlon_coordinates">
+<span class="sig-prename descclassname"><span class="pre">Domain.</span></span><span class="sig-name descname"><span class="pre">create_latlon_coordinates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cfdm/blob/v1.13.3.0/cfdm/decorators.py#L36-L49"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cf.Domain.create_latlon_coordinates" title="Link to this definition">¶</a></dt>
+<dd><p>Create latitude and longitude coordinates.</p>
+<p>Creates 1-d or 2-d latitude and longitude coordinate
+constructs that are implied by the Domain coordinate
+reference constructs. By default (or if <em>overwrite</em> is False),
+new coordinates are only created if the Domain doesn’t
+already include any latitude or longitude coordinates.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Latitude and longitude coordinates can only be
+created if each relevant coordinate reference
+construct has a <code class="docutils literal notranslate"><span class="pre">grid_mapping_name</span></code> parameter set
+to a valid CF grid mapping name, and this is also
+the case when there is a <code class="docutils literal notranslate"><span class="pre">crs_wkt</span></code> parameter. See
+CF 5.6.1: Use of the CRS Well-known Text Format
+(<a class="reference external" href="https://doi.org/10.5281/zenodo.14274886">https://doi.org/10.5281/zenodo.14274886</a>).</p>
+</div>
+<p>When it is not possible to create latitude and longitude
+coordinates, the reason why will be reported if the log level
+is at <code class="docutils literal notranslate"><span class="pre">2</span></code>/<code class="docutils literal notranslate"><span class="pre">'INFO'</span></code> or higher (as set by <a class="reference internal" href="../function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> or
+the <em>verbose</em> parameter).</p>
+<p>If the log level is at <code class="docutils literal notranslate"><span class="pre">3</span></code>/<code class="docutils literal notranslate"><span class="pre">'DEBUG'</span></code>/<code class="docutils literal notranslate"><span class="pre">-1</span></code> then
+information on how the latitude and longitude coordinates were
+created is also reported.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.20.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="cf.Domain.healpix_to_ugrid.html#cf.Domain.healpix_to_ugrid" title="cf.Domain.healpix_to_ugrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">healpix_to_ugrid</span></code></a></p>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt>one_d: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional`</dt><dd><p>If True (the default) then consider creating 1-d
+latitude and longitude coordinates. If False then 1-d
+coordinates will not be created.</p>
+</dd>
+<dt>two_d: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional`</dt><dd><p>If True (the default) then consider creating 2-d
+latitude and longitude coordinates. If False then 2-d
+coordinates will not be created.</p>
+</dd>
+<dt>longitude_at_pole: <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> or number</dt><dd><p>Define the treatment of longitudes of coordinates or
+coordinate bounds that lie exactly on the north or
+south pole. If <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> (the default) then the
+longitudes of such points are determined by whichever
+algorithm was used to create the coordinates, which
+could result in different grid points on a pole having
+different longitudes. If set to a number, then the
+longitudes of all grid points on the north or south
+pole will be given that value.</p>
+</dd>
+<dt>overwrite: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt><dd><p>If True then remove any existing latitude and
+longitude coordinates, prior to attempting to create
+new ones. If False (the default) then if any latitude
+or longitude coordinates already exist, new ones will
+not be created. Note that when <em>overwrite</em> is True and
+no new coordinates could be created, the returned
+field will not have any latitude and longitude
+coordinates.</p>
+</dd>
+<dt>cache: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt><dd><p>If True (the default) then cache in memory the first
+and last values of any newly-created coordinates and
+bounds. This may greatly speed up, and reduce the
+memory requirement of, a future inspection of the
+coordinates and bounds. Even when <em>cache</em> is True, new
+cached values will only be created if the existing
+source coordinates (from which the newly-created
+latitude and longitude coordinates are calculated)
+have cached first and last values.</p>
+</dd>
+<dt>inplace: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt><dd><p>If True then do the operation in-place and return
+<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
+</dd>
+<dt>verbose: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, optional</dt><dd><p>If an integer from <code class="docutils literal notranslate"><span class="pre">-1</span></code> to <code class="docutils literal notranslate"><span class="pre">3</span></code>, or an equivalent
+string equal ignoring case to one of:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'DISABLE'</span></code> (<code class="docutils literal notranslate"><span class="pre">0</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'WARNING'</span></code> (<code class="docutils literal notranslate"><span class="pre">1</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'INFO'</span></code> (<code class="docutils literal notranslate"><span class="pre">2</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'DETAIL'</span></code> (<code class="docutils literal notranslate"><span class="pre">3</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'DEBUG'</span></code> (<code class="docutils literal notranslate"><span class="pre">-1</span></code>)</p></li>
+</ul>
+<p>set for the duration of the method call only as the
+minimum cut-off for the verboseness level of displayed
+output (log) messages, regardless of the
+globally-configured <a class="reference internal" href="../function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a>. Note that
+increasing numerical value corresponds to increasing
+verbosity, with the exception of <code class="docutils literal notranslate"><span class="pre">-1</span></code> as a special
+case of maximal and extreme verbosity.</p>
+<p>Otherwise, if <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> (the default value), output
+messages will be shown according to the value of the
+<a class="reference internal" href="../function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> setting.</p>
+<p>Overall, the higher a non-negative integer or
+equivalent string that is set (up to a maximum of
+<code class="docutils literal notranslate"><span class="pre">3</span></code>/<code class="docutils literal notranslate"><span class="pre">'DETAIL'</span></code>) for increasing verbosity, the more
+description that is printed to convey information
+about the operation.</p>
+</dd>
+<dt>pole_longitude: Deprecated at version 3.21.0</dt><dd><p>Use <em>longitude_at_pole</em> instead.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="../class/cf.Domain.html#cf.Domain" title="cf.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></dt><dd><p>The Domain with new latitude and longitude
+constructs, if any could be created. If the operation
+was in-place then <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> is returned.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">Field: air_temperature (ncvar%tas)</span>
+<span class="go">----------------------------------</span>
+<span class="go">Data            : air_temperature(time(2), healpix_index(48)) K</span>
+<span class="go">Cell methods    : time(2): mean area: mean</span>
+<span class="go">Dimension coords: time(2) = [2025-06-16 00:00:00, 2025-07-16 12:00:00] proleptic_gregorian</span>
+<span class="go">                : healpix_index(healpix_index(48)) = [0, ..., 47]</span>
+<span class="go">                : height(1) = [1.5] m</span>
+<span class="go">Coord references: grid_mapping_name:healpix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_latlon_coordinates</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+<span class="go">Field: air_temperature (ncvar%tas)</span>
+<span class="go">----------------------------------</span>
+<span class="go">Data            : air_temperature(time(2), healpix_index(48)) K</span>
+<span class="go">Cell methods    : time(2): mean area: mean</span>
+<span class="go">Dimension coords: time(2) = [2025-06-16 00:00:00, 2025-07-16 12:00:00] proleptic_gregorian</span>
+<span class="go">                : healpix_index(48) = [0, ..., 47]</span>
+<span class="go">                : height(1) = [1.5] m</span>
+<span class="go">Auxiliary coords: latitude(healpix_index(48)) = [19.47122063449069, ..., -19.47122063449069] degrees_north</span>
+<span class="go">                : longitude(healpix_index(48)) = [45.0, ..., 315.0] degrees_east</span>
+<span class="go">Coord references: grid_mapping_name:healpix</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, NCAS | Page built on 2026-08-28.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

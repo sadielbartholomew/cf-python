@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cf.Field.healpix_info &#8212; Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/customise-alabaster.css?v=5dec66a6" />
+    <script src="../_static/documentation_options.js?v=be4f90db"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=a56c686a"></script>
+    <script src="../_static/toggleprompt.js?v=99cb1901"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cf.Field.healpix_change_indexing_scheme" href="cf.Field.healpix_change_indexing_scheme.html" />
+    <link rel="prev" title="cf.Field.healpix_increase_refinement_level" href="cf.Field.healpix_increase_refinement_level.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.svg" alt="Logo of Python cf package"/>
+            </a></p>
+
+
+
+<h1 class="logo"><a href="../index.html">cf 3.21.0</a></h1>
+
+
+
+<p class="blurb">A CF-compliant earth science data analysis library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=NCAS-CMS&repo=cf-python&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html"><strong>Installation</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cheat_sheet.html"><strong>Cheat Sheet</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recipes/index.html"><strong>Recipes using cf</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html"><strong>Tutorial</strong></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html"><strong>API reference</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aggregation_rules.html"><strong>Aggregation rules</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance.html"><strong>Performance</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html"><strong>Releases</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html"><strong>Change log</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html"><strong>Contributing</strong></a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api_reference.html"><strong>API reference</strong></a><ul>
+  <li><a href="../class.html"><strong>cf classes</strong></a><ul>
+  <li><a href="../class/cf.Field.html">cf.Field</a><ul>
+      <li>Previous: <a href="cf.Field.healpix_increase_refinement_level.html" title="previous chapter">cf.Field.healpix_increase_refinement_level</a></li>
+      <li>Next: <a href="cf.Field.healpix_change_indexing_scheme.html" title="next chapter">cf.Field.healpix_change_indexing_scheme</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+<br>
+cf development has been supported by
+the <a href="https://erc.europa.eu/">ERC</a>
+through <a href="https://cordis.europa.eu/project/id/247220">Seachange</a>
+and
+<a href="https://cordis.europa.eu/project/id/786427">Couplet</a>; by
+the <a href="https://ec.europa.eu/programmes/horizon2020/">EC Horizon
+2020 programme</a> through
+<a href="https://cordis.europa.eu/project/id/824084">IS-ENES3</a>;
+by <a href="https://nerc.ukri.org/">NERC</a> through
+<a href="https://gtr.ukri.org/project/0D95A6DB-0B95-48F7-8A8B-7B9A47DEA117">UKFAFMIP</a>;
+and by <a href="https://ncas.ac.uk/">NCAS</a>.
+<br>
+<br>
+<img src="../_static/logo_EC.png" height="40">
+<img src="../_static/logo_ERC.png" height="40">
+<img src="../_static/logo_NERC.png" height="40">
+<br>
+<img src="../_static/logo_NCAS.png" height="40">
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cf-field-healpix-info">
+<h1>cf.Field.healpix_info<a class="headerlink" href="#cf-field-healpix-info" title="Link to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="cf.Field.healpix_info">
+<span class="sig-prename descclassname"><span class="pre">Field.</span></span><span class="sig-name descname"><span class="pre">healpix_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.21.0/cf/mixin/fielddomain.py#L2231-L2287"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cf.Field.healpix_info" title="Link to this definition">¶</a></dt>
+<dd><p>Get information about the HEALPix grid, if there is one.</p>
+<p>See CF Appendix F: Grid Mappings.
+<a class="reference external" href="https://doi.org/10.5281/zenodo.14274886">https://doi.org/10.5281/zenodo.14274886</a></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.20.0.</span></p>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></p>
+<blockquote>
+<div><p>The information about the HEALPix axis, with some or
+all of the following dictionary keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">'coordinate_reference_key'</span></code>: The construct key of
+the healpix coordinate reference construct.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'grid_mapping_name:healpix'</span></code>: The healpix
+coordinate reference construct.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'indexing_scheme'</span></code>: The HEALPix indexing scheme.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'refinement_level'</span></code>: The refinement level of the
+HEALPix grid.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'domain_axis_key'</span></code>: The construct key of the
+HEALPix domain axis construct.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'coordinate_key'</span></code>: The construct key of the
+healpix_index coordinate construct.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'healpix_index'</span></code>: The healpix_index coordinate
+construct.</p></li>
+</ul>
+<p>The dictionary will be empty if there is no HEALPix axis.</p>
+</div></blockquote>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">healpix_info</span><span class="p">()</span>
+<span class="go">{&#39;coordinate_reference_key&#39;: &#39;coordinatereference0&#39;,</span>
+<span class="go"> &#39;grid_mapping_name:healpix&#39;: &lt;CF CoordinateReference: grid_mapping_name:healpix&gt;,</span>
+<span class="go"> &#39;indexing_scheme&#39;: &#39;nested&#39;,</span>
+<span class="go"> &#39;refinement_level&#39;: 1,</span>
+<span class="go"> &#39;domain_axis_key&#39;: &#39;domainaxis1&#39;,</span>
+<span class="go"> &#39;coordinate_key&#39;: &#39;auxiliarycoordinate0&#39;,</span>
+<span class="go"> &#39;healpix_index&#39;: &lt;CF DimensionCoordinate: healpix_index(48)&gt;}</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">healpix_info</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">{}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, NCAS | Page built on 2026-08-28.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

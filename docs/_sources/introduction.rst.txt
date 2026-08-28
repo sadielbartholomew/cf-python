@@ -68,13 +68,12 @@ The `cf` package can:
 
 * read :term:`field constructs <field construct>` and :term:`domain
   constructs <domain construct>` from netCDF, CDL, Zarr, Kerchunk, PP
-  and UM datasets with a choice of netCDF backends,
+  and UM datasets with a choice of netCDF backends, including from local,
+  HTTP, OPeNDAP and S3 locations,
 
-* read files from OPeNDAP servers and S3 object stores,
+* be fully flexible with respect to dataset storage chunking,
 
-* be fully flexible with respect to dataset chunking,
-
-* create new field constructs in memory,
+* create new field and domain constructs in memory,
 
 * write and append field and domain constructs to netCDF and Zarr
   v3 datasets on disk, with control over HDF5 internal file metadata,
@@ -85,7 +84,20 @@ The `cf` package can:
 
 * read, write, and create coordinates defined by geometry cells,
 
-* read netCDF and CDL datasets containing hierarchical groups,
+* read and write netCDF4 string data-type variables,
+
+* read, write, and create netCDF and CDL datasets containing hierarchical
+  groups,
+
+* read, write, and create data that have been compressed by convention
+  (i.e. ragged or gathered arrays, or coordinate arrays compressed by
+  subsampling), whilst presenting a view of the data in its
+  uncompressed form,
+
+* read and write data that are quantized to eliminate false
+  precision,
+
+* convert field and domain constructs to `xarray` datasets in memory,
 
 * inspect field constructs,
 
@@ -96,11 +108,6 @@ The `cf` package can:
 * create subspaces of field constructs,
 
 * incorporate, and create, metadata stored in external files,
-
-* read, write, and create data that have been compressed by convention
-  (i.e. ragged or gathered arrays, or coordinate arrays compressed by
-  subsampling), whilst presenting a view of the data in its
-  uncompressed form,
 
 * combine field constructs arithmetically,
 
@@ -123,12 +130,10 @@ The `cf` package can:
 
 * create running means from field constructs,
 
-* apply differential operators to field constructs,
+* apply differential operators to field constructs, and
 
-* create derived quantities (such as relative vorticity),
+* create derived quantities (such as relative vorticity).
 
-* read and write data that are quantized to eliminate false
-  precision.
 
 ----
 

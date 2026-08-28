@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cf.Field.healpix_increase_refinement_level &#8212; Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/customise-alabaster.css?v=5dec66a6" />
+    <script src="../_static/documentation_options.js?v=be4f90db"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=a56c686a"></script>
+    <script src="../_static/toggleprompt.js?v=99cb1901"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cf.Field.healpix_info" href="cf.Field.healpix_info.html" />
+    <link rel="prev" title="cf.Field.healpix_decrease_refinement_level" href="cf.Field.healpix_decrease_refinement_level.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.svg" alt="Logo of Python cf package"/>
+            </a></p>
+
+
+
+<h1 class="logo"><a href="../index.html">cf 3.21.0</a></h1>
+
+
+
+<p class="blurb">A CF-compliant earth science data analysis library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=NCAS-CMS&repo=cf-python&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html"><strong>Installation</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cheat_sheet.html"><strong>Cheat Sheet</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recipes/index.html"><strong>Recipes using cf</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html"><strong>Tutorial</strong></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html"><strong>API reference</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aggregation_rules.html"><strong>Aggregation rules</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance.html"><strong>Performance</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html"><strong>Releases</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html"><strong>Change log</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html"><strong>Contributing</strong></a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api_reference.html"><strong>API reference</strong></a><ul>
+  <li><a href="../class.html"><strong>cf classes</strong></a><ul>
+  <li><a href="../class/cf.Field.html">cf.Field</a><ul>
+      <li>Previous: <a href="cf.Field.healpix_decrease_refinement_level.html" title="previous chapter">cf.Field.healpix_decrease_refinement_level</a></li>
+      <li>Next: <a href="cf.Field.healpix_info.html" title="next chapter">cf.Field.healpix_info</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+<br>
+cf development has been supported by
+the <a href="https://erc.europa.eu/">ERC</a>
+through <a href="https://cordis.europa.eu/project/id/247220">Seachange</a>
+and
+<a href="https://cordis.europa.eu/project/id/786427">Couplet</a>; by
+the <a href="https://ec.europa.eu/programmes/horizon2020/">EC Horizon
+2020 programme</a> through
+<a href="https://cordis.europa.eu/project/id/824084">IS-ENES3</a>;
+by <a href="https://nerc.ukri.org/">NERC</a> through
+<a href="https://gtr.ukri.org/project/0D95A6DB-0B95-48F7-8A8B-7B9A47DEA117">UKFAFMIP</a>;
+and by <a href="https://ncas.ac.uk/">NCAS</a>.
+<br>
+<br>
+<img src="../_static/logo_EC.png" height="40">
+<img src="../_static/logo_ERC.png" height="40">
+<img src="../_static/logo_NERC.png" height="40">
+<br>
+<img src="../_static/logo_NCAS.png" height="40">
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cf-field-healpix-increase-refinement-level">
+<h1>cf.Field.healpix_increase_refinement_level<a class="headerlink" href="#cf-field-healpix-increase-refinement-level" title="Link to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="cf.Field.healpix_increase_refinement_level">
+<span class="sig-prename descclassname"><span class="pre">Field.</span></span><span class="sig-name descname"><span class="pre">healpix_increase_refinement_level</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refinement_level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quantity</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.21.0/cf/field.py#L5267-L5530"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cf.Field.healpix_increase_refinement_level" title="Link to this definition">¶</a></dt>
+<dd><p>Increase the refinement level of a HEALPix grid.</p>
+<p>Increasing the HEALPix refinement level increases the
+resolution of the HEALPix grid by broadcasting the Field data
+from each original cell to all of the new smaller cells at the
+new higher refinement level that lie inside it.</p>
+<p>It must be specified whether the field data contains an
+extensive or intensive quantity. An intensive quantity does
+not depend on the size of the cells (such as “sea_ice_amount”
+with units of kg m-2, or “air_temperature” with units of K),
+and an extensive quantity does depend on the size of the cells
+(such as “sea_ice_mass” with units of kg, or “cell_area” with
+units of m2). For an extensive quantity only, the broadcast
+values are reduced to be consistent with the new smaller cell
+areas (by dividing them by the number of new cells per
+original cell).</p>
+<p>See CF Appendix F: Grid Mappings.
+<a class="reference external" href="https://doi.org/10.5281/zenodo.14274886">https://doi.org/10.5281/zenodo.14274886</a></p>
+<p><strong>Performance</strong></p>
+<p>High refinement levels may require the setting of a very large
+Dask chunksize, to prevent a possible run-time failure
+resulting from an attempt to create an excessive amount of
+chunks for the healpix_index coordinates. For instance, with
+the default Dask chunksize of 128 MiB, healpix_index
+coordinates at refinement level 29 would need ~206 billion
+Dask chunks, which is almost certainly more than enough to
+cause a crash. In this case, a Dask chunksize of 1 pebibyte
+results in only 24576 Dask chunks, a much more manageable
+amount:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">chunksize</span><span class="p">()</span>
+<span class="go">&lt;CF Constant: 134217728&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">g</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">g</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">816</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">cf</span><span class="o">.</span><span class="n">chunksize</span><span class="p">(</span><span class="s1">&#39;1 PiB&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">29</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">g</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">24576</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.20.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="cf.Field.healpix_decrease_refinement_level.html#cf.Field.healpix_decrease_refinement_level" title="cf.Field.healpix_decrease_refinement_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">healpix_decrease_refinement_level</span></code></a>,
+<a class="reference internal" href="cf.Field.healpix_info.html#cf.Field.healpix_info" title="cf.Field.healpix_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">healpix_info</span></code></a>, <a class="reference internal" href="cf.Field.healpix_change_indexing_scheme.html#cf.Field.healpix_change_indexing_scheme" title="cf.Field.healpix_change_indexing_scheme"><code class="xref py py-obj docutils literal notranslate"><span class="pre">healpix_change_indexing_scheme</span></code></a>,
+<a class="reference internal" href="cf.Field.healpix_to_ugrid.html#cf.Field.healpix_to_ugrid" title="cf.Field.healpix_to_ugrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">healpix_to_ugrid</span></code></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>refinement_level: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></dt><dd><p>Specify the new higher refinement level as an integer
+greater than or equal to the current refinement level,
+or if <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> then the refinement level is not changed.</p>
+</dd>
+<dt>quantity: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></dt><dd><p>Whether the Field data represent intensive or
+extensive quantities, specified with <code class="docutils literal notranslate"><span class="pre">'intensive'</span></code>
+and <code class="docutils literal notranslate"><span class="pre">'extensive'</span></code> respectively.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="../class/cf.Field.html#cf.Field" title="cf.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Field</span></code></a></dt><dd><p>A new Field with the new HEALPix grid. The HEALPix
+indices of this field will follow the nested indexing
+scheme.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">Field: air_temperature (ncvar%tas)</span>
+<span class="go">----------------------------------</span>
+<span class="go">Data            : air_temperature(time(2), healpix_index(48)) K</span>
+<span class="go">Cell methods    : time(2): mean area: mean</span>
+<span class="go">Dimension coords: time(2) = [2025-06-16 00:00:00, 2025-07-16 12:00:00] proleptic_gregorian</span>
+<span class="go">                : healpix_index(48) = [0, ..., 47]</span>
+<span class="go">                : height(1) = [1.5] m</span>
+<span class="go">Coord references: grid_mapping_name:healpix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="o">.</span><span class="n">healpix_info</span><span class="p">()[</span><span class="s1">&#39;refinement_level&#39;</span><span class="p">]</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span>
+<span class="go">&lt;CF Field: air_temperature(time(2), healpix_index(768)) K&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">healpix_info</span><span class="p">()[</span><span class="s1">&#39;refinement_level&#39;</span><span class="p">]</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span>
+<span class="go">&lt;CF Field: air_temperature(time(2), healpix_index(12582912)) K&gt;</span>
+</pre></div>
+</div>
+<p>Set the refinement level to 2, showing that, for an intensive
+quantity, every 4 cells at the higher refinement level
+(i.e. the number of cells at the higher refinement level that
+lie in one cell of the original refinement level) have the
+same value as a single cell at the original refinement level:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;intensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span>
+<span class="go">&lt;CF Field: air_temperature(time(2), healpix_index(192)) K&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">healpix_info</span><span class="p">()[</span><span class="s1">&#39;refinement_level&#39;</span><span class="p">]</span>
+<span class="go">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">.</span><span class="n">array</span><span class="p">)</span>
+<span class="go">[[291.5 293.5]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">.</span><span class="n">array</span><span class="p">)</span>
+<span class="go">[[291.5 291.5 291.5 291.5 293.5 293.5 293.5 293.5]]</span>
+</pre></div>
+</div>
+<p>For an extensive quantity (which the <code class="docutils literal notranslate"><span class="pre">f</span></code> in this example is
+not, but we can assume that it is for demonstration purposes),
+each output cell has the value of the original cell in which
+it lies, divided by the ratio of the cells’ areas (4 in this
+case):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">healpix_increase_refinement_level</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;extensive&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">.</span><span class="n">array</span><span class="p">)</span>
+<span class="go">[[291.5 293.5]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">.</span><span class="n">array</span><span class="p">)</span>
+<span class="go">[[72.875 72.875 72.875 72.875 73.375 73.375 73.375 73.375]]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, NCAS | Page built on 2026-08-28.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

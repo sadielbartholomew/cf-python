@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cf.Domain.create_healpix &#8212; Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/customise-alabaster.css?v=5dec66a6" />
+    <script src="../_static/documentation_options.js?v=be4f90db"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=a56c686a"></script>
+    <script src="../_static/toggleprompt.js?v=99cb1901"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cf.Domain.creation_commands" href="cf.Domain.creation_commands.html" />
+    <link rel="prev" title="cf.Domain.create_regular" href="cf.Domain.create_regular.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.svg" alt="Logo of Python cf package"/>
+            </a></p>
+
+
+
+<h1 class="logo"><a href="../index.html">cf 3.21.0</a></h1>
+
+
+
+<p class="blurb">A CF-compliant earth science data analysis library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=NCAS-CMS&repo=cf-python&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html"><strong>Installation</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cheat_sheet.html"><strong>Cheat Sheet</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recipes/index.html"><strong>Recipes using cf</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html"><strong>Tutorial</strong></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html"><strong>API reference</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aggregation_rules.html"><strong>Aggregation rules</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance.html"><strong>Performance</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html"><strong>Releases</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html"><strong>Change log</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html"><strong>Contributing</strong></a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api_reference.html"><strong>API reference</strong></a><ul>
+  <li><a href="../class.html"><strong>cf classes</strong></a><ul>
+  <li><a href="../class/cf.Domain.html">cf.Domain</a><ul>
+      <li>Previous: <a href="cf.Domain.create_regular.html" title="previous chapter">cf.Domain.create_regular</a></li>
+      <li>Next: <a href="cf.Domain.creation_commands.html" title="next chapter">cf.Domain.creation_commands</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+<br>
+cf development has been supported by
+the <a href="https://erc.europa.eu/">ERC</a>
+through <a href="https://cordis.europa.eu/project/id/247220">Seachange</a>
+and
+<a href="https://cordis.europa.eu/project/id/786427">Couplet</a>; by
+the <a href="https://ec.europa.eu/programmes/horizon2020/">EC Horizon
+2020 programme</a> through
+<a href="https://cordis.europa.eu/project/id/824084">IS-ENES3</a>;
+by <a href="https://nerc.ukri.org/">NERC</a> through
+<a href="https://gtr.ukri.org/project/0D95A6DB-0B95-48F7-8A8B-7B9A47DEA117">UKFAFMIP</a>;
+and by <a href="https://ncas.ac.uk/">NCAS</a>.
+<br>
+<br>
+<img src="../_static/logo_EC.png" height="40">
+<img src="../_static/logo_ERC.png" height="40">
+<img src="../_static/logo_NERC.png" height="40">
+<br>
+<img src="../_static/logo_NCAS.png" height="40">
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cf-domain-create-healpix">
+<h1>cf.Domain.create_healpix<a class="headerlink" href="#cf-domain-create-healpix" title="Link to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="cf.Domain.create_healpix">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">Domain.</span></span><span class="sig-name descname"><span class="pre">create_healpix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refinement_level</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexing_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nested'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.21.0/cf/domain.py#L266-L481"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cf.Domain.create_healpix" title="Link to this definition">¶</a></dt>
+<dd><p>Create a new global HEALPix grid.</p>
+<p>The HEALPix axis of the new Domain is ordered so that the
+HEALPix indices are monotonically increasing.</p>
+<p>See CF Appendix F: Grid Mappings.
+<a class="reference external" href="https://doi.org/10.5281/zenodo.14274886">https://doi.org/10.5281/zenodo.14274886</a></p>
+<p><strong>Performance</strong></p>
+<p>High refinement levels may require the setting of a very large
+Dask chunksize, to prevent a possible run-time failure
+resulting from an attempt to create an excessive amount of
+chunks for the healpix_index coordinates. For instance, with
+the default Dask chunksize of 128 MiB, healpix_index
+coordinates at refinement level 29 would need ~206 billion
+Dask chunks, which is almost certainly more than enough to
+cause a crash. In this case, a Dask chunksize of 1 pebibyte
+results in only 24576 Dask chunks, a much more manageable
+amount:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">chunksize</span><span class="p">()</span>
+<span class="go">&lt;CF Constant: 134217728&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_healpix</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_healpix</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">768</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">cf</span><span class="o">.</span><span class="n">chunksize</span><span class="p">(</span><span class="s1">&#39;1 PiB&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">d</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_healpix</span><span class="p">(</span><span class="mi">29</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s1">&#39;healpix_index&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">npartitions</span> <span class="o">==</span> <span class="mi">24576</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3.20.0.</span></p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="cf.Domain.create_regular.html#cf.Domain.create_regular" title="cf.Domain.create_regular"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain.create_regular</span></code></a>,
+<a class="reference internal" href="cf.Domain.create_latlon_coordinates.html#cf.Domain.create_latlon_coordinates" title="cf.Domain.create_latlon_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain.create_latlon_coordinates</span></code></a></p>
+</div>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt>refinement_level: <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></dt><dd><p>The refinement level of the grid within the HEALPix
+hierarchy, starting at 0 for the base tessellation
+with 12 cells. The number of cells in the global
+HEALPix grid for refinement level <em>n</em> is
+<span class="math notranslate nohighlight">\(12\times 4^n\)</span>.</p>
+</dd>
+<dt>indexing_scheme: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></dt><dd><p>The HEALPix indexing scheme. One of <code class="docutils literal notranslate"><span class="pre">'nested'</span></code> (the
+default), <code class="docutils literal notranslate"><span class="pre">'ring'</span></code>, <code class="docutils literal notranslate"><span class="pre">'nuniq'</span></code>, or <code class="docutils literal notranslate"><span class="pre">'zuniq'</span></code>.</p>
+<p>The nested scheme indexes with consecutive indices the
+pixels inside a single coarser refinement level
+cell. When the indices are sorted monotonically, the
+scheme is optimised for data retrievals within a
+geographical range.</p>
+<p>The ring scheme indexes with consecutive indices the
+pixels moving down from the north to the south pole
+along each isolatitude ring. When the indices are
+sorted monotonically, the scheme is optimised for data
+retrievals along latitude bands, such as required for
+spherical harmonics.</p>
+<p>When the HEALPix axis is ordered with monotonically
+increasing indices, each type of indexing scheme is
+optimised for different types of operation. For
+instance, the ring scheme is optimised for Fourier
+transforms with spherical harmonics; and the nested
+scheme is optimised for geographical nearest-neighbour
+operations such as decreasing the refinement level.</p>
+<p>A Multi-Order Coverage (MOC) has pixels with different
+refinement levels stored in the same array. An
+indexing scheme for an MOC has a unique index for each
+cell at each refinement level.</p>
+<p>The nuniq scheme defines MOC indices such that all
+cells within a particular refinement level form a set
+of consecutive integers. E.g. for refinement level 0
+the indices are 4, …, 15, for refinement level 1 the
+indices are 16, …, 63, for refinement level 2 the
+indices are 64, …, 255, etc. When the indices are
+sorted monotonically, the scheme is optimised for data
+retrievals within a refinement level and within a
+geographical range.</p>
+<p>The zuniq scheme defines MOC indices such that, for
+adjacent refinement levels, cells in the proximity of
+a particular geographical location have similar index
+values. This means that the indices for a particular
+refinement level do not form a set of consecutive
+integers. In fact the difference between the smallest
+and largest indices within any given refinement level
+is <span class="math notranslate nohighlight">\(O(10^19)\)</span>. When the indices are sorted
+monotonically, the scheme is optimised for data
+retrievals across refinement levels.</p>
+</dd>
+<dt>radius: optional</dt><dd><p>Specify the radius of the latitude-longitude plane
+defined in spherical polar coordinates. May be set to
+any numeric scalar object, including <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span></code></a> and
+<a class="reference internal" href="../class/cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects. The units of the radius are assumed to
+be metres, unless specified by a <a class="reference internal" href="../class/cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> object. If the
+special value <code class="docutils literal notranslate"><span class="pre">'earth'</span></code> is given then the radius
+taken as 6371229 metres. If <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> (the default) then
+no radius is set.</p>
+<dl class="simple">
+<dt><em>Example:</em></dt><dd><p>Equivalent ways to set a radius of 6371229 metres:
+<code class="docutils literal notranslate"><span class="pre">6371229</span></code>, <code class="docutils literal notranslate"><span class="pre">numpy.array(6371229)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">cf.Data(6371229)</span></code>, <code class="docutils literal notranslate"><span class="pre">cf.Data(6371229,</span> <span class="pre">'m')</span></code>,
+<code class="docutils literal notranslate"><span class="pre">cf.Data(6371.229,</span> <span class="pre">'km')</span></code>, <code class="docutils literal notranslate"><span class="pre">'earth'</span></code>.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt><a class="reference internal" href="../class/cf.Domain.html#cf.Domain" title="cf.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></a></dt><dd><p>The newly created HEALPix domain.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p><strong>Examples</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_healpix</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span>
+<span class="go">--------</span>
+<span class="go">Domain:</span>
+<span class="go">--------</span>
+<span class="go">Domain Axis: healpix_index(3072)</span>
+
+<span class="go">Dimension coordinate: healpix_index</span>
+<span class="go">    standard_name = &#39;healpix_index&#39;</span>
+<span class="go">    Data(healpix_index(3072)) = [0, ..., 3071]</span>
+
+<span class="go">Coordinate reference: grid_mapping_name:healpix</span>
+<span class="go">    Coordinate conversion:grid_mapping_name = healpix</span>
+<span class="go">    Coordinate conversion:indexing_scheme = nested</span>
+<span class="go">    Coordinate conversion:refinement_level = 4</span>
+<span class="go">    Dimension Coordinate: healpix_index</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_healpix</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;nuniq&quot;</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">6371000</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">dump</span><span class="p">()</span>
+<span class="go">--------</span>
+<span class="go">Domain:</span>
+<span class="go">--------</span>
+<span class="go">Domain Axis: healpix_index(3072)</span>
+
+<span class="go">Dimension coordinate: healpix_index</span>
+<span class="go">    standard_name = &#39;healpix_index&#39;</span>
+<span class="go">    Data(healpix_index(3072)) = [1024, ..., 4095]</span>
+
+<span class="go">Coordinate reference: grid_mapping_name:healpix</span>
+<span class="go">    Coordinate conversion:grid_mapping_name = healpix</span>
+<span class="go">    Coordinate conversion:indexing_scheme = nuniq</span>
+<span class="go">    Datum:earth_radius = 6371000.0</span>
+<span class="go">    Dimension Coordinate: healpix_index</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">create_latlon_coordinates</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">Dimension coords: healpix_index(3072) = [1024, ..., 4095]</span>
+<span class="go">Auxiliary coords: latitude(healpix_index(3072)) = [2.388015463268772, ..., -2.388015463268786] degrees_north</span>
+<span class="go">                : longitude(healpix_index(3072)) = [45.0, ..., 315.0] degrees_east</span>
+<span class="go">Coord references: grid_mapping_name:healpix</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, NCAS | Page built on 2026-08-28.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

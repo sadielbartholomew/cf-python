@@ -6,18 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Tutorial &#8212; Documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=61cd365c" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=a5d0ad34" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/customise-alabaster.css?v=5dec66a6" />
-    <script src="_static/documentation_options.js?v=6be25e9b"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/documentation_options.js?v=be4f90db"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=b578dfe4"></script>
-    <script src="_static/toggleprompt.js?v=1b41717f"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/copybutton.js?v=a56c686a"></script>
+    <script src="_static/toggleprompt.js?v=99cb1901"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,15 +34,15 @@
   </head><body>
   <div class="document">
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/logo.svg" alt="Logo"/>
+              <img class="logo" src="_static/logo.svg" alt="Logo of Python cf package"/>
             </a></p>
 
 
 
-<h1 class="logo"><a href="index.html">cf 3.20.1</a></h1>
+<h1 class="logo"><a href="index.html">cf 3.21.0</a></h1>
 
 
 
@@ -123,10 +124,10 @@ and by <a href="https://ncas.ac.uk/">NCAS</a>.
   <section id="tutorial">
 <span id="id1"></span><h1><strong>Tutorial</strong><a class="headerlink" href="#tutorial" title="Link to this heading">¶</a></h1>
 <hr class="docutils" />
-<p>Version 3.20.1 for version 1.13 of the CF conventions.</p>
+<p>Version 3.21.0 for version 1.13 of the CF conventions.</p>
 <p>All of the Python code in this tutorial is available in two executable
-scripts (<a class="reference download internal" download="" href="_downloads/bb5fb8d8c9c79615a69f3b221f87dfa4/tutorial.py"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>, 28kB,
-<a class="reference download internal" download="" href="_downloads/f005a212533d023d9ca8ee5ecd9a9065/field_analysis.py"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>, 8kB).</p>
+scripts (<a class="reference download internal" download="" href="_downloads/fd4f95589f4dfbdfd875e7f5721eb533/tutorial.py"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>, 28kB,
+<a class="reference download internal" download="" href="_downloads/f36ce4a83b8acf9da64069c9b06164c2/field_analysis.py"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>, 8kB).</p>
 <nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#sample-datasets" id="id386"><strong>Sample datasets</strong></a></p></li>
@@ -357,7 +358,7 @@ scripts (<a class="reference download internal" download="" href="_downloads/bb5
 <span id="id2"></span><h2><a class="toc-backref" href="#id386" role="doc-backlink"><strong>Sample datasets</strong></a><a class="headerlink" href="#sample-datasets" title="Link to this heading">¶</a></h2>
 <p>This tutorial uses a number of small sample datasets, all of which can
 be found in the zip file <code class="docutils literal notranslate"><span class="pre">cf_tutorial_files.zip</span></code>
-(<a class="reference download internal" download="" href="_downloads/662a6146f847a4d1c19d523d3f30e1cc/cf_tutorial_files.zip"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>,
+(<a class="reference download internal" download="" href="_downloads/8fd6daffb9810491f82e1e3741807ef4/cf_tutorial_files.zip"><code class="xref download docutils literal notranslate"><span class="pre">download</span></code></a>,
 164kB):</p>
 <div class="literal-block-wrapper docutils container" id="id119">
 <div class="code-block-caption"><span class="caption-text"><em>Unpack the sample datasets.</em></span><a class="headerlink" href="#id119" title="Link to this code">¶</a></div>
@@ -391,7 +392,7 @@ of the on-line code repository.</p>
 <p>The cf package is imported as follows:</p>
 <div class="literal-block-wrapper docutils container" id="id120">
 <div class="code-block-caption"><span class="caption-text"><em>Import the cf package.</em></span><a class="headerlink" href="#id120" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 </pre></div>
 </div>
 </div>
@@ -408,7 +409,7 @@ section on ‘Logging’</span></a> for more information.</p>
 <span id="id4"></span><h3><a class="toc-backref" href="#id388" role="doc-backlink">CF version</a><a class="headerlink" href="#cf-version" title="Link to this heading">¶</a></h3>
 <p>The version of the <a class="reference external" href="http://cfconventions.org">CF conventions</a> and
 the <a class="reference internal" href="introduction.html#cf-data-model"><span class="std std-ref">CF data model</span></a> being used may be found with
-the <a class="reference internal" href="function/cf.CF.html#cf.CF" title="cf.CF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.CF</span></code></a> function:</p>
+the <a class="reference internal" href="function/function/cf.CF.html#cf.CF" title="cf.CF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.CF</span></code></a> function:</p>
 <div class="literal-block-wrapper docutils container" id="id121">
 <div class="code-block-caption"><span class="caption-text"><em>Retrieve the version of the CF conventions.</em></span><a class="headerlink" href="#id121" title="Link to this code">¶</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">CF</span><span class="p">()</span>
@@ -452,14 +453,14 @@ the domain.</p></li>
 </ul>
 </div></blockquote>
 <p>A field construct or domain construct is stored in a <a class="reference internal" href="class/cf.Field.html#cf.Field" title="cf.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Field</span></code></a>
-instance or <code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain</span></code> instance respectively. Henceforth the phrase
+instance or <a class="reference internal" href="class/cf.Domain.html#cf.Domain" title="cf.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain</span></code></a> instance respectively. Henceforth the phrase
 “field construct” will be assumed to mean “<a class="reference internal" href="class/cf.Field.html#cf.Field" title="cf.Field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Field</span></code></a> instance”, and
-“domain construct” will be assumed to mean “<code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain</span></code> instance”.</p>
+“domain construct” will be assumed to mean “<a class="reference internal" href="class/cf.Domain.html#cf.Domain" title="cf.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Domain</span></code></a> instance”.</p>
 <hr class="docutils" />
 </section>
 <section id="reading-field-constructs-from-datasets">
 <span id="reading-datasets"></span><h2><a class="toc-backref" href="#id390" role="doc-backlink"><strong>Reading field constructs from datasets</strong></a><a class="headerlink" href="#reading-field-constructs-from-datasets" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function reads files from disk, or from an <a class="reference external" href="https://www.opendap.org/">OPeNDAP</a> URLs <a class="footnote-reference brackets" href="#dap" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and returns the contents in
+<p>The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function reads files from disk, or from an <a class="reference external" href="https://www.opendap.org/">OPeNDAP</a> URLs <a class="footnote-reference brackets" href="#dap" id="id6" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a>, and returns the contents in
 a <a class="reference internal" href="class/cf.FieldList.html#cf.FieldList" title="cf.FieldList"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.FieldList</span></code></a> instance that contains zero or more field constructs.</p>
 <p>A <a class="reference internal" href="#field-lists"><span class="std std-ref">field list</span></a> is very much like a Python <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>,
 with the addition of extra methods that operate on its field construct
@@ -551,9 +552,9 @@ using the <em>dataset_type</em> keyword:</p>
 </div>
 <p>In all cases, the default behaviour is to aggregate the contents of
 all input datasets into as few field constructs as possible, and it is
-these aggregated field constructs are returned by <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>. See the
+these aggregated field constructs are returned by <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>. See the
 section on <a class="reference internal" href="#aggregation"><span class="std std-ref">aggregation</span></a> for full details.</p>
-<p>The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function has optional parameters to</p>
+<p>The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function has optional parameters to</p>
 <ul class="simple">
 <li><p>allow the user to provide files that contain <a class="reference internal" href="#external-variables"><span class="std std-ref">external
 variables</span></a>;</p></li>
@@ -1374,8 +1375,8 @@ objects.</em></span><a class="headerlink" href="#id145" title="Link to this code
 </div>
 <p>Alternatively, date-time data may be created by providing date-time
 objects or <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601-like date-time strings</a>. Date-time objects may be
-<a class="reference external" href="https://unidata.github.io/cftime/api.html#cftime.datetime" title="(in cftime)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cftime.datetime</span></code></a> instances (as returned by the <a class="reference internal" href="function/cf.dt.html#cf.dt" title="cf.dt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.dt</span></code></a> and
-<a class="reference internal" href="function/cf.dt_vector.html#cf.dt_vector" title="cf.dt_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.dt_vector</span></code></a> functions), Python <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> instances, or
+<a class="reference external" href="https://unidata.github.io/cftime/api.html#cftime.datetime" title="(in cftime)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cftime.datetime</span></code></a> instances (as returned by the <a class="reference internal" href="function/function/cf.dt.html#cf.dt" title="cf.dt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.dt</span></code></a> and
+<a class="reference internal" href="function/function/cf.dt_vector.html#cf.dt_vector" title="cf.dt_vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.dt_vector</span></code></a> functions), Python <a class="reference external" href="https://docs.python.org/3/library/datetime.html#datetime.datetime" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime.datetime</span></code></a> instances, or
 any other date-time object that has an equivalent API.</p>
 <div class="literal-block-wrapper docutils container" id="id146">
 <div class="code-block-caption"><span class="caption-text"><em>Creating a Data instance from a date-time objects.</em></span><a class="headerlink" href="#id146" title="Link to this code">¶</a></div>
@@ -1590,14 +1591,14 @@ of the field construct should be used instead.</p>
 <p>The mask of a netCDF dataset array is implied by array values that
 meet the criteria implied by the <code class="docutils literal notranslate"><span class="pre">missing_value</span></code>, <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>,
 <code class="docutils literal notranslate"><span class="pre">valid_min</span></code>, <code class="docutils literal notranslate"><span class="pre">valid_max</span></code>, and <code class="docutils literal notranslate"><span class="pre">valid_range</span></code> properties, and is
-usually applied automatically by <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>. NetCDF data elements that
+usually applied automatically by <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>. NetCDF data elements that
 equal the values of the <code class="docutils literal notranslate"><span class="pre">missing_value</span></code> and <code class="docutils literal notranslate"><span class="pre">_FillValue</span></code>
 properties are masked, as are data elements that exceed the value of
 the <code class="docutils literal notranslate"><span class="pre">valid_max</span></code> property, succeed the value of the <code class="docutils literal notranslate"><span class="pre">valid_min</span></code>
 property, or lie outside of the range defined by the <code class="docutils literal notranslate"><span class="pre">valid_range</span></code>
 property.</p>
 <p>However, this automatic masking may be bypassed by setting the <em>mask</em>
-keyword of the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function to <a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code></a>. The mask, as defined in
+keyword of the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function to <a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code></a>. The mask, as defined in
 the dataset, may subsequently be applied manually with the
 <a class="reference internal" href="method/cf.Field.apply_masking.html#cf.Field.apply_masking" title="cf.Field.apply_masking"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_masking</span></code></a> method of the field construct.</p>
 <div class="literal-block-wrapper docutils container" id="id155">
@@ -1821,7 +1822,7 @@ the shape defined by the indices, using the <a class="reference external" href="
 rules</a>.</p>
 <div class="literal-block-wrapper docutils container" id="id162">
 <div class="code-block-caption"><span class="caption-text"><em>Assigning arrays of values.</em></span><a class="headerlink" href="#id162" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">]]</span> <span class="o">=</span>  <span class="n">cf</span><span class="o">.</span><span class="n">Data</span><span class="p">([[</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="o">-</span><span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">11</span><span class="p">]]</span>
@@ -2712,22 +2713,22 @@ following constructors:</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.Y.html#cf.Y" title="cf.Y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Y</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.Y.html#cf.Y" title="cf.Y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Y</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of calendar years</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.M.html#cf.M" title="cf.M"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.M</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.M.html#cf.M" title="cf.M"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.M</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of calendar months</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.D.html#cf.D" title="cf.D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.D</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.D.html#cf.D" title="cf.D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.D</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of days</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.h.html#cf.h" title="cf.h"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.h</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.h.html#cf.h" title="cf.h"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.h</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of hours</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.m.html#cf.m" title="cf.m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.m</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.m.html#cf.m" title="cf.m"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.m</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of minutes</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.s.html#cf.s" title="cf.s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.s</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.s.html#cf.s" title="cf.s"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.s</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.TimeDuration.html#cf.TimeDuration" title="cf.TimeDuration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.TimeDuration</span></code></a> object for a number of seconds</p></td>
 </tr>
 </tbody>
@@ -2750,7 +2751,7 @@ constructors.</em></span><a class="headerlink" href="#id202" title="Link to this
 <span id="id39"></span><h2><a class="toc-backref" href="#id422" role="doc-backlink"><strong>Domain</strong></a><a class="headerlink" href="#domain" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="introduction.html#cf-data-model"><span class="std std-ref">domain of the CF data model</span></a> is defined
 collectively by various other metadata constructs. It is represented
-by the <code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code> class. A domain construct may exist independently, or
+by the <a class="reference internal" href="class/cf.Domain.html#cf.Domain" title="cf.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></a> class. A domain construct may exist independently, or
 is accessed from a field construct with its <a class="reference internal" href="attribute/cf.Field.domain.html#cf.Field.domain" title="cf.Field.domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">domain</span></code></a> attribute,
 or <a class="reference internal" href="method/cf.Field.get_domain.html#cf.Field.get_domain" title="cf.Field.get_domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_domain</span></code></a> method.</p>
 <div class="literal-block-wrapper docutils container" id="id203">
@@ -3831,7 +3832,7 @@ contains the selected field constructs.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fl</span><span class="o">.</span><span class="n">select_by_identity</span><span class="p">(</span><span class="s1">&#39;precipitation_flux&#39;</span><span class="p">)</span>
 <span class="go">[&lt;CF Field: precipitation_flux(time(2), latitude(4), longitude(5)) kg m2 s-1&gt;,</span>
 <span class="go"> &lt;CF Field: precipitation_flux(time(1), latitude(64), longitude(128)) kg m-2 day-1&gt;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">re</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fl</span><span class="o">.</span><span class="n">select_by_identity</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;.*potential.*&#39;</span><span class="p">))</span>
 <span class="go">[&lt;CF Field: air_potential_temperature(time(120), latitude(5), longitude(8)) K&gt;]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fl</span><span class="o">.</span><span class="n">select_by_identity</span><span class="p">(</span><span class="s1">&#39;relative_humidity&#39;</span><span class="p">)</span>
@@ -4087,34 +4088,34 @@ cf.Query instances.</em></span><a class="headerlink" href="#id244" title="Link t
 </tr>
 </thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.lt.html#cf.lt" title="cf.lt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.lt</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.lt.html#cf.lt" title="cf.lt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.lt</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “strictly less than” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.le.html#cf.le" title="cf.le"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.le</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.le.html#cf.le" title="cf.le"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.le</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “less than or equal” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.gt.html#cf.gt" title="cf.gt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.gt</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.gt.html#cf.gt" title="cf.gt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.gt</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “strictly greater than” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.ge.html#cf.ge" title="cf.ge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.ge</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.ge.html#cf.ge" title="cf.ge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.ge</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “strictly greater than or equal” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.eq.html#cf.eq" title="cf.eq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.eq</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.eq.html#cf.eq" title="cf.eq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.eq</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for an “equal” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.ne.html#cf.ne" title="cf.ne"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.ne</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.ne.html#cf.ne" title="cf.ne"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.ne</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “not equal” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.wi.html#cf.wi" title="cf.wi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.wi</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.wi.html#cf.wi" title="cf.wi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.wi</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “within a range” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.wo.html#cf.wo" title="cf.wo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.wo</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.wo.html#cf.wo" title="cf.wo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.wo</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “without a range” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.set.html#cf.set" title="cf.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.set</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.set.html#cf.set" title="cf.set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.set</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “member of set” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.isclose.html#cf.isclose" title="cf.isclose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.isclose</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.isclose.html#cf.isclose" title="cf.isclose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.isclose</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for an “is close” condition</p></td>
 </tr>
 </tbody>
@@ -4131,37 +4132,37 @@ cf.Query instances.</em></span><a class="headerlink" href="#id244" title="Link t
 </tr>
 </thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.year.html#cf.year" title="cf.year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.year</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.year.html#cf.year" title="cf.year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.year</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “year” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.month.html#cf.month" title="cf.month"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.month</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.month.html#cf.month" title="cf.month"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.month</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “month of the year” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.day.html#cf.day" title="cf.day"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.day</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.day.html#cf.day" title="cf.day"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.day</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “day of the month” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.hour.html#cf.hour" title="cf.hour"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.hour</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.hour.html#cf.hour" title="cf.hour"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.hour</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “hour of the day” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.minute.html#cf.minute" title="cf.minute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.minute</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.minute.html#cf.minute" title="cf.minute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.minute</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “minute of the hour” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.second.html#cf.second" title="cf.second"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.second</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.second.html#cf.second" title="cf.second"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.second</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “second of the minute” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.jja.html#cf.jja" title="cf.jja"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.jja</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.jja.html#cf.jja" title="cf.jja"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.jja</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “month of year in June, July or August” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.son.html#cf.son" title="cf.son"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.son</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.son.html#cf.son" title="cf.son"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.son</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “month of year in September, October, November” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.djf.html#cf.djf" title="cf.djf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.djf</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.djf.html#cf.djf" title="cf.djf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.djf</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “month of year in December, January, February” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.mam.html#cf.mam" title="cf.mam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.mam</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.mam.html#cf.mam" title="cf.mam"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.mam</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “month of year in March, April, May” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.seasons.html#cf.seasons" title="cf.seasons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.seasons</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.seasons.html#cf.seasons" title="cf.seasons"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.seasons</span></code></a></p></td>
 <td><p>A customisable list of <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> objects for “seasons in a year” conditions</p></td>
 </tr>
 </tbody>
@@ -4178,28 +4179,28 @@ cf.Query instances.</em></span><a class="headerlink" href="#id244" title="Link t
 </tr>
 </thead>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.contains.html#cf.contains" title="cf.contains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.contains</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.contains.html#cf.contains" title="cf.contains"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.contains</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell contains” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.cellsize.html#cf.cellsize" title="cf.cellsize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellsize</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.cellsize.html#cf.cellsize" title="cf.cellsize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellsize</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell size” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.cellgt.html#cf.cellgt" title="cf.cellgt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellgt</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.cellgt.html#cf.cellgt" title="cf.cellgt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellgt</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds strictly greater than” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.cellge.html#cf.cellge" title="cf.cellge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellge</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.cellge.html#cf.cellge" title="cf.cellge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellge</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds greater than or equal” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.celllt.html#cf.celllt" title="cf.celllt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.celllt</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.celllt.html#cf.celllt" title="cf.celllt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.celllt</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds strictly less than” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.cellle.html#cf.cellle" title="cf.cellle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellle</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.cellle.html#cf.cellle" title="cf.cellle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellle</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds less than or equal” condition</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="function/cf.cellwi.html#cf.cellwi" title="cf.cellwi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellwi</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="function/function/cf.cellwi.html#cf.cellwi" title="cf.cellwi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellwi</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds lie within range” condition</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="function/cf.cellwo.html#cf.cellwo" title="cf.cellwo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellwo</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="function/function/cf.cellwo.html#cf.cellwo" title="cf.cellwo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.cellwo</span></code></a></p></td>
 <td><p>A <a class="reference internal" href="class/cf.Query.html#cf.Query" title="cf.Query"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Query</span></code></a> object for a “cell bounds lie without range” condition</p></td>
 </tr>
 </tbody>
@@ -4537,8 +4538,8 @@ be changed after insertion with the <a class="reference internal" href="method/c
 the field construct.</p>
 <div class="literal-block-wrapper docutils container" id="id256">
 <div class="code-block-caption"><span class="caption-text"><em>Create a field construct with properties; data; and domain axis, cell method and dimension coordinate metadata constructs (data arrays have been generated with dummy values using numpy.arange).</em></span><a class="headerlink" href="#id256" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 
 <span class="c1"># Initialise the field construct with properties</span>
 <span class="n">Q</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Field</span><span class="p">(</span><span class="n">properties</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="s1">&#39;research&#39;</span><span class="p">,</span>
@@ -4650,8 +4651,8 @@ the field construct.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">Conventions</span></code> property does not need to be set because it is
 automatically included in output files as a netCDF global
 <code class="docutils literal notranslate"><span class="pre">Conventions</span></code> attribute, either as the CF version of the cf package
-(as returned by the <a class="reference internal" href="function/cf.CF.html#cf.CF" title="cf.CF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.CF</span></code></a> function), or else specified via the
-<em>Conventions</em> keyword of the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function. See
+(as returned by the <a class="reference internal" href="function/function/cf.CF.html#cf.CF" title="cf.CF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.CF</span></code></a> function), or else specified via the
+<em>Conventions</em> keyword of the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function. See
 <a class="reference internal" href="#writing-to-a-netcdf-dataset"><span class="std std-ref">Writing to a netCDF dataset</span></a> for details on how to specify
 additional conventions.</p>
 <p>If this field were to be written to a netCDF dataset then, in the
@@ -4680,8 +4681,8 @@ been generated with dummy values using <a class="reference external" href="https
 <div class="literal-block-wrapper docutils container" id="id259">
 <div class="code-block-caption"><span class="caption-text"><em>Create a field construct that contains at least one
 instance of each type of metadata construct.</em></span><a class="headerlink" href="#id259" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 
 <span class="c1"># Initialise the field construct</span>
 <span class="n">tas</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Field</span><span class="p">(</span>
@@ -4947,26 +4948,25 @@ construct.</em></span><a class="headerlink" href="#id261" title="Link to this co
 </pre></div>
 </div>
 </div>
-<p>Some example fields are always available from the <a class="reference internal" href="function/cf.example_field.html#cf.example_field" title="cf.example_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.example_field</span></code></a>
+<p>Some example fields are always available from the <a class="reference internal" href="function/function/cf.example_field.html#cf.example_field" title="cf.example_field"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.example_field</span></code></a>
 function.</p>
 </section>
 <section id="creating-data-from-an-array-on-disk">
 <span id="id64"></span><h3><a class="toc-backref" href="#id451" role="doc-backlink">Creating data from an array on disk</a><a class="headerlink" href="#creating-data-from-an-array-on-disk" title="Link to this heading">¶</a></h3>
 <p>All the of above examples use arrays in memory to construct the data
 instances for the field and metadata constructs. It is, however,
-possible to create data from arrays that reside on disk. The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>
+possible to create data from arrays that reside on disk. The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>
 function creates data in this manner. A pointer to an array in a
-netCDF file can be stored in a <a class="reference internal" href="class/cf.NetCDF4Array.html#cf.NetCDF4Array" title="cf.NetCDF4Array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.NetCDF4Array</span></code></a> or
-<code class="xref py py-obj docutils literal notranslate"><span class="pre">H5netcdfAarray</span></code> instance, which is used to initialise a
-<a class="reference internal" href="class/cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Data</span></code></a> instance.</p>
+netCDF file can be stored in a <a class="reference internal" href="class/cf.XnetcdfArray.html#cf.XnetcdfArray" title="cf.XnetcdfArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.XnetcdfArray</span></code></a> instance, which
+is used to initialise a <a class="reference internal" href="class/cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Data</span></code></a> instance.</p>
 <div class="literal-block-wrapper docutils container" id="id262">
 <div class="code-block-caption"><span class="caption-text"><em>Define a variable from a dataset with the netCDF package
-and use it to create a NetCDF4Array instance with which
+and use it to create a XnetcdfArray instance with which
 to initialise a Data instance.</em></span><a class="headerlink" href="#id262" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">netCDF4</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">nc</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="s1">&#39;file.nc&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">nc</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;ta&#39;</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">netcdf_array</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">NetCDF4Array</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;file.nc&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s1">&#39;ta&#39;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">netcdf_array</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">XnetcdfArray</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;file.nc&#39;</span><span class="p">,</span> <span class="n">address</span><span class="o">=</span><span class="s1">&#39;ta&#39;</span><span class="p">,</span>
 <span class="gp">... </span>                               <span class="n">dtype</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data_disk</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Data</span><span class="p">(</span><span class="n">netcdf_array</span><span class="p">)</span>
 </pre></div>
@@ -4985,7 +4985,7 @@ values of the two data instances.</em></span><a class="headerlink" href="#id263"
 </div>
 <p>Note that data type, number of dimensions, dimension sizes and number
 of elements of the array on disk that are used to initialise the
-<a class="reference internal" href="class/cf.NetCDF4Array.html#cf.NetCDF4Array" title="cf.NetCDF4Array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.NetCDF4Array</span></code></a> instance are those expected by the CF data model,
+<a class="reference internal" href="class/cf.XnetcdfArray.html#cf.XnetcdfArray" title="cf.XnetcdfArray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.XnetcdfArray</span></code></a> instance are those expected by the CF data model,
 which may be different to those of the netCDF variable in the file
 (although they are the same in the above example). For example, a
 netCDF character array of shape <code class="docutils literal notranslate"><span class="pre">(12,</span> <span class="pre">9)</span></code> is viewed in cf as a
@@ -5037,7 +5037,7 @@ domain.</em></span><a class="headerlink" href="#id265" title="Link to this code"
 </section>
 <section id="creation-by-reading">
 <span id="id66"></span><h3><a class="toc-backref" href="#id453" role="doc-backlink">Creation by reading</a><a class="headerlink" href="#creation-by-reading" title="Link to this heading">¶</a></h3>
-<p>The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function <a class="reference internal" href="#reading-datasets"><span class="std std-ref">reads a netCDF dataset</span></a> and returns the contents as a list of zero or more
+<p>The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function <a class="reference internal" href="#reading-datasets"><span class="std std-ref">reads a netCDF dataset</span></a> and returns the contents as a list of zero or more
 field constructs, each one corresponding to a unique CF-netCDF data
 variable in the dataset. For example, the field construct <code class="docutils literal notranslate"><span class="pre">tas</span></code> that
 was created manually can be <a class="reference internal" href="#writing-to-a-netcdf-dataset"><span class="std std-ref">written to a netCDF dataset</span></a> and then read back into memory:</p>
@@ -5051,7 +5051,7 @@ disk, and then read it back into a new field construct.</em></span><a class="hea
 </pre></div>
 </div>
 </div>
-<p>The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function also allows field constructs to be derived
+<p>The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function also allows field constructs to be derived
 directly from the netCDF variables that correspond to particular types
 metadata constructs. In this case, the new field constructs will have
 a domain limited to that which can be inferred from the corresponding
@@ -5080,7 +5080,7 @@ CF-netCDF data variables.</em></span><a class="headerlink" href="#id267" title="
 </div>
 </div>
 <p>Comparing the field constructs <code class="docutils literal notranslate"><span class="pre">orog_from_file</span></code> (created with
-<a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>) and <code class="docutils literal notranslate"><span class="pre">orog</span></code> (created with the <a class="reference internal" href="method/cf.Field.convert.html#cf.Field.convert" title="cf.Field.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a> method of
+<a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>) and <code class="docutils literal notranslate"><span class="pre">orog</span></code> (created with the <a class="reference internal" href="method/cf.Field.convert.html#cf.Field.convert" title="cf.Field.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a> method of
 the <code class="docutils literal notranslate"><span class="pre">tas</span></code> field construct), the former lacks the auxiliary
 coordinate, cell measure and coordinate reference constructs of the
 latter. This is because the surface altitude netCDF variable in
@@ -5141,7 +5141,7 @@ altered.</em></span><a class="headerlink" href="#id269" title="Link to this code
 <p>Equivalently, the <a class="reference external" href="https://docs.python.org/3/library/copy.html#copy.deepcopy" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy.deepcopy</span></code></a> function may be used:</p>
 <div class="literal-block-wrapper docutils container" id="id270">
 <div class="code-block-caption"><span class="caption-text"><em>Copy a field construct with the built-in copy module.</em></span><a class="headerlink" href="#id270" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">copy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">u</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -5216,7 +5216,7 @@ on relative differences) are positive, typically very small
 numbers. By default both are set to the system epsilon (the difference
 between 1 and the least value greater than 1 that is representable as
 a float). Their values may be inspected and changed with the
-<a class="reference internal" href="function/cf.atol.html#cf.atol" title="cf.atol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.atol</span></code></a> and <a class="reference internal" href="function/cf.rtol.html#cf.rtol" title="cf.rtol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.rtol</span></code></a> functions.</p>
+<a class="reference internal" href="function/function/cf.atol.html#cf.atol" title="cf.atol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.atol</span></code></a> and <a class="reference internal" href="function/function/cf.rtol.html#cf.rtol" title="cf.rtol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.rtol</span></code></a> functions.</p>
 <p>Note that the above equation is not symmetric in <span class="math notranslate nohighlight">\(x\)</span> and
 <span class="math notranslate nohighlight">\(y\)</span>, so that for two fields <code class="docutils literal notranslate"><span class="pre">f1</span></code> and <code class="docutils literal notranslate"><span class="pre">f2</span></code>, <code class="docutils literal notranslate"><span class="pre">f1.equals(f2)</span></code>
 may be different from <code class="docutils literal notranslate"><span class="pre">f2.equals(f1)</span></code> in some rare cases.</p>
@@ -5721,7 +5721,7 @@ metadata constructs.</em></span><a class="headerlink" href="#id277" title="Link 
 </section>
 <section id="writing-to-disk">
 <h2><a class="toc-backref" href="#id461" role="doc-backlink"><strong>Writing to disk</strong></a><a class="headerlink" href="#writing-to-disk" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function writes a field construct, or a sequence of
+<p>The <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function writes a field construct, or a sequence of
 field constructs, to a netCDF or Zarr dataset on disk:</p>
 <div class="literal-block-wrapper docutils container" id="id278">
 <div class="code-block-caption"><span class="caption-text"><em>Write a field construct to a netCDF dataset on disk.</em></span><a class="headerlink" href="#id278" title="Link to this code">¶</a></div>
@@ -5787,7 +5787,7 @@ disk.</em></span><a class="headerlink" href="#id280" title="Link to this code">�
 </div>
 </div>
 <p>By default the output file will be for CF-1.13.</p>
-<p>The <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function has optional parameters to</p>
+<p>The <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function has optional parameters to</p>
 <ul class="simple">
 <li><p>set the output format (all netCDF3 and netCDF4 formats, as
 well as Zarr v3 are possible);</p></li>
@@ -5821,7 +5821,7 @@ disk.</em></span><a class="headerlink" href="#id281" title="Link to this code">�
 <span class="gp">&gt;&gt;&gt; </span><span class="n">h</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">h</span>
 <span class="go">&lt;CF Field: specific_humidity(latitude(5), longitude(8)) 1&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="s1">&#39;append-example-file.nc&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">netcdf_backend</span><span class="o">=</span><span class="s1">&#39;netCDF4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="s1">&#39;append-example-file.nc&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;netCDF4&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;append-example-file.nc&#39;</span><span class="p">)</span>
 <span class="go">[&lt;CF Field: air_potential_temperature(time(36), latitude(5), longitude(8)) K&gt;,</span>
 <span class="go"> &lt;CF Field: specific_humidity(latitude(5), longitude(8)) 1&gt;]</span>
@@ -5916,7 +5916,7 @@ method.</em></span><a class="headerlink" href="#id285" title="Link to this code"
 </div>
 </div>
 <p>NetCDF global attributes defined with the <em>file_descriptors</em> keyword
-of the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function will always be written as requested,
+of the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function will always be written as requested,
 independently of the netCDF data variable attributes, and superseding
 any global attributes that may have been defined with the
 <em>global_attributes</em> keyword, or set on the individual field
@@ -5949,7 +5949,7 @@ a global attribute, with the “file_descriptors” keyword.</em></span><a class
 <p>The <code class="docutils literal notranslate"><span class="pre">Conventions</span></code> netCDF global attribute containing the version of
 the CF conventions is always automatically created. If the version of
 the CF conventions has been set as a field property, or with the
-<em>Conventions</em> keyword of the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function, then it is
+<em>Conventions</em> keyword of the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function, then it is
 ignored. However, other conventions that may apply can be set with
 either technique.</p>
 <div class="literal-block-wrapper docutils container" id="id287">
@@ -6051,7 +6051,7 @@ not be written to netCDF4 classic format files).</p>
 <p>By default, netCDF string arrays will be created whenever possible,
 and in all other cases netCDF character arrays will be
 used. Alternatively, netCDF character arrays can be used in all cases
-by setting the <em>string</em> keyword of the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function.</p>
+by setting the <em>string</em> keyword of the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function.</p>
 </section>
 <section id="groups">
 <h3><a class="toc-backref" href="#id466" role="doc-backlink">Groups</a><a class="headerlink" href="#groups" title="Link to this heading">¶</a></h3>
@@ -6173,7 +6173,7 @@ create a “flat” dataset, i.e. one without any sub-groups. This does
 not require the removal of the group structure from the field
 construct and all of its components (although that is possible), as it
 can be done via overriding the existing group structure by
-setting the <em>group</em> keyword to <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> to <a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code></a>.</p>
+setting the <em>group</em> keyword to <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> to <a class="reference external" href="https://docs.python.org/3/library/constants.html#False" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">False</span></code></a>.</p>
 <div class="literal-block-wrapper docutils container" id="id293">
 <div class="code-block-caption"><span class="caption-text"><em>Write the field construct to a file with the same group
 structure, and also to a flat file.</em></span><a class="headerlink" href="#id293" title="Link to this code">¶</a></div>
@@ -6248,7 +6248,7 @@ but which are not present in it. Instead, such variables are stored in
 other netCDF files known as “external files”. External variables may,
 however, be incorporated into the field constructs of the dataset, as
 if they had actually been stored in the same file, by providing
-the external file names to the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function.</p>
+the external file names to the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function.</p>
 <p>This is illustrated with the files <code class="docutils literal notranslate"><span class="pre">parent.nc</span></code> (found in the
 <a class="reference internal" href="#sample-datasets"><span class="std std-ref">sample datasets</span></a>):</p>
 <div class="literal-block-wrapper docutils container" id="id296">
@@ -6327,7 +6327,7 @@ of any external datasets.</em></span><a class="headerlink" href="#id298" title="
 </pre></div>
 </div>
 </div>
-<p>If this field construct were to be written to disk using <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>,
+<p>If this field construct were to be written to disk using <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>,
 then the output file would be identical to the original <code class="docutils literal notranslate"><span class="pre">parent.nc</span></code>
 file, i.e. the netCDF variable name of the cell measure construct
 (<code class="docutils literal notranslate"><span class="pre">areacella</span></code>) would be listed by the <code class="docutils literal notranslate"><span class="pre">external_variables</span></code> global
@@ -6361,7 +6361,7 @@ dataset containing the external variables.</em></span><a class="headerlink" href
 </pre></div>
 </div>
 </div>
-<p>If this field construct were to be written to disk using <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>
+<p>If this field construct were to be written to disk using <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>
 then by default the cell measure construct, with all of its metadata
 and data, would be written to the named output file, along with all of
 the other constructs. There would be no <code class="docutils literal notranslate"><span class="pre">external_variables</span></code> global
@@ -6380,7 +6380,7 @@ construct to a new file.</em></span><a class="headerlink" href="#id300" title="L
 <p>To create a reference to an external variable in the an output netCDF
 file and simultaneously create an external file containing the
 variable, set the status of the cell measure construct to “external”
-and provide an external file name to the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function:</p>
+and provide an external file name to the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function:</p>
 <div class="literal-block-wrapper docutils container" id="id301">
 <div class="code-block-caption"><span class="caption-text"><em>Write the field construct to a new file and the cell
 measure construct to an external file.</em></span><a class="headerlink" href="#id301" title="Link to this code">¶</a></div>
@@ -6432,8 +6432,8 @@ separated into aggregatable groups and each group is then aggregated
 to a single field construct. Note that aggregation is possible over
 multiple dimensions simultaneously.</p>
 <p>Aggregation is, by default, applied to field constructs read from
-datasets with the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function, but may also be applied to field
-constructs in memory with the <a class="reference internal" href="function/cf.aggregate.html#cf.aggregate" title="cf.aggregate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.aggregate</span></code></a> function.</p>
+datasets with the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function, but may also be applied to field
+constructs in memory with the <a class="reference internal" href="function/function/cf.aggregate.html#cf.aggregate" title="cf.aggregate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.aggregate</span></code></a> function.</p>
 <div class="literal-block-wrapper docutils container" id="id304">
 <div class="code-block-caption"><span class="caption-text"><em>Demonstrate that the aggregation applied by ‘cf.read’ is
 equivalent to that carried by ‘cf.aggregate’. This is
@@ -6463,7 +6463,7 @@ disk, and then reading those parts and aggregating them.</em></span><a class="he
 </pre></div>
 </div>
 </div>
-<p>The <a class="reference internal" href="function/cf.aggregate.html#cf.aggregate" title="cf.aggregate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.aggregate</span></code></a> function has optional parameters to</p>
+<p>The <a class="reference internal" href="function/function/cf.aggregate.html#cf.aggregate" title="cf.aggregate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.aggregate</span></code></a> function has optional parameters to</p>
 <ul class="simple">
 <li><p>Display information about the aggregation process,</p></li>
 <li><p>Relax the conditions to the need for standard names and units
@@ -6477,9 +6477,9 @@ from a named field construct property,</p></li>
 <li><p>Restrict aggregation to particular domain axes, and</p></li>
 <li><p>Set the tolerance for numerical comparisons.</p></li>
 </ul>
-<p>These parameters are also available to the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function via its
+<p>These parameters are also available to the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function via its
 <em>aggregate</em> parameter.</p>
-<p>Note that when reading <a class="reference internal" href="#pp-and-um-fields-files"><span class="std std-ref">PP and UM fields files</span></a> with <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>, the <em>relaxed_units</em> option
+<p>Note that when reading <a class="reference internal" href="#pp-and-um-fields-files"><span class="std std-ref">PP and UM fields files</span></a> with <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a>, the <em>relaxed_units</em> option
 is <a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a> by default, because units are not always available to field
 constructs derived from <a class="reference internal" href="#pp-and-um-fields-files"><span class="std std-ref">PP and UM fields files</span></a>.</p>
 <p>Field constructs that are logically similar but arranged differently
@@ -6564,7 +6564,7 @@ constructs as required.</p></li>
 </ul>
 <ul class="simple">
 <li><p>If an underlying array is compressed at the time of writing to disk
-with the <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function, then it is written to the file as a
+with the <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> function, then it is written to the file as a
 compressed array, along with the supplementary netCDF variables and
 attributes that are required for the encoding. This means that if a
 dataset using compression is read from disk then it will be written
@@ -6709,8 +6709,8 @@ it with its <a class="reference internal" href="method/cf.Field.compress.html#cf
 metadata constructs as required.</p>
 <div class="literal-block-wrapper docutils container" id="id311">
 <div class="code-block-caption"><span class="caption-text"><em>Create a field construct and then compress it.</em></span><a class="headerlink" href="#id311" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 
 <span class="c1"># Define the array values</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Data</span><span class="p">([[</span><span class="mf">280.0</span><span class="p">,</span>   <span class="o">-</span><span class="mi">99</span><span class="p">,</span>   <span class="o">-</span><span class="mi">99</span><span class="p">,</span>   <span class="o">-</span><span class="mi">99</span><span class="p">],</span>
@@ -6797,8 +6797,8 @@ array that is stored in one of three special array objects:
 <div class="literal-block-wrapper docutils container" id="id314">
 <div class="code-block-caption"><span class="caption-text"><em>Create a field construct explicitly with compressed
 data.</em></span><a class="headerlink" href="#id314" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 
 <span class="c1"># Define the ragged array values</span>
 <span class="n">ragged_array</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Data</span><span class="p">([</span><span class="mi">280</span><span class="p">,</span> <span class="mi">281</span><span class="p">,</span> <span class="mi">279</span><span class="p">,</span> <span class="mi">278</span><span class="p">,</span> <span class="mf">279.5</span><span class="p">])</span>
@@ -6951,8 +6951,8 @@ in the special <a class="reference internal" href="class/cf.GatheredArray.html#c
 creates a basic field construct with an underlying gathered array:</p>
 <div class="literal-block-wrapper docutils container" id="id320">
 <div class="code-block-caption"><span class="caption-text"><em>Create a field construct with compressed data.</em></span><a class="headerlink" href="#id320" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 
 <span class="c1"># Define the gathered values</span>
 <span class="n">gathered_array</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Data</span><span class="p">([[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">]])</span>
@@ -7219,7 +7219,7 @@ method:</p>
 <div class="code-block-caption"><span class="caption-text"><em>Lossy compression via quantization.</em></span><a class="headerlink" href="#id327" title="Link to this code">¶</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">q</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;file.nc&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">set_quantize_on_write</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;bitgroom&#39;</span><span class="p">,</span> <span class="n">quantization_nsd</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;quantized.nc&#39;</span><span class="p">,</span> <span class="n">netcdf_backend</span><span class="o">=</span><span class="s1">&#39;netCDF4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cf</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="s1">&#39;quantized.nc&#39;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;netCDF4&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">quantized</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;quantized.nc&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">quantized</span><span class="o">.</span><span class="n">get_quantization</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span>
@@ -7241,20 +7241,20 @@ method:</p>
 </section>
 <section id="pp-and-um-fields-files">
 <span id="id85"></span><h2><a class="toc-backref" href="#id476" role="doc-backlink"><strong>PP and UM fields files</strong></a><a class="headerlink" href="#pp-and-um-fields-files" title="Link to this heading">¶</a></h2>
-<p>The <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function can read PP files and UM fields files (as
+<p>The <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function can read PP files and UM fields files (as
 output by some versions of the <a class="reference external" href="https://en.wikipedia.org/wiki/Unified_Model">Unified Model</a>, for example), mapping
 their contents into field constructs. 32-bit and 64-bit PP and UM
 fields files of any endian-ness can be read. In nearly all cases the
 file format is auto-detectable from the first 64 bits in the file, but
 for the few occasions when this is not possible <a class="footnote-reference brackets" href="#um" id="id86" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a>, the <em>um</em>
-keyword of <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> allows the format to be specified. The UM
+keyword of <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> allows the format to be specified. The UM
 version (if not inferrable from the PP or lookup header information)
 and the height of the upper bound of the top model level may also be
 set with the <em>um</em> keyword.</p>
 <p>Note that 2-d “slices” within a single file are always combined, where
 possible, into field constructs with 3-d, 4-d or 5-d data. This is
 done prior to the <a class="reference internal" href="#aggregation"><span class="std std-ref">field construct aggregation</span></a>
-carried out by the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function.</p>
+carried out by the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> function.</p>
 <div class="literal-block-wrapper docutils container" id="id328">
 <div class="code-block-caption"><span class="caption-text"><em>Read a PP file into field constructs.</em></span><a class="headerlink" href="#id328" title="Link to this code">¶</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pp</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;umfile.pp&#39;</span><span class="p">)</span>
@@ -7273,8 +7273,8 @@ carried out by the <a class="reference internal" href="function/cf.read.html#cf.
 </div>
 <section id="converting-pp-and-um-fields-files-to-netcdf-files">
 <h3><a class="toc-backref" href="#id477" role="doc-backlink">Converting PP and UM fields files to netCDF files</a><a class="headerlink" href="#converting-pp-and-um-fields-files-to-netcdf-files" title="Link to this heading">¶</a></h3>
-<p>PP and UM fields files may read with <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> and subsequently
-written to disk as netCDF files with <a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>.</p>
+<p>PP and UM fields files may read with <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> and subsequently
+written to disk as netCDF files with <a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a>.</p>
 <div class="literal-block-wrapper docutils container" id="id329">
 <div class="code-block-caption"><span class="caption-text"><em>Write the field constructs from a PP file to a netCDF
 dataset.</em></span><a class="headerlink" href="#id329" title="Link to this code">¶</a></div>
@@ -7346,11 +7346,11 @@ database that maps header items to standard names and units is stored
 in the file <code class="docutils literal notranslate"><span class="pre">etc/STASH_to_CF.txt</span></code> within the cf library
 installation. The database is available as a dictionary, keyed by
 submodel and stash code tuples, a copy of which is returned by the
-<a class="reference internal" href="function/cf.stash2standard_name.html#cf.stash2standard_name" title="cf.stash2standard_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.stash2standard_name</span></code></a> function. The database contains many STASH
+<a class="reference internal" href="function/function/cf.stash2standard_name.html#cf.stash2standard_name" title="cf.stash2standard_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.stash2standard_name</span></code></a> function. The database contains many STASH
 codes without standard names nor units, and will not contain
 user-defined STASH codes. However, modifying existing entries, or
 adding new ones, is straight forward with the
-<a class="reference internal" href="function/cf.load_stash2standard_name.html#cf.load_stash2standard_name" title="cf.load_stash2standard_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.load_stash2standard_name</span></code></a> function.</p>
+<a class="reference internal" href="function/function/cf.load_stash2standard_name.html#cf.load_stash2standard_name" title="cf.load_stash2standard_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.load_stash2standard_name</span></code></a> function.</p>
 <div class="literal-block-wrapper docutils container" id="id331">
 <div class="code-block-caption"><span class="caption-text"><em>Inspect the STASH to standard name database, and modify
 it.</em></span><a class="headerlink" href="#id331" title="Link to this code">¶</a></div>
@@ -7438,7 +7438,7 @@ method of the field construct.</p>
 (i.e. to size 1) with a given <a class="reference internal" href="#collapse-methods"><span class="std std-ref">collapse method</span></a>.</p>
 <div class="literal-block-wrapper docutils container" id="id332">
 <div class="code-block-caption"><span class="caption-text"><em>Find the minimum of the entire data.</em></span><a class="headerlink" href="#id332" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">cf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">cf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s1">&#39;timeseries.nc&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="go">Field: air_potential_temperature (ncvar%air_potential_temperature)</span>
@@ -8446,7 +8446,7 @@ field construct.</p>
 </section>
 <section id="histograms">
 <span id="id96"></span><h3><a class="toc-backref" href="#id490" role="doc-backlink">Histograms</a><a class="headerlink" href="#histograms" title="Link to this heading">¶</a></h3>
-<p>The <a class="reference internal" href="function/cf.histogram.html#cf.histogram" title="cf.histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.histogram</span></code></a> function is used to record the distribution of a
+<p>The <a class="reference internal" href="function/function/cf.histogram.html#cf.histogram" title="cf.histogram"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.histogram</span></code></a> function is used to record the distribution of a
 set of variables in the form of an N-dimensional histogram.</p>
 <p>Each dimension of the histogram is defined by a field construct
 returned by the <a class="reference internal" href="method/cf.Field.digitize.html#cf.Field.digitize" title="cf.Field.digitize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">digitize</span></code></a> method of a field construct. This
@@ -8527,7 +8527,7 @@ construct with the same shape as the specific humidity
 field construct already in use.</em></span><a class="headerlink" href="#id355" title="Link to this code">¶</a></div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">standard_name</span> <span class="o">=</span> <span class="s1">&#39;air_temperature&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="mi">290</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">override_units</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
@@ -8925,7 +8925,7 @@ coordinate constructs.</p>
 <div class="literal-block-wrapper docutils container" id="id363">
 <div class="code-block-caption"><span class="caption-text"><em>Regrid ‘a’ onto two-dimensional (curvilinear) dimension
 coordinates latitude and longitude.</em></span><a class="headerlink" href="#id363" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">domain</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">create_regular</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">360</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">regrids</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">)</span>
 <span class="go">Field: air_temperature (ncvar%tas)</span>
@@ -9166,7 +9166,7 @@ combining such field constructs.)</em></p>
 result of binary operation will, by default, only have bounds if both
 operands have bounds; and the bounds of the result will be the result
 of the same binary operation on bounds objects. This behaviour may
-modified by the <a class="reference internal" href="function/cf.bounds_combination_mode.html#cf.bounds_combination_mode" title="cf.bounds_combination_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.bounds_combination_mode</span></code></a> function.</p>
+modified by the <a class="reference internal" href="function/function/cf.bounds_combination_mode.html#cf.bounds_combination_mode" title="cf.bounds_combination_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.bounds_combination_mode</span></code></a> function.</p>
 <div class="literal-block-wrapper docutils container" id="id369">
 <div class="code-block-caption"><span class="caption-text"><em>Demonstrate how bounds are treated in binary
 operations.</em></span><a class="headerlink" href="#id369" title="Link to this code">¶</a></div>
@@ -9250,7 +9250,7 @@ first case.</p></li>
 <div class="code-block-caption"><span class="caption-text"><em>A field construct will not be returned if
 the left hand operand is a numpy array or a
 ‘Data’ instance.</em></span><a class="headerlink" href="#id371" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">cf</span><span class="o">.</span><span class="n">example_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">a</span><span class="p">)</span>
@@ -9424,7 +9424,7 @@ data instances instead. See
 <li><p><strong>Option 2:</strong> If the mapping is not possible due to the absence of
 <code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_name</span></code> properties (or <code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code> attributes) on metadata
 constructs that are known to correspond, then setting “relaxed
-identities” with the <a class="reference internal" href="function/cf.relaxed_identities.html#cf.relaxed_identities" title="cf.relaxed_identities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.relaxed_identities</span></code></a> function may
+identities” with the <a class="reference internal" href="function/function/cf.relaxed_identities.html#cf.relaxed_identities" title="cf.relaxed_identities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.relaxed_identities</span></code></a> function may
 help. Setting relaxed identities to <a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a> allows the <code class="xref py py-obj docutils literal notranslate"><span class="pre">long_name</span></code>
 property and netCDF variable name (see the <a class="reference internal" href="#netcdf-interface"><span class="std std-ref">netCDF interface</span></a>), to also be considered when identifying
 constructs.</p></li>
@@ -9789,7 +9789,7 @@ functions for creating window weights for filtering:</p>
 axis. Since the ‘Y’ axis is not cyclic, the convolution
 by default inserts missing data at points for which the
 filter window extends beyond the array.</em></span><a class="headerlink" href="#id384" title="Link to this code">¶</a></div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="kn">import</span> <span class="n">windows</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy.signal</span><span class="w"> </span><span class="kn">import</span> <span class="n">windows</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">exponential_window</span> <span class="o">=</span> <span class="n">windows</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">exponential_window</span><span class="p">)</span>
 <span class="go">[0.36787944 1.         0.36787944]</span>
@@ -9894,7 +9894,7 @@ azimuthal angle.</p>
 </section>
 <section id="divergence">
 <h3><a class="toc-backref" href="#id513" role="doc-backlink">Divergence</a><a class="headerlink" href="#divergence" title="Link to this heading">¶</a></h3>
-<p>The horizontal divergence may be calculated with the <a class="reference internal" href="function/cf.div_xy.html#cf.div_xy" title="cf.div_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.div_xy</span></code></a>
+<p>The horizontal divergence may be calculated with the <a class="reference internal" href="function/function/cf.div_xy.html#cf.div_xy" title="cf.div_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.div_xy</span></code></a>
 function from orthogonal vector component fields which have dimension
 coordinates of X and Y, in either Cartesian (e.g. plane projection) or
 spherical polar coordinate systems.</p>
@@ -9918,11 +9918,11 @@ spherical polar coordinates is given by:</p>
 <p>where <em>r</em> is radial distance to the origin, <span class="math notranslate nohighlight">\(\theta\)</span> is the
 polar angle with respect to polar axis, and <span class="math notranslate nohighlight">\(\phi\)</span> is the
 azimuthal angle.</p>
-<p>See <a class="reference internal" href="function/cf.div_xy.html#cf.div_xy" title="cf.div_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.div_xy</span></code></a> for details and examples.</p>
+<p>See <a class="reference internal" href="function/function/cf.div_xy.html#cf.div_xy" title="cf.div_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.div_xy</span></code></a> for details and examples.</p>
 </section>
 <section id="curl">
 <h3><a class="toc-backref" href="#id514" role="doc-backlink">Curl</a><a class="headerlink" href="#curl" title="Link to this heading">¶</a></h3>
-<p>The horizontal curl may be calculated with the <a class="reference internal" href="function/cf.curl_xy.html#cf.curl_xy" title="cf.curl_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.curl_xy</span></code></a> function
+<p>The horizontal curl may be calculated with the <a class="reference internal" href="function/function/cf.curl_xy.html#cf.curl_xy" title="cf.curl_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.curl_xy</span></code></a> function
 from orthogonal vector component fields which have dimension
 coordinates of X and Y, in either Cartesian (e.g. plane projection) or
 spherical polar coordinate systems.</p>
@@ -9948,7 +9948,7 @@ spherical polar coordinates is given by:</p>
 <p>where <em>r</em> is radial distance to the origin, <span class="math notranslate nohighlight">\(\theta\)</span> is the
 polar angle with respect to polar axis, and <span class="math notranslate nohighlight">\(\phi\)</span> is the
 azimuthal angle.</p>
-<p>See <a class="reference internal" href="function/cf.curl_xy.html#cf.curl_xy" title="cf.curl_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.curl_xy</span></code></a> for details and examples.</p>
+<p>See <a class="reference internal" href="function/function/cf.curl_xy.html#cf.curl_xy" title="cf.curl_xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.curl_xy</span></code></a> for details and examples.</p>
 <hr class="docutils" />
 </section>
 </section>
@@ -9973,7 +9973,7 @@ the sub-sections below. Namely, you may configure the extent of
 messaging:</p>
 <ul class="simple">
 <li><p><strong>globally</strong> i.e. for all cf operations, by setting the
-<a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> which controls the project-wide logging;</p></li>
+<a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> which controls the project-wide logging;</p></li>
 <li><p><strong>for a specific function only</strong> (for many functions) by setting
 that function’s <em>verbose</em> keyword argument (which overrides the
 global setting for the duration of the function call).</p></li>
@@ -9994,12 +9994,12 @@ verbosity. From highest to lowest on this scale, these levels are:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">'DEBUG'</span></code>: produces highly-verbose information intended mainly for
 the purposes of debugging and cf library development.</p></li>
 </ul>
-<p>The function <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> sets the minimum of these levels for
+<p>The function <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> sets the minimum of these levels for
 which messages are displayed. Any message marked as being of any lower
 level will be filtered out. Note it sets the verbosity <em>globally</em>, for
 <em>all</em> cf library operations (unless these are overridden for
 individual functions, as covered below).</p>
-<p>As well as the named log levels above, <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> accepts a
+<p>As well as the named log levels above, <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> accepts a
 further identifier, <code class="docutils literal notranslate"><span class="pre">'DISABLE'</span></code>. Each of these potential settings
 has a numerical value that is treated interchangeably and may instead
 be set (as this may be easier to recall and write, if less
@@ -10052,7 +10052,7 @@ should not be required in general usage of cf, hence its equivalence
 to <code class="docutils literal notranslate"><span class="pre">-1</span></code> rather than <code class="docutils literal notranslate"><span class="pre">4</span></code> which would follow the increasing integer
 code pattern.  <code class="docutils literal notranslate"><span class="pre">-1</span></code> reflects that it is the final value in the
 sequence, as with Python indexing.</p>
-<p>The default value for <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> is <code class="docutils literal notranslate"><span class="pre">'WARNING'</span></code> (<code class="docutils literal notranslate"><span class="pre">1</span></code>).
+<p>The default value for <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> is <code class="docutils literal notranslate"><span class="pre">'WARNING'</span></code> (<code class="docutils literal notranslate"><span class="pre">1</span></code>).
 However, whilst completing this tutorial, it may be instructive to set
 the log level` to a higher verbosity level such as <code class="docutils literal notranslate"><span class="pre">'INFO'</span></code> to gain
 insight into the internal workings of cf calls.</p>
@@ -10060,21 +10060,21 @@ insight into the internal workings of cf calls.</p>
 <section id="function-verbosity">
 <span id="id115"></span><h3><a class="toc-backref" href="#id517" role="doc-backlink">Function verbosity</a><a class="headerlink" href="#function-verbosity" title="Link to this heading">¶</a></h3>
 <p>Functions and methods that involve a particularly high number of steps
-or especially complex processing, for example the <a class="reference internal" href="function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> and
-<a class="reference internal" href="function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> functions, accept a keyword argument <em>verbose</em>. This be
+or especially complex processing, for example the <a class="reference internal" href="function/function/cf.read.html#cf.read" title="cf.read"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.read</span></code></a> and
+<a class="reference internal" href="function/function/cf.write.html#cf.write" title="cf.write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.write</span></code></a> functions, accept a keyword argument <em>verbose</em>. This be
 set to change the minimum log level at which messages are displayed
 for the function/method call only, without being influenced by, or
-influencing, the global <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> value.</p>
-<p>A <em>verbose</em> value effectively overrides the value of <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a>
+influencing, the global <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> value.</p>
+<p>A <em>verbose</em> value effectively overrides the value of <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a>
 for the function/method along with any functions/methods it calls in
 turn, until the origin function/method completes.</p>
-<p>The <em>verbose</em> argument accepts the same levels as <a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a>
+<p>The <em>verbose</em> argument accepts the same levels as <a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a>
 (including <code class="docutils literal notranslate"><span class="pre">0</span></code> for <code class="docutils literal notranslate"><span class="pre">'DISABLE'</span></code>), as described in <a class="reference internal" href="#logging"><span class="std std-ref">the logging
 section</span></a>, namely either an integer or a corresponding string
 for example <code class="docutils literal notranslate"><span class="pre">verbose=2</span></code> or equivalently <code class="docutils literal notranslate"><span class="pre">verbose='INFO'</span></code>
 (or <code class="docutils literal notranslate"><span class="pre">verbose='info'</span></code> since case is ignored).</p>
 <p>By default, <em>verbose</em> is set to <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>, in which case the value of the
-<a class="reference internal" href="function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> setting is used to determine which messages,
+<a class="reference internal" href="function/function/cf.log_level.html#cf.log_level" title="cf.log_level"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.log_level</span></code></a> setting is used to determine which messages,
 if any, are filtered out.</p>
 <p class="rubric">Footnotes</p>
 <aside class="footnote-list brackets">
@@ -10107,11 +10107,11 @@ format can not reliably be detected automatically.</p>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &#169;2026, NCAS | Page built on 2026-07-07.
+      &#169;2026, NCAS | Page built on 2026-08-28.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 

@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>cf.TiePointIndex &#8212; Documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/customise-alabaster.css?v=5dec66a6" />
+    <script src="../_static/documentation_options.js?v=be4f90db"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=a56c686a"></script>
+    <script src="../_static/toggleprompt.js?v=99cb1901"></script>
+    <link rel="icon" href="../_static/favicon.ico"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cf.TiePointIndex.Data" href="../method/cf.TiePointIndex.Data.html" />
+    <link rel="prev" title="cf.SubsampledArray.size" href="../attribute/cf.SubsampledArray.size.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.svg" alt="Logo of Python cf package"/>
+            </a></p>
+
+
+
+<h1 class="logo"><a href="../index.html">cf 3.21.0</a></h1>
+
+
+
+<p class="blurb">A CF-compliant earth science data analysis library</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=NCAS-CMS&repo=cf-python&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction.html"><strong>Introduction</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html"><strong>Installation</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cheat_sheet.html"><strong>Cheat Sheet</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../recipes/index.html"><strong>Recipes using cf</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html"><strong>Tutorial</strong></a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api_reference.html"><strong>API reference</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aggregation_rules.html"><strong>Aggregation rules</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../performance.html"><strong>Performance</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releases.html"><strong>Releases</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Changelog.html"><strong>Change log</strong></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html"><strong>Contributing</strong></a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api_reference.html"><strong>API reference</strong></a><ul>
+  <li><a href="../class.html"><strong>cf classes</strong></a><ul>
+      <li>Previous: <a href="../attribute/cf.SubsampledArray.size.html" title="previous chapter">cf.SubsampledArray.size</a></li>
+      <li>Next: <a href="../method/cf.TiePointIndex.Data.html" title="next chapter">cf.TiePointIndex.Data</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+
+<br>
+cf development has been supported by
+the <a href="https://erc.europa.eu/">ERC</a>
+through <a href="https://cordis.europa.eu/project/id/247220">Seachange</a>
+and
+<a href="https://cordis.europa.eu/project/id/786427">Couplet</a>; by
+the <a href="https://ec.europa.eu/programmes/horizon2020/">EC Horizon
+2020 programme</a> through
+<a href="https://cordis.europa.eu/project/id/824084">IS-ENES3</a>;
+by <a href="https://nerc.ukri.org/">NERC</a> through
+<a href="https://gtr.ukri.org/project/0D95A6DB-0B95-48F7-8A8B-7B9A47DEA117">UKFAFMIP</a>;
+and by <a href="https://ncas.ac.uk/">NCAS</a>.
+<br>
+<br>
+<img src="../_static/logo_EC.png" height="40">
+<img src="../_static/logo_ERC.png" height="40">
+<img src="../_static/logo_NERC.png" height="40">
+<br>
+<img src="../_static/logo_NCAS.png" height="40">
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="cf-tiepointindex">
+<span id="tiepointindex"></span><h1>cf.TiePointIndex<a class="headerlink" href="#cf-tiepointindex" title="Link to this heading">¶</a></h1>
+<hr class="docutils" />
+<dl class="py class">
+<dt class="sig sig-object py" id="cf.TiePointIndex">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">cf.</span></span><span class="sig-name descname"><span class="pre">TiePointIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference external" href="https://github.com/NCAS-CMS/cf-python/blob/v3.21.0/cf/tiepointindex.py#L6-L7"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cf.TiePointIndex" title="Link to this definition">¶</a></dt>
+<dd><p>A tie point index variable with properties.</p>
+<p>Space may be saved by storing a subsample of the coordinates. The
+uncompressed coordinates can be reconstituted by interpolation
+from the subsampled coordinate values, also called either “tie
+points” or “bounds tie points”.</p>
+<p>For each interpolated dimension, the locations of the (bounds) tie
+points are defined by a corresponding tie point index variable,
+which also indicates the extent of each continuous area.</p>
+<p><strong>NetCDF interface</strong></p>
+<p>The netCDF variable name may be accessed with the
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_set_variable.html#cf.TiePointIndex.nc_set_variable" title="cf.TiePointIndex.nc_set_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_variable</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_get_variable.html#cf.TiePointIndex.nc_get_variable" title="cf.TiePointIndex.nc_get_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_variable</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_del_variable.html#cf.TiePointIndex.nc_del_variable" title="cf.TiePointIndex.nc_del_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_variable</span></code></a>, and
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_has_variable.html#cf.TiePointIndex.nc_has_variable" title="cf.TiePointIndex.nc_has_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_variable</span></code></a> methods.</p>
+<p>The netCDF variable group structure may be accessed with the
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_set_variable.html#cf.TiePointIndex.nc_set_variable" title="cf.TiePointIndex.nc_set_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_variable</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_get_variable.html#cf.TiePointIndex.nc_get_variable" title="cf.TiePointIndex.nc_get_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_variable</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_variable_groups.html#cf.TiePointIndex.nc_variable_groups" title="cf.TiePointIndex.nc_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_variable_groups</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_variable_groups.html#cf.TiePointIndex.nc_clear_variable_groups" title="cf.TiePointIndex.nc_clear_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_variable_groups</span></code></a>, and <a class="reference internal" href="../method/cf.TiePointIndex.nc_set_variable_groups.html#cf.TiePointIndex.nc_set_variable_groups" title="cf.TiePointIndex.nc_set_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_variable_groups</span></code></a>
+methods.</p>
+<p>The dataset chunks may be accessed with the
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_dataset_chunksizes.html#cf.TiePointIndex.nc_dataset_chunksizes" title="cf.TiePointIndex.nc_dataset_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_dataset_chunksizes</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_set_dataset_chunksizes.html#cf.TiePointIndex.nc_set_dataset_chunksizes" title="cf.TiePointIndex.nc_set_dataset_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_dataset_chunksizes</span></code></a>, and
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_datset_chunksizes</span></code> methods.</p>
+<p>The netCDF subsampled dimension name may be accessed with the
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_set_subsampled_dimension.html#cf.TiePointIndex.nc_set_subsampled_dimension" title="cf.TiePointIndex.nc_set_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_subsampled_dimension</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_get_subsampled_dimension.html#cf.TiePointIndex.nc_get_subsampled_dimension" title="cf.TiePointIndex.nc_get_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_subsampled_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_del_subsampled_dimension.html#cf.TiePointIndex.nc_del_subsampled_dimension" title="cf.TiePointIndex.nc_del_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_subsampled_dimension</span></code></a> and <a class="reference internal" href="../method/cf.TiePointIndex.nc_has_subsampled_dimension.html#cf.TiePointIndex.nc_has_subsampled_dimension" title="cf.TiePointIndex.nc_has_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_subsampled_dimension</span></code></a>
+methods.</p>
+<p>The netCDF subsampled dimension group structure may be accessed
+with the <a class="reference internal" href="../method/cf.TiePointIndex.nc_set_subsampled_dimension.html#cf.TiePointIndex.nc_set_subsampled_dimension" title="cf.TiePointIndex.nc_set_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_subsampled_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_get_subsampled_dimension.html#cf.TiePointIndex.nc_get_subsampled_dimension" title="cf.TiePointIndex.nc_get_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_subsampled_dimension</span></code></a>, <a class="reference internal" href="../method/cf.TiePointIndex.nc_subsampled_dimension_groups.html#cf.TiePointIndex.nc_subsampled_dimension_groups" title="cf.TiePointIndex.nc_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_subsampled_dimension_groups</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_subsampled_dimension_groups.html#cf.TiePointIndex.nc_clear_subsampled_dimension_groups" title="cf.TiePointIndex.nc_clear_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_subsampled_dimension_groups</span></code></a>, and
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_set_subsampled_dimension_groups.html#cf.TiePointIndex.nc_set_subsampled_dimension_groups" title="cf.TiePointIndex.nc_set_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_subsampled_dimension_groups</span></code></a> methods.</p>
+<p>The netCDF interpolation subarea dimension name may be accessed
+with the <a class="reference internal" href="../method/cf.TiePointIndex.nc_set_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_set_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_set_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_interpolation_subarea_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_get_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_get_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_get_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_interpolation_subarea_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_del_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_del_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_del_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_interpolation_subarea_dimension</span></code></a>, and
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_has_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_has_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_has_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_interpolation_subarea_dimension</span></code></a> methods.</p>
+<p>The netCDF interpolation subarea dimension group structure may be
+accessed with the <a class="reference internal" href="../method/cf.TiePointIndex.nc_set_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_set_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_set_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_interpolation_subarea_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_get_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_get_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_get_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_interpolation_subarea_dimension</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_interpolation_subarea_dimension_groups</span></code></a>,
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_interpolation_subarea_dimension_groups</span></code></a> and
+<a class="reference internal" href="../method/cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_interpolation_subarea_dimension_groups</span></code></a> methods.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version (cfdm): </span>1.10.0.0</p>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="cf.InterpolationParameter.html#cf.InterpolationParameter" title="cf.InterpolationParameter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InterpolationParameter</span></code></a></p>
+</div>
+<p><strong>Initialisation</strong></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt>properties: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a>, optional</dt><dd><p>Set descriptive properties. The dictionary keys are
+property names, with corresponding values.</p>
+<p>Properties may also be set after initialisation with
+the <a class="reference internal" href="../method/cf.TiePointIndex.set_properties.html#cf.TiePointIndex.set_properties" title="cf.TiePointIndex.set_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_properties</span></code></a> and <a class="reference internal" href="../method/cf.TiePointIndex.set_property.html#cf.TiePointIndex.set_property" title="cf.TiePointIndex.set_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_property</span></code></a> methods.</p>
+<dl class="simple">
+<dt><em>Parameter example:</em></dt><dd><p><code class="docutils literal notranslate"><span class="pre">properties={'standard_name':</span> <span class="pre">'altitude'}</span></code></p>
+</dd>
+</dl>
+</dd>
+<dt>data: data_like, optional</dt><dd><p>Set the data.</p>
+<p>A data_like object is any object that can be converted
+to a <a class="reference internal" href="cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> object, i.e. <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span></code></a> array_like objects,
+<a class="reference internal" href="cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects, and cf instances that contain
+<a class="reference internal" href="cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects.</p>
+<p>The data also may be set after initialisation with the
+<a class="reference internal" href="../method/cf.TiePointIndex.set_data.html#cf.TiePointIndex.set_data" title="cf.TiePointIndex.set_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_data</span></code></a> method.</p>
+</dd>
+<dt>source: optional</dt><dd><p>Convert <em>source</em>, which can be any type of object, to
+a <a class="reference internal" href="#cf.TiePointIndex" title="cf.TiePointIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiePointIndex</span></code></a> instance.</p>
+<p>All other parameters, apart from <em>copy</em>, are ignored
+and their values are instead inferred from <em>source</em> by
+assuming that it has the <a class="reference internal" href="#cf.TiePointIndex" title="cf.TiePointIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiePointIndex</span></code></a> API. Any
+parameters that can not be retrieved from <em>source</em> in
+this way are assumed to have their default value.</p>
+<p>Note that if <code class="docutils literal notranslate"><span class="pre">x</span></code> is also a <a class="reference internal" href="#cf.TiePointIndex" title="cf.TiePointIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiePointIndex</span></code></a> instance then
+<code class="docutils literal notranslate"><span class="pre">cf.TiePointIndex(source=x)</span></code> is equivalent to
+<code class="docutils literal notranslate"><span class="pre">x.copy()</span></code>.</p>
+</dd>
+<dt>copy: <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a>, optional</dt><dd><p>If True (the default) then deep copy the input
+parameters prior to initialisation. By default the
+parameters are not deep copied.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Link to this heading">¶</a></h2>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.Data.html#cf.TiePointIndex.Data" title="cf.TiePointIndex.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code> attribute or <code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code> method instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.T.html#cf.TiePointIndex.T" title="cf.TiePointIndex.T"><code class="xref py py-obj docutils literal notranslate"><span class="pre">T</span></code></a></p></td>
+<td><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#True" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">True</span></code></a> if and only if the data are coordinates for a CF 'T' axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.Units.html#cf.TiePointIndex.Units" title="cf.TiePointIndex.Units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Units</span></code></a></p></td>
+<td><p>The <a class="reference internal" href="cf.Units.html#cf.Units" title="cf.Units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cf.Units</span></code></a> object containing the units of the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.X.html#cf.TiePointIndex.X" title="cf.TiePointIndex.X"><code class="xref py py-obj docutils literal notranslate"><span class="pre">X</span></code></a></p></td>
+<td><p>Always False.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.Y.html#cf.TiePointIndex.Y" title="cf.TiePointIndex.Y"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Y</span></code></a></p></td>
+<td><p>Always False.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.Z.html#cf.TiePointIndex.Z" title="cf.TiePointIndex.Z"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Z</span></code></a></p></td>
+<td><p>Always False.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.add_offset.html#cf.TiePointIndex.add_offset" title="cf.TiePointIndex.add_offset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_offset</span></code></a></p></td>
+<td><p>The add_offset CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.all.html#cf.TiePointIndex.all" title="cf.TiePointIndex.all"><code class="xref py py-obj docutils literal notranslate"><span class="pre">all</span></code></a></p></td>
+<td><p>Test whether all data elements evaluate to True.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.allclose.html#cf.TiePointIndex.allclose" title="cf.TiePointIndex.allclose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allclose</span></code></a></p></td>
+<td><p>Test whether all data are element-wise equal to other, broadcastable data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.any.html#cf.TiePointIndex.any" title="cf.TiePointIndex.any"><code class="xref py py-obj docutils literal notranslate"><span class="pre">any</span></code></a></p></td>
+<td><p>Test whether any data elements evaluate to True.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.apply_masking.html#cf.TiePointIndex.apply_masking" title="cf.TiePointIndex.apply_masking"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_masking</span></code></a></p></td>
+<td><p>Apply masking as defined by the CF conventions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arccos.html#cf.TiePointIndex.arccos" title="cf.TiePointIndex.arccos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arccos</span></code></a></p></td>
+<td><p>Take the trigonometric inverse cosine of the data element- wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arccosh.html#cf.TiePointIndex.arccosh" title="cf.TiePointIndex.arccosh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arccosh</span></code></a></p></td>
+<td><p>Take the inverse hyperbolic cosine of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arcsin.html#cf.TiePointIndex.arcsin" title="cf.TiePointIndex.arcsin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arcsin</span></code></a></p></td>
+<td><p>Take the trigonometric inverse sine of the data element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arcsinh.html#cf.TiePointIndex.arcsinh" title="cf.TiePointIndex.arcsinh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arcsinh</span></code></a></p></td>
+<td><p>Take the inverse hyperbolic sine of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arctan.html#cf.TiePointIndex.arctan" title="cf.TiePointIndex.arctan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arctan</span></code></a></p></td>
+<td><p>Take the trigonometric inverse tangent of the data element- wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.arctanh.html#cf.TiePointIndex.arctanh" title="cf.TiePointIndex.arctanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arctanh</span></code></a></p></td>
+<td><p>Take the inverse hyperbolic tangent of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.array.html#cf.TiePointIndex.array" title="cf.TiePointIndex.array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">array</span></code></a></p></td>
+<td><p>A numpy array deep copy of the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.asdatetime.html#cf.TiePointIndex.asdatetime" title="cf.TiePointIndex.asdatetime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asdatetime</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.asreftime.html#cf.TiePointIndex.asreftime" title="cf.TiePointIndex.asreftime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">asreftime</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.attributes.html#cf.TiePointIndex.attributes" title="cf.TiePointIndex.attributes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attributes</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.binary_mask.html#cf.TiePointIndex.binary_mask" title="cf.TiePointIndex.binary_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">binary_mask</span></code></a></p></td>
+<td><p>A binary (0 and 1) missing data mask of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.calendar.html#cf.TiePointIndex.calendar" title="cf.TiePointIndex.calendar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calendar</span></code></a></p></td>
+<td><p>The calendar CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.ceil.html#cf.TiePointIndex.ceil" title="cf.TiePointIndex.ceil"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ceil</span></code></a></p></td>
+<td><p>The ceiling of the data, element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.chunk.html#cf.TiePointIndex.chunk" title="cf.TiePointIndex.chunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk</span></code></a></p></td>
+<td><p>Partition the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.clear_properties.html#cf.TiePointIndex.clear_properties" title="cf.TiePointIndex.clear_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clear_properties</span></code></a></p></td>
+<td><p>Remove all properties.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.clip.html#cf.TiePointIndex.clip" title="cf.TiePointIndex.clip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip</span></code></a></p></td>
+<td><p>Limit the values in the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.close.html#cf.TiePointIndex.close" title="cf.TiePointIndex.close"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close</span></code></a></p></td>
+<td><p>Close all files referenced by the construct.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.comment.html#cf.TiePointIndex.comment" title="cf.TiePointIndex.comment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">comment</span></code></a></p></td>
+<td><p>The comment CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.concatenate.html#cf.TiePointIndex.concatenate" title="cf.TiePointIndex.concatenate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">concatenate</span></code></a></p></td>
+<td><p>Join a together sequence of <a class="reference internal" href="#cf.TiePointIndex" title="cf.TiePointIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiePointIndex</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.convert_reference_time.html#cf.TiePointIndex.convert_reference_time" title="cf.TiePointIndex.convert_reference_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert_reference_time</span></code></a></p></td>
+<td><p>Convert reference time data values to have new units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.copy.html#cf.TiePointIndex.copy" title="cf.TiePointIndex.copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">copy</span></code></a></p></td>
+<td><p>Return a deep copy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.cos.html#cf.TiePointIndex.cos" title="cf.TiePointIndex.cos"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cos</span></code></a></p></td>
+<td><p>Take the trigonometric cosine of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.cosh.html#cf.TiePointIndex.cosh" title="cf.TiePointIndex.cosh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cosh</span></code></a></p></td>
+<td><p>Take the hyperbolic cosine of the data element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.count.html#cf.TiePointIndex.count" title="cf.TiePointIndex.count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count</span></code></a></p></td>
+<td><p>Count the non-masked elements of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.count_masked.html#cf.TiePointIndex.count_masked" title="cf.TiePointIndex.count_masked"><code class="xref py py-obj docutils literal notranslate"><span class="pre">count_masked</span></code></a></p></td>
+<td><p>Count the masked elements of the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.creation_commands.html#cf.TiePointIndex.creation_commands" title="cf.TiePointIndex.creation_commands"><code class="xref py py-obj docutils literal notranslate"><span class="pre">creation_commands</span></code></a></p></td>
+<td><p>Return the commands that would create the construct.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.cyclic.html#cf.TiePointIndex.cyclic" title="cf.TiePointIndex.cyclic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cyclic</span></code></a></p></td>
+<td><p>Get or set the cyclicity of an axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.data.html#cf.TiePointIndex.data" title="cf.TiePointIndex.data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">data</span></code></a></p></td>
+<td><p>The <a class="reference internal" href="cf.Data.html#cf.Data" title="cf.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> object containing the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.datetime_array.html#cf.TiePointIndex.datetime_array" title="cf.TiePointIndex.datetime_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime_array</span></code></a></p></td>
+<td><p>An independent numpy array of date-time objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.datum.html#cf.TiePointIndex.datum" title="cf.TiePointIndex.datum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datum</span></code></a></p></td>
+<td><p>Return an element of the data array as a standard Python scalar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.day.html#cf.TiePointIndex.day" title="cf.TiePointIndex.day"><code class="xref py py-obj docutils literal notranslate"><span class="pre">day</span></code></a></p></td>
+<td><p>The day of each date-time data array element.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.del_data.html#cf.TiePointIndex.del_data" title="cf.TiePointIndex.del_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">del_data</span></code></a></p></td>
+<td><p>Remove the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.del_properties.html#cf.TiePointIndex.del_properties" title="cf.TiePointIndex.del_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">del_properties</span></code></a></p></td>
+<td><p>Remove properties.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.del_property.html#cf.TiePointIndex.del_property" title="cf.TiePointIndex.del_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">del_property</span></code></a></p></td>
+<td><p>Remove a property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.delprop.html#cf.TiePointIndex.delprop" title="cf.TiePointIndex.delprop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delprop</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method <code class="xref py py-obj docutils literal notranslate"><span class="pre">del_property</span></code> instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.dtarray.html#cf.TiePointIndex.dtarray" title="cf.TiePointIndex.dtarray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtarray</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">datetime_array</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.dtvarray.html#cf.TiePointIndex.dtvarray" title="cf.TiePointIndex.dtvarray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtvarray</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.dtype.html#cf.TiePointIndex.dtype" title="cf.TiePointIndex.dtype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dtype</span></code></a></p></td>
+<td><p>The <a class="reference external" href="https://numpy.org/doc/stable/reference/index.html#module-numpy" title="(in NumPy v2.5)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy</span></code></a> data type of the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.dump.html#cf.TiePointIndex.dump" title="cf.TiePointIndex.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
+<td><p>A full description of the tie point index variable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.equals.html#cf.TiePointIndex.equals" title="cf.TiePointIndex.equals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">equals</span></code></a></p></td>
+<td><p>Whether two instances are the same.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.equivalent.html#cf.TiePointIndex.equivalent" title="cf.TiePointIndex.equivalent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">equivalent</span></code></a></p></td>
+<td><p>True if two constructs are equal, False otherwise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.exp.html#cf.TiePointIndex.exp" title="cf.TiePointIndex.exp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">exp</span></code></a></p></td>
+<td><p>The exponential of the data, element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.expand_dims.html#cf.TiePointIndex.expand_dims" title="cf.TiePointIndex.expand_dims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expand_dims</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">insert_dimension</span></code> method instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.file_directories.html#cf.TiePointIndex.file_directories" title="cf.TiePointIndex.file_directories"><code class="xref py py-obj docutils literal notranslate"><span class="pre">file_directories</span></code></a></p></td>
+<td><p>The directories of files containing parts of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.fill_value.html#cf.TiePointIndex.fill_value" title="cf.TiePointIndex.fill_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fill_value</span></code></a></p></td>
+<td><p>Return the data array missing data value.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.filled.html#cf.TiePointIndex.filled" title="cf.TiePointIndex.filled"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filled</span></code></a></p></td>
+<td><p>Replace masked elements with a fill value.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.flatten.html#cf.TiePointIndex.flatten" title="cf.TiePointIndex.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a></p></td>
+<td><p>Flatten axes of the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.flip.html#cf.TiePointIndex.flip" title="cf.TiePointIndex.flip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flip</span></code></a></p></td>
+<td><p>Flip (reverse the direction of) data dimensions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.floor.html#cf.TiePointIndex.floor" title="cf.TiePointIndex.floor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">floor</span></code></a></p></td>
+<td><p>Floor the data array, element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_data.html#cf.TiePointIndex.get_data" title="cf.TiePointIndex.get_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data</span></code></a></p></td>
+<td><p>Return the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_filenames.html#cf.TiePointIndex.get_filenames" title="cf.TiePointIndex.get_filenames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_filenames</span></code></a></p></td>
+<td><p>Return the name of the file or files containing the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_original_filenames.html#cf.TiePointIndex.get_original_filenames" title="cf.TiePointIndex.get_original_filenames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_original_filenames</span></code></a></p></td>
+<td><p>The names of files containing the original data and metadata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_property.html#cf.TiePointIndex.get_property" title="cf.TiePointIndex.get_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_property</span></code></a></p></td>
+<td><p>Get a CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_quantization.html#cf.TiePointIndex.get_quantization" title="cf.TiePointIndex.get_quantization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quantization</span></code></a></p></td>
+<td><p>Get quantization metadata.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.get_quantize_on_write.html#cf.TiePointIndex.get_quantize_on_write" title="cf.TiePointIndex.get_quantize_on_write"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_quantize_on_write</span></code></a></p></td>
+<td><p>Get a quantize-on-write instruction.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.getprop.html#cf.TiePointIndex.getprop" title="cf.TiePointIndex.getprop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getprop</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method <code class="xref py py-obj docutils literal notranslate"><span class="pre">get_property</span></code> instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.halo.html#cf.TiePointIndex.halo" title="cf.TiePointIndex.halo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">halo</span></code></a></p></td>
+<td><p>Expand the data by adding a halo.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.hardmask.html#cf.TiePointIndex.hardmask" title="cf.TiePointIndex.hardmask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hardmask</span></code></a></p></td>
+<td><p>Whether the mask is hard (True) or soft (False).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.has_bounds.html#cf.TiePointIndex.has_bounds" title="cf.TiePointIndex.has_bounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_bounds</span></code></a></p></td>
+<td><p>Whether or not there are cell bounds.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.has_data.html#cf.TiePointIndex.has_data" title="cf.TiePointIndex.has_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_data</span></code></a></p></td>
+<td><p>Whether or not the construct has data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.has_property.html#cf.TiePointIndex.has_property" title="cf.TiePointIndex.has_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_property</span></code></a></p></td>
+<td><p>Whether a property has been set.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.hasbounds.html#cf.TiePointIndex.hasbounds" title="cf.TiePointIndex.hasbounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hasbounds</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">has_bounds</span></code> method instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.hasdata.html#cf.TiePointIndex.hasdata" title="cf.TiePointIndex.hasdata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hasdata</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">has_data</span></code> method instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.hasprop.html#cf.TiePointIndex.hasprop" title="cf.TiePointIndex.hasprop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hasprop</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method <code class="xref py py-obj docutils literal notranslate"><span class="pre">has_property</span></code> instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.history.html#cf.TiePointIndex.history" title="cf.TiePointIndex.history"><code class="xref py py-obj docutils literal notranslate"><span class="pre">history</span></code></a></p></td>
+<td><p>The history CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.hour.html#cf.TiePointIndex.hour" title="cf.TiePointIndex.hour"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hour</span></code></a></p></td>
+<td><p>The hour of each date-time data array element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.id.html#cf.TiePointIndex.id" title="cf.TiePointIndex.id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">id</span></code></a></p></td>
+<td><p>An identity for the TiePointIndex object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.identities.html#cf.TiePointIndex.identities" title="cf.TiePointIndex.identities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identities</span></code></a></p></td>
+<td><p>Return all possible identities.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.identity.html#cf.TiePointIndex.identity" title="cf.TiePointIndex.identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">identity</span></code></a></p></td>
+<td><p>Return the canonical identity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.insert_data.html#cf.TiePointIndex.insert_data" title="cf.TiePointIndex.insert_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert_data</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">set_data</span></code> method instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.insert_dimension.html#cf.TiePointIndex.insert_dimension" title="cf.TiePointIndex.insert_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">insert_dimension</span></code></a></p></td>
+<td><p>Expand the shape of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.inspect.html#cf.TiePointIndex.inspect" title="cf.TiePointIndex.inspect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inspect</span></code></a></p></td>
+<td><p>Inspect the object for debugging.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isauxiliary.html#cf.TiePointIndex.isauxiliary" title="cf.TiePointIndex.isauxiliary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isauxiliary</span></code></a></p></td>
+<td><p>Deprecated at version 3.7.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">construct_type</span></code> attribute instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.iscyclic.html#cf.TiePointIndex.iscyclic" title="cf.TiePointIndex.iscyclic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iscyclic</span></code></a></p></td>
+<td><p>Whether or not a given axis is cyclic.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isdimension.html#cf.TiePointIndex.isdimension" title="cf.TiePointIndex.isdimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isdimension</span></code></a></p></td>
+<td><p>Deprecated at version 3.7.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">construct_type</span></code> attribute instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isdomainancillary.html#cf.TiePointIndex.isdomainancillary" title="cf.TiePointIndex.isdomainancillary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isdomainancillary</span></code></a></p></td>
+<td><p>Deprecated at version 3.7.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">construct_type</span></code> attribute instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isfieldancillary.html#cf.TiePointIndex.isfieldancillary" title="cf.TiePointIndex.isfieldancillary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isfieldancillary</span></code></a></p></td>
+<td><p>Deprecated at version 3.7.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">construct_type</span></code> attribute instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.ismeasure.html#cf.TiePointIndex.ismeasure" title="cf.TiePointIndex.ismeasure"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ismeasure</span></code></a></p></td>
+<td><p>Deprecated at version 3.7.0, use <code class="xref py py-obj docutils literal notranslate"><span class="pre">construct_type</span></code> attribute instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isperiodic.html#cf.TiePointIndex.isperiodic" title="cf.TiePointIndex.isperiodic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isperiodic</span></code></a></p></td>
+<td><p>True if a given axis is periodic.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.isscalar.html#cf.TiePointIndex.isscalar" title="cf.TiePointIndex.isscalar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isscalar</span></code></a></p></td>
+<td><p>True if the data array is scalar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.leap_month.html#cf.TiePointIndex.leap_month" title="cf.TiePointIndex.leap_month"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leap_month</span></code></a></p></td>
+<td><p>The leap_month CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.leap_year.html#cf.TiePointIndex.leap_year" title="cf.TiePointIndex.leap_year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">leap_year</span></code></a></p></td>
+<td><p>The leap_year CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.log.html#cf.TiePointIndex.log" title="cf.TiePointIndex.log"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log</span></code></a></p></td>
+<td><p>The logarithm of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.long_name.html#cf.TiePointIndex.long_name" title="cf.TiePointIndex.long_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">long_name</span></code></a></p></td>
+<td><p>The long_name CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.mask.html#cf.TiePointIndex.mask" title="cf.TiePointIndex.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a></p></td>
+<td><p>The mask of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.mask_invalid.html#cf.TiePointIndex.mask_invalid" title="cf.TiePointIndex.mask_invalid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_invalid</span></code></a></p></td>
+<td><p>Mask the array where invalid values occur.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.masked_invalid.html#cf.TiePointIndex.masked_invalid" title="cf.TiePointIndex.masked_invalid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">masked_invalid</span></code></a></p></td>
+<td><p>Mask the array where invalid values occur (NaN or inf).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match.html#cf.TiePointIndex.match" title="cf.TiePointIndex.match"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_identity</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match_by_identity.html#cf.TiePointIndex.match_by_identity" title="cf.TiePointIndex.match_by_identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_identity</span></code></a></p></td>
+<td><p>Whether or not the construct identity satisfies conditions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match_by_naxes.html#cf.TiePointIndex.match_by_naxes" title="cf.TiePointIndex.match_by_naxes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_naxes</span></code></a></p></td>
+<td><p>Whether or not the data has a given dimensionality.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match_by_ncvar.html#cf.TiePointIndex.match_by_ncvar" title="cf.TiePointIndex.match_by_ncvar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_ncvar</span></code></a></p></td>
+<td><p>Whether or not the netCDF variable name satisfies conditions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match_by_property.html#cf.TiePointIndex.match_by_property" title="cf.TiePointIndex.match_by_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_property</span></code></a></p></td>
+<td><p>Whether or not properties satisfy conditions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.match_by_units.html#cf.TiePointIndex.match_by_units" title="cf.TiePointIndex.match_by_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">match_by_units</span></code></a></p></td>
+<td><p>Whether or not the construct has given units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.max.html#cf.TiePointIndex.max" title="cf.TiePointIndex.max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">max</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.maximum.html#cf.TiePointIndex.maximum" title="cf.TiePointIndex.maximum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">maximum</span></code></a></p></td>
+<td><p>The maximum of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.mean.html#cf.TiePointIndex.mean" title="cf.TiePointIndex.mean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mean</span></code></a></p></td>
+<td><p>The unweighted mean the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.mid_range.html#cf.TiePointIndex.mid_range" title="cf.TiePointIndex.mid_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mid_range</span></code></a></p></td>
+<td><p>The unweighted average of the maximum and minimum of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.min.html#cf.TiePointIndex.min" title="cf.TiePointIndex.min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">min</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.minimum.html#cf.TiePointIndex.minimum" title="cf.TiePointIndex.minimum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minimum</span></code></a></p></td>
+<td><p>The minimum of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.minute.html#cf.TiePointIndex.minute" title="cf.TiePointIndex.minute"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minute</span></code></a></p></td>
+<td><p>The minute of each date-time data array element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.missing_value.html#cf.TiePointIndex.missing_value" title="cf.TiePointIndex.missing_value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">missing_value</span></code></a></p></td>
+<td><p>The missing_value CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.month.html#cf.TiePointIndex.month" title="cf.TiePointIndex.month"><code class="xref py py-obj docutils literal notranslate"><span class="pre">month</span></code></a></p></td>
+<td><p>The month of each date-time data array element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.month_lengths.html#cf.TiePointIndex.month_lengths" title="cf.TiePointIndex.month_lengths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">month_lengths</span></code></a></p></td>
+<td><p>The month_lengths CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.name.html#cf.TiePointIndex.name" title="cf.TiePointIndex.name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">name</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method 'identity' instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_dataset_chunksizes.html#cf.TiePointIndex.nc_clear_dataset_chunksizes" title="cf.TiePointIndex.nc_clear_dataset_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_dataset_chunksizes</span></code></a></p></td>
+<td><p>Clear the dataset chunking strategy for the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_hdf5_chunksizes.html#cf.TiePointIndex.nc_clear_hdf5_chunksizes" title="cf.TiePointIndex.nc_clear_hdf5_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_hdf5_chunksizes</span></code></a></p></td>
+<td><p>Clear the HDF5 chunking strategy for the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_clear_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_interpolation_subarea_dimension_groups</span></code></a></p></td>
+<td><p>Remove the interpolation subarea dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_subsampled_dimension_groups.html#cf.TiePointIndex.nc_clear_subsampled_dimension_groups" title="cf.TiePointIndex.nc_clear_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_subsampled_dimension_groups</span></code></a></p></td>
+<td><p>Remove the netCDF subsampled dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_clear_variable_groups.html#cf.TiePointIndex.nc_clear_variable_groups" title="cf.TiePointIndex.nc_clear_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_clear_variable_groups</span></code></a></p></td>
+<td><p>Remove the netCDF variable group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_dataset_chunksizes.html#cf.TiePointIndex.nc_dataset_chunksizes" title="cf.TiePointIndex.nc_dataset_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_dataset_chunksizes</span></code></a></p></td>
+<td><p>Get the dataset chunking strategy for the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_del_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_del_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_del_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_interpolation_subarea_dimension</span></code></a></p></td>
+<td><p>Remove the netCDF interpolation subarea dimension name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_del_subsampled_dimension.html#cf.TiePointIndex.nc_del_subsampled_dimension" title="cf.TiePointIndex.nc_del_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_subsampled_dimension</span></code></a></p></td>
+<td><p>Remove the netCDF sample dimension name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_del_variable.html#cf.TiePointIndex.nc_del_variable" title="cf.TiePointIndex.nc_del_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_del_variable</span></code></a></p></td>
+<td><p>Remove the netCDF variable name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_get_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_get_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_get_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_interpolation_subarea_dimension</span></code></a></p></td>
+<td><p>Return the netCDF interpolation subarea dimension name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_get_subsampled_dimension.html#cf.TiePointIndex.nc_get_subsampled_dimension" title="cf.TiePointIndex.nc_get_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_subsampled_dimension</span></code></a></p></td>
+<td><p>Return the netCDF subsampled dimension name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_get_variable.html#cf.TiePointIndex.nc_get_variable" title="cf.TiePointIndex.nc_get_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_get_variable</span></code></a></p></td>
+<td><p>Return the netCDF variable name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_has_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_has_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_has_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_interpolation_subarea_dimension</span></code></a></p></td>
+<td><p>Whether the netCDF interpolation subarea dimension is set.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_has_subsampled_dimension.html#cf.TiePointIndex.nc_has_subsampled_dimension" title="cf.TiePointIndex.nc_has_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_subsampled_dimension</span></code></a></p></td>
+<td><p>Whether the netCDF subsampled dimension name has been set.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_has_variable.html#cf.TiePointIndex.nc_has_variable" title="cf.TiePointIndex.nc_has_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_has_variable</span></code></a></p></td>
+<td><p>Whether the netCDF variable name has been set.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_hdf5_chunksizes.html#cf.TiePointIndex.nc_hdf5_chunksizes" title="cf.TiePointIndex.nc_hdf5_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_hdf5_chunksizes</span></code></a></p></td>
+<td><p>Get the HDF5 chunking strategy for the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_interpolation_subarea_dimension_groups</span></code></a></p></td>
+<td><p>Return the interpolation subarea dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_dataset_chunksizes.html#cf.TiePointIndex.nc_set_dataset_chunksizes" title="cf.TiePointIndex.nc_set_dataset_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_dataset_chunksizes</span></code></a></p></td>
+<td><p>Set the dataset chunking strategy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_hdf5_chunksizes.html#cf.TiePointIndex.nc_set_hdf5_chunksizes" title="cf.TiePointIndex.nc_set_hdf5_chunksizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_hdf5_chunksizes</span></code></a></p></td>
+<td><p>Set the HDF5 chunking strategy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_interpolation_subarea_dimension.html#cf.TiePointIndex.nc_set_interpolation_subarea_dimension" title="cf.TiePointIndex.nc_set_interpolation_subarea_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_interpolation_subarea_dimension</span></code></a></p></td>
+<td><p>Set the netCDF interpolation subarea dimension name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups.html#cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups" title="cf.TiePointIndex.nc_set_interpolation_subarea_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_interpolation_subarea_dimension_groups</span></code></a></p></td>
+<td><p>Set the interpolation subarea dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_subsampled_dimension.html#cf.TiePointIndex.nc_set_subsampled_dimension" title="cf.TiePointIndex.nc_set_subsampled_dimension"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_subsampled_dimension</span></code></a></p></td>
+<td><p>Set the netCDF subsampled dimension name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_subsampled_dimension_groups.html#cf.TiePointIndex.nc_set_subsampled_dimension_groups" title="cf.TiePointIndex.nc_set_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_subsampled_dimension_groups</span></code></a></p></td>
+<td><p>Set the netCDF subsampled dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_variable.html#cf.TiePointIndex.nc_set_variable" title="cf.TiePointIndex.nc_set_variable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_variable</span></code></a></p></td>
+<td><p>Set the netCDF variable name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_set_variable_groups.html#cf.TiePointIndex.nc_set_variable_groups" title="cf.TiePointIndex.nc_set_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_set_variable_groups</span></code></a></p></td>
+<td><p>Set the netCDF variable group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_subsampled_dimension_groups.html#cf.TiePointIndex.nc_subsampled_dimension_groups" title="cf.TiePointIndex.nc_subsampled_dimension_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_subsampled_dimension_groups</span></code></a></p></td>
+<td><p>Return the netCDF subsampled dimension group hierarchy.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.nc_variable_groups.html#cf.TiePointIndex.nc_variable_groups" title="cf.TiePointIndex.nc_variable_groups"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nc_variable_groups</span></code></a></p></td>
+<td><p>Return the netCDF variable group hierarchy.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.ndim.html#cf.TiePointIndex.ndim" title="cf.TiePointIndex.ndim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ndim</span></code></a></p></td>
+<td><p>The number of data dimensions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.override_calendar.html#cf.TiePointIndex.override_calendar" title="cf.TiePointIndex.override_calendar"><code class="xref py py-obj docutils literal notranslate"><span class="pre">override_calendar</span></code></a></p></td>
+<td><p>Override the calendar of date-time units.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.override_units.html#cf.TiePointIndex.override_units" title="cf.TiePointIndex.override_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">override_units</span></code></a></p></td>
+<td><p>Override the units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.pad_missing.html#cf.TiePointIndex.pad_missing" title="cf.TiePointIndex.pad_missing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pad_missing</span></code></a></p></td>
+<td><p>Pad an axis with missing data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.period.html#cf.TiePointIndex.period" title="cf.TiePointIndex.period"><code class="xref py py-obj docutils literal notranslate"><span class="pre">period</span></code></a></p></td>
+<td><p>Return or set the period of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.persist.html#cf.TiePointIndex.persist" title="cf.TiePointIndex.persist"><code class="xref py py-obj docutils literal notranslate"><span class="pre">persist</span></code></a></p></td>
+<td><p>Persist data into memory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.properties.html#cf.TiePointIndex.properties" title="cf.TiePointIndex.properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">properties</span></code></a></p></td>
+<td><p>Return all properties.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.range.html#cf.TiePointIndex.range" title="cf.TiePointIndex.range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">range</span></code></a></p></td>
+<td><p>The absolute difference between the maximum and minimum of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.rechunk.html#cf.TiePointIndex.rechunk" title="cf.TiePointIndex.rechunk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rechunk</span></code></a></p></td>
+<td><p>Change the chunk structure of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.reference_datetime.html#cf.TiePointIndex.reference_datetime" title="cf.TiePointIndex.reference_datetime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reference_datetime</span></code></a></p></td>
+<td><p>The reference date-time of units of elapsed time.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.remove_data.html#cf.TiePointIndex.remove_data" title="cf.TiePointIndex.remove_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_data</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method <code class="xref py py-obj docutils literal notranslate"><span class="pre">del_data</span></code> instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.replace_directory.html#cf.TiePointIndex.replace_directory" title="cf.TiePointIndex.replace_directory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">replace_directory</span></code></a></p></td>
+<td><p>Replace a file directory in-place.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.rint.html#cf.TiePointIndex.rint" title="cf.TiePointIndex.rint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rint</span></code></a></p></td>
+<td><p>Round the data to the nearest integer, element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.roll.html#cf.TiePointIndex.roll" title="cf.TiePointIndex.roll"><code class="xref py py-obj docutils literal notranslate"><span class="pre">roll</span></code></a></p></td>
+<td><p>Roll the data along one or more axes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.round.html#cf.TiePointIndex.round" title="cf.TiePointIndex.round"><code class="xref py py-obj docutils literal notranslate"><span class="pre">round</span></code></a></p></td>
+<td><p>Round the data to the given number of decimals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.sample_size.html#cf.TiePointIndex.sample_size" title="cf.TiePointIndex.sample_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sample_size</span></code></a></p></td>
+<td><p>The number of non-missing data elements in the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.scale_factor.html#cf.TiePointIndex.scale_factor" title="cf.TiePointIndex.scale_factor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_factor</span></code></a></p></td>
+<td><p>The scale_factor CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.sd.html#cf.TiePointIndex.sd" title="cf.TiePointIndex.sd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sd</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_deviation</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.second.html#cf.TiePointIndex.second" title="cf.TiePointIndex.second"><code class="xref py py-obj docutils literal notranslate"><span class="pre">second</span></code></a></p></td>
+<td><p>The second of each date-time data array element.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.select.html#cf.TiePointIndex.select" title="cf.TiePointIndex.select"><code class="xref py py-obj docutils literal notranslate"><span class="pre">select</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.set_data.html#cf.TiePointIndex.set_data" title="cf.TiePointIndex.set_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_data</span></code></a></p></td>
+<td><p>Set the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.set_properties.html#cf.TiePointIndex.set_properties" title="cf.TiePointIndex.set_properties"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_properties</span></code></a></p></td>
+<td><p>Set properties.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.set_property.html#cf.TiePointIndex.set_property" title="cf.TiePointIndex.set_property"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_property</span></code></a></p></td>
+<td><p>Set a property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.setprop.html#cf.TiePointIndex.setprop" title="cf.TiePointIndex.setprop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setprop</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use method <code class="xref py py-obj docutils literal notranslate"><span class="pre">set_property</span></code> instead.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.shape.html#cf.TiePointIndex.shape" title="cf.TiePointIndex.shape"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shape</span></code></a></p></td>
+<td><p>A tuple of the data array's dimension sizes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.sin.html#cf.TiePointIndex.sin" title="cf.TiePointIndex.sin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sin</span></code></a></p></td>
+<td><p>Take the trigonometric sine of the data element-wise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.sinh.html#cf.TiePointIndex.sinh" title="cf.TiePointIndex.sinh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sinh</span></code></a></p></td>
+<td><p>Take the hyperbolic sine of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.size.html#cf.TiePointIndex.size" title="cf.TiePointIndex.size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">size</span></code></a></p></td>
+<td><p>The number elements in the data.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.squeeze.html#cf.TiePointIndex.squeeze" title="cf.TiePointIndex.squeeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">squeeze</span></code></a></p></td>
+<td><p>Remove size one axes from the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.standard_deviation.html#cf.TiePointIndex.standard_deviation" title="cf.TiePointIndex.standard_deviation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_deviation</span></code></a></p></td>
+<td><p>The unweighted sample standard deviation of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.standard_name.html#cf.TiePointIndex.standard_name" title="cf.TiePointIndex.standard_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">standard_name</span></code></a></p></td>
+<td><p>The standard_name CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.subspace.html#cf.TiePointIndex.subspace" title="cf.TiePointIndex.subspace"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subspace</span></code></a></p></td>
+<td><p>Return a new variable whose data is subspaced.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.sum.html#cf.TiePointIndex.sum" title="cf.TiePointIndex.sum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sum</span></code></a></p></td>
+<td><p>The sum of the data array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.swapaxes.html#cf.TiePointIndex.swapaxes" title="cf.TiePointIndex.swapaxes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">swapaxes</span></code></a></p></td>
+<td><p>Interchange two axes of an array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.tan.html#cf.TiePointIndex.tan" title="cf.TiePointIndex.tan"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tan</span></code></a></p></td>
+<td><p>Take the trigonometric tangent of the data element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.tanh.html#cf.TiePointIndex.tanh" title="cf.TiePointIndex.tanh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tanh</span></code></a></p></td>
+<td><p>Take the hyperbolic tangent of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.to_dask_array.html#cf.TiePointIndex.to_dask_array" title="cf.TiePointIndex.to_dask_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_dask_array</span></code></a></p></td>
+<td><p>Convert the data to a <code class="xref py py-obj docutils literal notranslate"><span class="pre">dask</span></code> array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.to_memory.html#cf.TiePointIndex.to_memory" title="cf.TiePointIndex.to_memory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_memory</span></code></a></p></td>
+<td><p>Bring data on disk into memory.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.to_units.html#cf.TiePointIndex.to_units" title="cf.TiePointIndex.to_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_units</span></code></a></p></td>
+<td><p>Change the data array units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.transpose.html#cf.TiePointIndex.transpose" title="cf.TiePointIndex.transpose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transpose</span></code></a></p></td>
+<td><p>Permute the axes of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.trunc.html#cf.TiePointIndex.trunc" title="cf.TiePointIndex.trunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trunc</span></code></a></p></td>
+<td><p>Truncate the data, element-wise.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.uncompress.html#cf.TiePointIndex.uncompress" title="cf.TiePointIndex.uncompress"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncompress</span></code></a></p></td>
+<td><p>Uncompress the construct.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.unique.html#cf.TiePointIndex.unique" title="cf.TiePointIndex.unique"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unique</span></code></a></p></td>
+<td><p>The unique elements of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.units.html#cf.TiePointIndex.units" title="cf.TiePointIndex.units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">units</span></code></a></p></td>
+<td><p>The units CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.unsafe_array.html#cf.TiePointIndex.unsafe_array" title="cf.TiePointIndex.unsafe_array"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unsafe_array</span></code></a></p></td>
+<td><p>Deprecated at version 3.0.0, use <a class="reference external" href="https://docs.python.org/3/library/array.html#module-array" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">array</span></code></a> attribute instead.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.valid_max.html#cf.TiePointIndex.valid_max" title="cf.TiePointIndex.valid_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valid_max</span></code></a></p></td>
+<td><p>The valid_max CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.valid_min.html#cf.TiePointIndex.valid_min" title="cf.TiePointIndex.valid_min"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valid_min</span></code></a></p></td>
+<td><p>The valid_min CF property.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.valid_range.html#cf.TiePointIndex.valid_range" title="cf.TiePointIndex.valid_range"><code class="xref py py-obj docutils literal notranslate"><span class="pre">valid_range</span></code></a></p></td>
+<td><p>The valid_range CF property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.var.html#cf.TiePointIndex.var" title="cf.TiePointIndex.var"><code class="xref py py-obj docutils literal notranslate"><span class="pre">var</span></code></a></p></td>
+<td><p>Alias for <code class="xref py py-obj docutils literal notranslate"><span class="pre">variance</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.variance.html#cf.TiePointIndex.variance" title="cf.TiePointIndex.variance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">variance</span></code></a></p></td>
+<td><p>The unweighted sample variance of the data array.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.varray.html#cf.TiePointIndex.varray" title="cf.TiePointIndex.varray"><code class="xref py py-obj docutils literal notranslate"><span class="pre">varray</span></code></a></p></td>
+<td><p>A numpy array view of the data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.where.html#cf.TiePointIndex.where" title="cf.TiePointIndex.where"><code class="xref py py-obj docutils literal notranslate"><span class="pre">where</span></code></a></p></td>
+<td><p>Set data array elements depending on a condition.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../method/cf.TiePointIndex.year.html#cf.TiePointIndex.year" title="cf.TiePointIndex.year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">year</span></code></a></p></td>
+<td><p>The year of each date-time data array element.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &#169;2026, NCAS | Page built on 2026-08-28.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

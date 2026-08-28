@@ -6,17 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Installation &#8212; Documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=61cd365c" />
-    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=a5d0ad34" />
-    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=5ff91166" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="_static/customise-alabaster.css?v=5dec66a6" />
-    <script src="_static/documentation_options.js?v=6be25e9b"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/documentation_options.js?v=be4f90db"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
-    <script src="_static/copybutton.js?v=b578dfe4"></script>
-    <script src="_static/toggleprompt.js?v=1b41717f"></script>
+    <script src="_static/copybutton.js?v=a56c686a"></script>
+    <script src="_static/toggleprompt.js?v=99cb1901"></script>
     <link rel="icon" href="_static/favicon.ico"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -32,15 +33,15 @@
   </head><body>
   <div class="document">
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/logo.svg" alt="Logo"/>
+              <img class="logo" src="_static/logo.svg" alt="Logo of Python cf package"/>
             </a></p>
 
 
 
-<h1 class="logo"><a href="index.html">cf 3.20.1</a></h1>
+<h1 class="logo"><a href="index.html">cf 3.21.0</a></h1>
 
 
 
@@ -122,7 +123,7 @@ and by <a href="https://ncas.ac.uk/">NCAS</a>.
   <section id="installation">
 <span id="id1"></span><h1><strong>Installation</strong><a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
 <hr class="docutils" />
-<p>Version 3.20.1 for version 1.13 of the CF conventions.</p>
+<p>Version 3.21.0 for version 1.13 of the CF conventions.</p>
 <nav class="contents local" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#operating-systems" id="id21"><strong>Operating systems</strong></a></p></li>
@@ -304,8 +305,8 @@ newer.</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/cftime/">cftime</a>, version 1.6.4 or newer
 (note that this package may be installed with netCDF4).</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/scipy">scipy</a>, version 1.10.0 or newer.</p></li>
-<li><p><a class="reference external" href="https://pypi.org/project/cfdm/">cfdm</a>, version 1.13.2.1 or up to,
-but not including, 1.13.3.0.</p></li>
+<li><p><a class="reference external" href="https://pypi.org/project/cfdm/">cfdm</a>, version 1.13.3.0 or up to,
+but not including, 1.13.4.0.</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/cfunits/">cfunits</a>, version 3.3.7 or newer.</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/psutil/">psutil</a>, version 0.6.0 or newer.</p></li>
 <li><p><a class="reference external" href="https://pypi.org/project/packaging/">packaging</a>, version 20.0 or newer.</p></li>
@@ -341,6 +342,18 @@ environments for which these features are not required.</p>
 <p>For reading and writing Zarr datasets.</p>
 </li>
 </ul>
+<p class="rubric">xarray</p>
+<ul>
+<li><p><a class="reference external" href="https://pypi.org/project/xarray">xarray</a>, version 2026.7.0 or newer.</p>
+<p>For converting fields and domains to <code class="xref py py-obj docutils literal notranslate"><span class="pre">xarray</span></code> datasets in memory.</p>
+</li>
+</ul>
+<p class="rubric">umfive</p>
+<ul>
+<li><p><a class="reference external" href="https://pypi.org/project/umfive">umfive</a>, version 0.3.0 or newer.</p>
+<p>For reading Met Office PP and fields file datasets.</p>
+</li>
+</ul>
 <p class="rubric">Regridding</p>
 <ul>
 <li><p><a class="reference external" href="https://earthsystemmodeling.org/esmpy/">esmpy</a>, version 8.7.0 or
@@ -373,6 +386,12 @@ HEALPix grids, such as creating latitude and longitude coordinates,
 regridding, some changes to the refinement level, and some
 collapses.</p></li>
 </ul>
+<p class="rubric">Grid mapping manipulations</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://pypi.org/project/pyproj">pyproj</a>, version 3.7.2 or
+newer. This package is required to create 2-d latitude and longitude
+coordinates from grid mappings.</p></li>
+</ul>
 <hr class="docutils" />
 </section>
 </section>
@@ -399,11 +418,11 @@ collapses.</p></li>
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &#169;2026, NCAS | Page built on 2026-07-07.
+      &#169;2026, NCAS | Page built on 2026-08-28.
       
       |
-      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
-      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.1.0</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
