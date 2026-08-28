@@ -3,6 +3,24 @@ Version NEXTVERSION
 
 **2026-08-??**
 
+* New keywords to `cf.read`: ``backend``, ``backend_options``,
+  ``cfa_filesystem``, ``cfa_backend``, ``cfa_backend_options``
+  (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Deprecated keyword to `cfdm.read`: ``netcdf_backend``
+  (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Dataset reads are now entirely managed by `xnetcdf` and its backend
+  libraries (via `cfdm.read`)
+  (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Read with `cf.read` anything that can be read by `xarray`
+  (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Convert `xarray.Dataset` and `xarray.DataTree` to `cf.Field` via
+  `cf.read` (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Convert `pyfive.File`, `zarr.Group`, `h5py.File`, `umfile.File`, and
+  `xnetcdf.Dataset` to `cf.Field` via `cf.read`
+  (https://github.com/NCAS-CMS/cf-python/issues/961)
+* Extend `cf.Field.create_latlon_coordinates` to allow the creation of
+  2-d latitudes/longitudes from plane projection and rotated pole
+  coordinates (https://github.com/NCAS-CMS/cf-python/issues/962)
 * Automatically create consolidated HDF5 metadata with `cf.write`.
   New keywords to `cf.write`: ``hdf5_consolidated_metadata`` and
   ``hdf5_expansion_factor``
@@ -17,6 +35,7 @@ Version NEXTVERSION
 * New output format for `cf.write` that creates an `xarray` dataset in
   memory: ``'XARRAY'``
   (https://github.com/NCAS-CMS/cf-python/issues/933)
+* New optional dependency: ``umfive>=0.3.0``
 * New optional dependency: ``xarray>=2026.7.0``
 
 ----

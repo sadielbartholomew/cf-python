@@ -32,16 +32,12 @@ from .data.array import (
     BoundsFromNodesArray,
     CellConnectivityArray,
     GatheredArray,
-    H5netcdfArray,
-    NetCDF4Array,
     PointTopologyArray,
-    PyfiveArray,
     RaggedContiguousArray,
     RaggedIndexedArray,
     RaggedIndexedContiguousArray,
-    ScipyNetcdfFileArray,
     SubsampledArray,
-    ZarrArray,
+    XnetcdfArray,
 )
 from .functions import CF
 
@@ -147,18 +143,14 @@ _implementation = CFImplementation(
     BoundsFromNodesArray=BoundsFromNodesArray,
     CellConnectivityArray=CellConnectivityArray,
     GatheredArray=GatheredArray,
-    H5netcdfArray=H5netcdfArray,
-    NetCDF4Array=NetCDF4Array,
-    ScipyNetcdfFileArray=ScipyNetcdfFileArray,
     PointTopologyArray=PointTopologyArray,
-    PyfiveArray=PyfiveArray,
     Quantization=Quantization,
     RaggedContiguousArray=RaggedContiguousArray,
     RaggedIndexedArray=RaggedIndexedArray,
     RaggedIndexedContiguousArray=RaggedIndexedContiguousArray,
     SubsampledArray=SubsampledArray,
     TiePointIndex=TiePointIndex,
-    ZarrArray=ZarrArray,
+    XnetcdfArray=XnetcdfArray,
 )
 
 
@@ -173,52 +165,6 @@ def implementation():
 
         `CFImplementation`
             A container for the CF data model implementation.
-
-    **Examples**
-
-    >>> i = cf.implementation()
-    >>> i
-    <CFImplementation: >
-    >>> i.classes()
-    {'AuxiliaryCoordinate': cf.auxiliarycoordinate.AuxiliaryCoordinate,
-     'BoundsFromNodesArray': cf.data.array.boundsfromnodesarray.BoundsFromNodesArray,
-     'CellConnectivity': cf.cellconnectivity.CellConnectivity,
-     'CellConnectivityArray': cf.data.array.cellconnectivityarray.CellConnectivityArray,
-     'CellMeasure': cf.cellmeasure.CellMeasure,
-     'CellMethod': cf.cellmethod.CellMethod,
-     'CoordinateReference': cf.coordinatereference.CoordinateReference,
-     'DimensionCoordinate': cf.dimensioncoordinate.DimensionCoordinate,
-     'Domain': cf.domain.Domain,
-     'DomainAncillary': cf.domainancillary.DomainAncillary,
-     'DomainAxis': cf.domainaxis.DomainAxis,
-     'DomainTopology': cf.domaintopology.DomainTopology,
-     'Field': cf.field.Field,
-     'FieldAncillary': cf.fieldancillary.FieldAncillary,
-     'Bounds': cf.bounds.Bounds,
-     'InteriorRing': cf.interiorring.InteriorRing,
-     'InterpolationParameter': cf.interpolationparameter.InterpolationParameter,
-     'CoordinateConversion': cf.coordinateconversion.CoordinateConversion,
-     'Datum': cf.datum.Datum,
-     'List': cf.list.List,
-     'Index': cf.index.Index,
-     'Count': cf.count.Count,
-     'NodeCountProperties': cf.nodecountproperties.NodeCountProperties,
-     'PartNodeCountProperties': cf.partnodecountproperties.PartNodeCountProperties,
-     'Data': cf.data.data.Data,
-     'GatheredArray': cf.data.array.gatheredarray.GatheredArray,
-     'H5netcdfArray': cf.data.array.h5netcdfarray.H5netcdfArray,
-     'NetCDF4Array': cf.data.array.netcdf4array.NetCDF4Array,
-     'ScipyNetcdfFileArray': cf.data.array.scipynetcdffilearray.ScipyNetcdfFileArray,
-     'PointTopologyArray': <class 'cf.data.array.pointtopologyarray.PointTopologyArray'>,
-     'PyfiveArray': cf.data.array.pyfivearray.PyfiveArray,
-     'Quantization': cf.quantization.Quantization,
-     'RaggedContiguousArray': cf.data.array.raggedcontiguousarray.RaggedContiguousArray,
-     'RaggedIndexedArray': cf.data.array.raggedindexedarray.RaggedIndexedArray,
-     'RaggedIndexedContiguousArray': cf.data.array.raggedindexedcontiguousarray.RaggedIndexedContiguousArray,
-     'SubsampledArray': cf.data.array.subsampledarray.SubsampledArray,
-     'TiePointIndex': cf.tiepointindex.TiePointIndex,
-     'ZarrArray': cf.data.array.zarrarray.ZarrArray,
-    }
 
     """
     return _implementation.copy()

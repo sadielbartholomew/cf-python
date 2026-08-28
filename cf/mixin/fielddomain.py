@@ -482,7 +482,7 @@ class FieldDomain:
                         arg0, arg1 = value.value
                         if arg0 > arg1:
                             # Query has swapped operands (i.e. arg0 >
-                            # arg1) => Create a new equivalant Query
+                            # arg1) => Create a new equivalent Query
                             # that has arg0 < arg1, for a new
                             # arg1. E.g. for a period of 360,
                             # cf.wi(355, 5) is transformed to
@@ -560,7 +560,7 @@ class FieldDomain:
                                     raise ValueError(
                                         "Error: Can't specify multiple "
                                         "conditions for a single axis when "
-                                        f"one of those condtions ({value!r}) "
+                                        f"one of those conditions ({value!r}) "
                                         "is effectively a cyclic slice: "
                                         f"{index}. Consider applying the "
                                         "conditions separately."
@@ -705,7 +705,7 @@ class FieldDomain:
                     for value, construct in zip(points, transposed_constructs)
                 ]
 
-                # Find loctions that are True in all of the
+                # Find locations that are True in all of the
                 # constructs' matches
                 item_match = item_matches.pop()
                 for m in item_matches:
@@ -2358,11 +2358,11 @@ class FieldDomain:
 
         # If 1-d lat/lon coordinates do not exist, then derive them
         # from the HEALPix indices. Setting the pole_longitude to
-        # something other than None - it doesn't matter what - ensures
-        # that the north (south) polar vertex comes out as a single
-        # node in the domain topology.
+        # something other than `None` - it doesn't matter what -
+        # ensures that the north (south) polar vertex comes out as a
+        # single node in the domain topology.
         f.create_latlon_coordinates(
-            two_d=False, pole_longitude=0, cache=cache, inplace=True
+            two_d=False, longitude_at_pole=0, cache=cache, inplace=True
         )
 
         # Get the lat/lon coordinates
@@ -2428,7 +2428,7 @@ class FieldDomain:
         del _
 
         # We are guaranteed unique node values when
-        # nodes=y_indices*y_indice.size+x_indices
+        # nodes=y_indices*y_indices.size+x_indices
         nodes = y_indices
         del y_indices
         nodes *= nodes.size
@@ -2456,11 +2456,12 @@ class FieldDomain:
         self,
         one_d=True,
         two_d=True,
-        pole_longitude=None,
+        longitude_at_pole=None,
         overwrite=False,
         cache=True,
         inplace=False,
         verbose=None,
+        pole_longitude=None,
     ):
         """Create latitude and longitude coordinates.
 
@@ -2470,10 +2471,22 @@ class FieldDomain:
         new coordinates are only created if the {{class}} doesn't
         already include any latitude or longitude coordinates.
 
+        .. note:: Latitude and longitude coordinates can only be
+                  created if each relevant coordinate reference
+                  construct has a ``grid_mapping_name`` parameter set
+                  to a valid CF grid mapping name, and this is also
+                  the case when there is a ``crs_wkt`` parameter. See
+                  CF 5.6.1: Use of the CRS Well-known Text Format
+                  (https://doi.org/10.5281/zenodo.14274886).
+
         When it is not possible to create latitude and longitude
         coordinates, the reason why will be reported if the log level
         is at ``2``/``'INFO'`` or higher (as set by `cf.log_level` or
         the *verbose* parameter).
+
+        If the log level is at ``3``/``'DEBUG'``/``-1`` then
+        information on how the latitude and longitude coordinates were
+        created is also reported.
 
         .. versionadded:: 3.20.0
 
@@ -2491,16 +2504,16 @@ class FieldDomain:
                 latitude and longitude coordinates. If False then 2-d
                 coordinates will not be created.
 
-            pole_longitude: `None` or number
-                Define the longitudes of coordinates or coordinate
-                bounds that lie exactly on the north or south pole. If
-                `None` (the default) then the longitudes of such
-                points are determined by whichever algorithm was used
-                to create the coordinates, which could result in
-                different points on a pole having different
-                longitudes. If set to a number, then the longitudes of
-                all points on the north or south pole will be given
-                that value.
+            longitude_at_pole: `None` or number
+                Define the treatment of longitudes of coordinates or
+                coordinate bounds that lie exactly on the north or
+                south pole. If `None` (the default) then the
+                longitudes of such points are determined by whichever
+                algorithm was used to create the coordinates, which
+                could result in different grid points on a pole having
+                different longitudes. If set to a number, then the
+                longitudes of all grid points on the north or south
+                pole will be given that value.
 
             overwrite: `bool`, optional
                 If True then remove any existing latitude and
@@ -2527,11 +2540,14 @@ class FieldDomain:
 
             {{verbose: `int` or `str` or `None`, optional}}
 
+            pole_longitude: Deprecated at version NEXTVERSION
+                Use *longitude_at_pole* instead.
+
         :Returns:
 
             `{{class}}` or `None`
-                A new {{class}}, with new latitude and longitude
-                constructs if any could be created. If the operation
+                The {{class}} with new latitude and longitude
+                constructs, if any could be created. If the operation
                 was in-place then `None` is returned.
 
         **Examples**
@@ -2560,6 +2576,16 @@ class FieldDomain:
         Coord references: grid_mapping_name:healpix
 
         """
+        if pole_longitude is not None:
+            _DEPRECATION_ERROR_KWARGS(
+                self,
+                "create_latlon_coordinates",
+                {"pole_longitude": pole_longitude},
+                message="Use 'longitude_at_pole' instead.",
+                version="NEXTVERSION",
+                removed_at="4.0.0",
+            )  # pragma: no cover
+
         f = _inplace_enabled_define_and_cleanup(self)
 
         # ------------------------------------------------------------
@@ -2615,9 +2641,10 @@ class FieldDomain:
 
         # Remove a 'latitude_longitude' grid mapping (if there is one)
         # from the dictionary, saving it for later.
-        latlon_cr = coordinate_references.pop(
+        cr_latlon = coordinate_references.pop(
             "grid_mapping_name:latitude_longitude", None
         )
+
         if not coordinate_references:
             if is_log_level_info(logger):
                 logger.info(
@@ -2655,30 +2682,44 @@ class FieldDomain:
             # --------------------------------------------------------
             # 1-d lat/lon coordinates
             # --------------------------------------------------------
-            if identity == "grid_mapping_name:healpix":
-                # ----------------------------------------------------
-                # HEALPix
-                # ----------------------------------------------------
-                from ..healpix_utils import _healpix_create_latlon_coordinates
+            match identity:
+                case "grid_mapping_name:healpix":
+                    # ------------------------------------------------
+                    # HEALPix
+                    # ------------------------------------------------
+                    from ..healpix_utils import (
+                        _healpix_create_latlon_coordinates,
+                    )
 
-                lat_key, lon_key = _healpix_create_latlon_coordinates(
-                    f, pole_longitude, cache
-                )
-                coords_created = lat_key is not None
+                    lat_key, lon_key = _healpix_create_latlon_coordinates(
+                        f, longitude_at_pole, cache
+                    )
+
+                    coords_created = lat_key is not None
+
+                # Paving the way for reduced_gaussian ...
 
         if two_d and not coords_created:
             # --------------------------------------------------------
-            # 2-d lat/lon coordinates
+            # 2-d lat/lon coordinates from 1-d projection coordinates
             # --------------------------------------------------------
-            pass  # For now ...
+            from .utils import create_2d_latlon_coordinates
+
+            lat_key, lon_key = create_2d_latlon_coordinates(
+                f,
+                cr,
+                cr_latlon,
+                longitude_at_pole=longitude_at_pole,
+            )
+            coords_created = lat_key is not None
 
         # ------------------------------------------------------------
         # Update the appropriate coordinate reference with any new
         # coordinate keys
         # ------------------------------------------------------------
         if coords_created:
-            if latlon_cr is not None:
-                latlon_cr.set_coordinates((lat_key, lon_key))
+            if cr_latlon is not None:
+                cr_latlon.set_coordinates((lat_key, lon_key))
             else:
                 cr.set_coordinates((lat_key, lon_key))
 
@@ -2761,7 +2802,7 @@ class FieldDomain:
             # Note: We have to do a "dry run" on the 'autocyclic' call
             #       in the if test in order to prevent corrupting
             #       self._cyclic in the case that an axis tested by
-            #       autocyclic is already marked as cylcic, but
+            #       autocyclic is already marked as cyclic, but
             #       nonetheless autocyclic returns False (sounds
             #       niche, but this really happens!).
             if len(cyclic) < len(
@@ -3890,12 +3931,16 @@ class FieldDomain:
         {{cf_xarray description}}
 
         Note that ``ds = f.to_xarray()`` is identical to ``ds =
-        cf.write(f, fmt='XARRAY')``; and multiple {{class_lower}}s may
-        be written to the same `xarray` dataset with
-        `cf.{{class}}List.to_xarray`, or with `cf.write` (e.g. ``ds =
-        cf.write([f, g], fmt='XARRAY')``). Also, `cf.write` allows a
+        {{package}}.write(f, fmt='XARRAY')``; and multiple
+        {{class_lower}}s may be written to the same `xarray` dataset
+        with `{{package}}.write` (e.g. ``ds = {{package}}.write([f,
+        g], fmt='XARRAY')``). Also, `{{package}}.write` allows a
         mixture of fields and domains to be written to the
         same `xarray` dataset.
+
+        An `xarray` dataset can be converted to one or more fields
+        with ``f = {{package}}.read(ds)``, or domains with ``f =
+        {{package}}.read(ds, domain=True)``.
 
         .. versionadded:: NEXTVERSION
 
@@ -3904,7 +3949,6 @@ class FieldDomain:
         :Parameter:
 
             group: `bool`, optional
-
                 If False then create a "flat" dataset, i.e. one with
                 only the root group, regardless of any group structure
                 specified by the netCDF interfaces of the

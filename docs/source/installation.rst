@@ -227,8 +227,8 @@ Required
 
 * `scipy <https://pypi.org/project/scipy>`_, version 1.10.0 or newer.
 
-* `cfdm <https://pypi.org/project/cfdm/>`_, version 1.13.2.1 or up to,
-  but not including, 1.13.3.0.
+* `cfdm <https://pypi.org/project/cfdm/>`_, version 1.13.3.0 or up to,
+  but not including, 1.13.4.0.
 
 * `cfunits <https://pypi.org/project/cfunits/>`_, version 3.3.7 or newer.
 
@@ -281,6 +281,14 @@ environments for which these features are not required.
 
 .. rubric:: Regridding
 
+.. rubric:: umfive
+
+* `umfive <https://pypi.org/project/umfive>`_, version 0.3.0 or newer.
+
+  For reading Met Office PP and fields file datasets.
+
+.. rubric:: Regridding
+
 * `esmpy <https://earthsystemmodeling.org/esmpy/>`_, version 8.7.0 or
   newer. This can be installed via conda with
 
@@ -311,6 +319,13 @@ environments for which these features are not required.
   HEALPix grids, such as creating latitude and longitude coordinates,
   regridding, some changes to the refinement level, and some
   collapses.
+
+.. rubric:: Grid mapping manipulations
+
+* `pyproj <https://pypi.org/project/pyproj>`_, version 3.7.2 or
+  newer. This package is required to create 2-d latitude and longitude
+  coordinates from grid mappings.
+
 
 ----
 

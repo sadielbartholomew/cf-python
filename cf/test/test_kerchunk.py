@@ -66,11 +66,11 @@ class read_writeTest(unittest.TestCase):
         self.assertEqual(k.get_original_filenames(), set())
 
     def test_read_dict(self):
-        """Test cf.read with an Kerchunk dictionary."""
+        """Test cf.read with a Kerchunk dictionary."""
         with open(kerchunk_file, "r") as fh:
             d = json.load(fh)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             cf.read(d)
 
         fs = fsspec.filesystem("reference", fo=d)

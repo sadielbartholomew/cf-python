@@ -1,9 +1,7 @@
 import logging
-from functools import partial
 from re import Pattern
 
 import cfdm
-from cfdm.read_write.exceptions import DatasetTypeError
 
 from ..aggregate import aggregate as cf_aggregate
 from ..cfimplementation import implementation
@@ -12,7 +10,6 @@ from ..domainlist import DomainList
 from ..fieldlist import FieldList
 from ..functions import _DEPRECATION_ERROR_FUNCTION_KWARGS
 from ..query import Query
-from .um import UMRead
 
 logger = logging.getLogger(__name__)
 
@@ -94,16 +91,12 @@ class read(cfdm.read):
 
     **PP and UM fields files**
 
-    32-bit and 64-bit PP and UM fields files of any endian-ness can be
-    read. In nearly all cases the file format is auto-detected from
-    the first 64 bits in the file, but for the few occasions when this
-    is not possible, the *um* keyword allows the format to be
-    specified, as well as the UM version (if the latter is not
-    inferrable from the PP or lookup header information).
+    32-bit and 64-bit Met Office (UK) PP files and Met Office (UK)
+    fields files of any endian-ness can be read.
 
-    2-d "slices" within a single file are always combined, where
-    possible, into field constructs with 3-d, 4-d or 5-d data. This is
-    done prior to any field construct aggregation (see the *aggregate*
+    2-d "slices" within a single file are combined, where possible,
+    into field constructs with 3-d, 4-d or 5-d data. This is done
+    prior to any field construct aggregation (see the *aggregate*
     parameter).
 
     When reading PP and UM fields files, the *relaxed_units* aggregate
@@ -176,76 +169,7 @@ class read(cfdm.read):
 
         {{read warnings: `bool`, optional}}
 
-        um: `dict`, optional
-            For Met Office (UK) PP files and Met Office (UK) fields
-            files only, provide extra decoding instructions. This
-            option is ignored for input files which are not PP or
-            fields files. In most cases, how to decode a file is
-            inferrable from the file's contents, but if not then each
-            key/value pair in the dictionary sets a decoding option as
-            follows:
-
-            * ``'fmt'``: `str`
-
-              The file format (``'PP'`` or  ``'FF'``)
-
-            * ``'word_size'``: `int`
-
-              The word size in bytes (``4`` or ``8``).
-
-            * ``'endian'``: `str`
-
-              The byte order (``'big'`` or ``'little'``).
-
-            * ``'version'``: `int` or `str`
-
-              The UM version to be used when decoding the
-              header. Valid versions are, for example, ``4.2``,
-              ``'6.6.3'`` and ``'8.2'``. In general, a given version
-              is ignored if it can be inferred from the header (which
-              is usually the case for files created by the UM at
-              versions 5.3 and later). The exception to this is when
-              the given version has a third element (such as the 3 in
-              6.6.3), in which case any version in the header is
-              ignored. The default version is ``4.5``.
-
-            * ``'height_at_top_of_model'``: `float`
-
-              The height in metres of the upper bound of the top model
-              level. By default the height at top model is taken from
-              the top level's upper bound defined by BRSVD1 in the
-              lookup header. If the height can't be determined from
-              the header, or the given height is less than or equal to
-              0, then a coordinate reference system will still be
-              created that contains the 'a' and 'b' formula term
-              values, but without an atmosphere hybrid height
-              dimension coordinate construct.
-
-              .. note:: A current limitation is that if pseudolevels
-                        and atmosphere hybrid height coordinates are
-                        defined by same the lookup headers then the
-                        height **can't be determined
-                        automatically**. In this case the height may
-                        be found after reading as the maximum value of
-                        the bounds of the domain ancillary construct
-                        containing the 'a' formula term. The file can
-                        then be re-read with this height as a *um*
-                        parameter.
-
-            If format is specified as ``'PP'`` then the word size and
-            byte order default to ``4`` and ``'big'`` respectively.
-
-            This parameter replaces the deprecated *umversion* and
-            *height_at_top_of_model* parameters.
-
-            *Parameter example:*
-              To specify that the input files are 32-bit, big-endian
-              PP files: ``um={'fmt': 'PP'}``
-
-            *Parameter example:*
-              To specify that the input files are 32-bit,
-              little-endian PP files from version 5.1 of the UM:
-              ``um={'fmt': 'PP', 'endian': 'little', 'version': 5.1}``
+        {{read um: `dict` or `None`, optional}}
 
             .. versionadded:: 1.5
 
@@ -297,9 +221,13 @@ class read(cfdm.read):
 
             .. versionadded:: 3.11.0
 
-        {{read netcdf_backend: `None` or (sequence of) `str`, optional}}
+        {{read backend: `None` or (sequence of) `str`, optional}}
 
-            .. versionadded:: 3.17.0
+            .. versionadded:: NEXTVERSION
+
+        {{read backend_options: `None` or `dict`, optional}}
+
+            .. versionadded:: NEXTVERSION
 
         {{read storage_options: `dict` or `None`, optional}}
 
@@ -329,6 +257,18 @@ class read(cfdm.read):
 
             .. versionadded:: 3.17.0
 
+        {{read cfa_filesystem: `None` or filesystem, optional}}
+
+            .. versionadded:: NEXTVERSION
+
+        {{read cfa_backend: `None` or (sequence of) `str`, optional}}
+
+            .. versionadded:: NEXTVERSION
+
+        {{cfa_backend_options: `None` or `dict`, optional}}
+
+            .. versionadded:: NEXTVERSION
+
         {{read to_memory: (sequence of) `str`, optional}}
 
             .. versionadded:: 3.17.0
@@ -340,6 +280,10 @@ class read(cfdm.read):
         {{read filesystem: optional}}
 
             .. versionadded:: 3.20.0
+
+        {{read _noncompliance_report: `bool`, optional}}
+
+            ..versionadded:: NEXTVERSION
 
         umversion: deprecated at version 3.0.0
             Use the *um* parameter instead.
@@ -371,11 +315,15 @@ class read(cfdm.read):
         file_type: deprecated at version 3.18.0
             Use the *dataset_type* parameter instead.
 
+        netcdf_backend: Deprecated at version NEXTVERSION
+            Use *backend* instead.
+
     :Returns:
 
         `FieldList` or `DomainList`
             The field or domain constructs found in the input
             dataset(s). The list may be empty.
+
     **Examples**
 
     >>> x = cf.read('file.nc')
@@ -452,7 +400,8 @@ class read(cfdm.read):
         cfa=None,
         cfa_write=None,
         to_memory=None,
-        netcdf_backend=None,
+        backend=None,
+        backend_options=None,
         storage_options=None,
         cache=True,
         chunks="auto",
@@ -461,6 +410,8 @@ class read(cfdm.read):
         file_type=None,
         group_dimension_search="closest_ancestor",
         filesystem=None,
+        legacy_um_backend=False,
+        netcdf_backend=None,
     ):
         """Read field or domain constructs from a dataset."""
         kwargs = locals()
@@ -555,49 +506,70 @@ class read(cfdm.read):
             `None`
 
         """
-        # Whether or not there were only netCDF datasets
-        only_netCDF = self.unique_dataset_categories == set(("netCDF",))
-
-        # Whether or not there were any UM datasets
-        some_UM = "UM" in self.unique_dataset_categories
-
         # ----------------------------------------------------------------
         # Select matching constructs from netCDF datasets (before
         # aggregation)
         # ----------------------------------------------------------------
         select = self.select
-        if select and only_netCDF:
+        if select:
             self.constructs = self.constructs.select_by_identity(*select)
 
         # ----------------------------------------------------------------
         # Aggregate the output fields or domains
         # ----------------------------------------------------------------
-        if self.aggregate and len(self.constructs) > 1:
-            aggregate_options = self.aggregate_options
-            # Set defaults specific to UM fields
-            if some_UM and "strict_units" not in aggregate_options:
-                aggregate_options["relaxed_units"] = True
+        self.aggregate = self.aggregate and len(self.constructs) > 1
+        if self.aggregate:
+            UM = False  # True if there is at least one UM field
+            non_UM = False  # True if there is at least one non-UM field
+            for f in self.constructs:
+                try:
+                    if f.get_property("um_identity", "").startswith("UM_"):
+                        UM = True
+                    else:
+                        non_UM = True
+                except Exception:
+                    non_UM = True
 
+                if UM and non_UM:
+                    break
+
+            if UM and non_UM:
+                self.aggregate = False
+                logger.warning(
+                    "Won't aggregate fields from a mixture of UM and "
+                    "non-UM sources (a field from a UM source is defined as "
+                    "having a string-valued um_identity property that starts "
+                    "with 'UM_')."
+                    "\n"
+                    "Aggregation may still be possible with cf.aggregate."
+                )
+                # This is because the aggregation of UM fields
+                # requires
+                # `aggregate_options["field_identity"]="um_identity"`
+                # in order to overcome the many-to-one relationship between
+                # STASH codes and standard names.
+
+        if self.aggregate:
+            aggregate_options = self.aggregate_options
+
+            if UM:
+                # Set extra aggregate options for fields created from
+                # UM data.
+                #
+                # We can't trust the the standard_name to provide the
+                # identity for UM fields (multiple STASH codes can
+                # have the same standard name), so instead we have to
+                # the um_identity property (which encapsulates the
+                # submodel, stash/field code and UM version).
+                aggregate_options["field_identity"] = "um_identity"
+
+                if "strict_units" not in aggregate_options:
+                    aggregate_options["relaxed_units"] = True
+
+            # Do the aggregation
             self.constructs = cf_aggregate(
                 self.constructs, **aggregate_options
             )
-
-        # ----------------------------------------------------------------
-        # Add standard names to non-netCDF fields (after aggregation)
-        # ----------------------------------------------------------------
-        if not only_netCDF:
-            for f in self.constructs:
-                standard_name = f._custom.get("standard_name", None)
-                if standard_name is not None:
-                    f.set_property("standard_name", standard_name, copy=False)
-                    del f._custom["standard_name"]
-
-        # ----------------------------------------------------------------
-        # Select matching constructs from non-netCDF files (after
-        # setting their standard names)
-        # ----------------------------------------------------------------
-        if select and not only_netCDF:
-            self.constructs = self.constructs.select_by_identity(*select)
 
         super()._finalise()
 
@@ -660,115 +632,3 @@ class read(cfdm.read):
 
         self.aggregate = aggregate
         self.aggregate_options = aggregate_options
-
-    def _read(self, dataset):
-        """Read a given dataset into field or domain constructs.
-
-        The constructs are stored in the `dataset_contents` attribute.
-
-        Called by `__new__`.
-
-        .. versionadded:: 3.18.0
-
-        :Parameters:
-
-            dataset: `str`
-                The pathname of the dataset to be read.
-
-        :Returns:
-
-            `None`
-
-        """
-        dataset_type = self.dataset_type
-
-        # ------------------------------------------------------------
-        # Try to read as a netCDF dataset
-        # ------------------------------------------------------------
-        super()._read(dataset)
-
-        if self.dataset_contents is not None:
-            # Successfully read the dataset
-            return
-
-        # ------------------------------------------------------------
-        # Try to read as a PP/UM dataset
-        # ------------------------------------------------------------
-        if dataset_type is None or dataset_type.intersection(
-            self.UM_dataset_types
-        ):
-            if not hasattr(self, "um_read"):
-                # Initialise the UM read function
-                kwargs = self.kwargs
-                um_kwargs = {
-                    key: kwargs[key]
-                    for key in (
-                        "height_at_top_of_model",
-                        "squeeze",
-                        "unsqueeze",
-                        "domain",
-                        "dataset_type",
-                        "unpack",
-                        "verbose",
-                        "filesystem",
-                        "storage_options",
-                    )
-                }
-                um_kwargs["set_standard_name"] = False
-                um_kwargs["select"] = self.select
-                um = self.um
-                um_kwargs["um_version"] = um.get("version")
-                um_kwargs["fmt"] = um.get("fmt")
-                um_kwargs["word_size"] = um.get("word_size")
-                um_kwargs["endian"] = um.get("endian")
-
-                self.um_read = partial(
-                    UMRead(self.implementation).read, **um_kwargs
-                )
-
-            try:
-                # Try to read the dataset
-                self.dataset_contents = self.um_read(dataset)
-            except DatasetTypeError as error:
-                if dataset_type is None:
-                    self.dataset_format_errors.append(error)
-            else:
-                # Successfully read the dataset
-                self.unique_dataset_categories.add("UM")
-
-        if self.dataset_contents is not None:
-            # Successfully read the dataset
-            return
-
-        # ------------------------------------------------------------
-        # Try to read as a GRIB dataset
-        #
-        # Not yet available. When (if!) the time comes, the framework
-        # will be:
-        # ------------------------------------------------------------
-        #
-        # if dataset_type is None or dataset_type.intersection(
-        #     self.GRIB_dataset_types
-        # ):
-        #     if not hasattr(self, "grib_read"):
-        #         # Initialise the GRIB read function
-        #         kwargs = self.kwargs
-        #         grib_kwargs = ...  # <ADD SOME CODE HERE>
-        #
-        #         self.grib_read = partial(
-        #             GRIBRead(self.implementation).read, **grib_kwargs
-        #         )
-        #
-        #     try:
-        #         # Try to read the dataset
-        #         self.dataset_contents = self.grib_read(dataset)
-        #     except DatasetTypeError as error:
-        #         if dataset_type is None:
-        #             self.dataset_format_errors.append(error)
-        #     else:
-        #         # Successfully read the dataset
-        #         self.unique_dataset_categories.add("GRIB")
-        #
-        # if self.dataset_contents is not None:
-        #     # Successfully read the dataset
-        #     return
