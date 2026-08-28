@@ -4618,19 +4618,18 @@ All the of above examples use arrays in memory to construct the data
 instances for the field and metadata constructs. It is, however,
 possible to create data from arrays that reside on disk. The `cf.read`
 function creates data in this manner. A pointer to an array in a
-netCDF file can be stored in a `cf.NetCDF4Array` or
-`~cf.H5netcdfAarray` instance, which is used to initialise a
-`cf.Data` instance.
+netCDF file can be stored in a `cf.XnetcdfArray` instance, which
+is used to initialise a `cf.Data` instance.
 
 .. code-block:: python
    :caption: *Define a variable from a dataset with the netCDF package
-             and use it to create a NetCDF4Array instance with which
+             and use it to create a XnetcdfArray instance with which
              to initialise a Data instance.*
 		
    >>> import netCDF4
    >>> nc = netCDF4.Dataset('file.nc', 'r')
    >>> v = nc.variables['ta']
-   >>> netcdf_array = cf.NetCDF4Array(filename='file.nc', address='ta',
+   >>> netcdf_array = cf.XnetcdfArray(filename='file.nc', address='ta',
    ...	                              dtype=v.dtype, shape=v.shape)
    >>> data_disk = cf.Data(netcdf_array)
 
@@ -4647,7 +4646,7 @@ netCDF file can be stored in a `cf.NetCDF4Array` or
 
 Note that data type, number of dimensions, dimension sizes and number
 of elements of the array on disk that are used to initialise the
-`cf.NetCDF4Array` instance are those expected by the CF data model,
+`cf.XnetcdfArray` instance are those expected by the CF data model,
 which may be different to those of the netCDF variable in the file
 (although they are the same in the above example). For example, a
 netCDF character array of shape ``(12, 9)`` is viewed in cf as a
@@ -5393,7 +5392,7 @@ in that file:
    >>> h = cf.example_field(0)
    >>> h
    <CF Field: specific_humidity(latitude(5), longitude(8)) 1>
-   >>> cf.write(h, 'append-example-file.nc', mode='a', netcdf_backend='netCDF4')
+   >>> cf.write(h, 'append-example-file.nc', mode='a', backend='netCDF4')
    >>> cf.read('append-example-file.nc')
    [<CF Field: air_potential_temperature(time(36), latitude(5), longitude(8)) K>,
     <CF Field: specific_humidity(latitude(5), longitude(8)) 1>]
@@ -6876,7 +6875,7 @@ method:
 
    >>> q, t = cf.read('file.nc')
    >>> t.set_quantize_on_write(algorithm='bitgroom', quantization_nsd=1)
-   >>> cf.write(t, 'quantized.nc', netcdf_backend='netCDF4')
+   >>> cf.write(t, 'quantized.nc', backend='netCDF4')
    >>> quantized = cf.read('quantized.nc')[0]
    >>> c = quantized.get_quantization()
    >>> c
