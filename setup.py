@@ -206,7 +206,7 @@ extras_require = {
     "coordinates": [
         "healpix>=2025.1",
         "pyproj>=3.7.2",
-    ]
+    ],
 }
 
 setup(
@@ -257,18 +257,4 @@ setup(
     tests_require=tests_require,
     extras_require=extras_require,
     include_package_data=True,
-    # install_requires=[
-    #     'netCDF4>=1.5.3',
-    #     'cftime>=1.1.3',
-    #     'numpy>=1.15',
-    #     'cfdm>=1.8.5, <1.9',
-    #     'psutil>=0.6.0',
-    #     'cfunits>=3.2.7'
-    #     'scipy>=1.1.0',
-    #     'matplotlib>=3.0.0',
-    #     'mpi4py>=3.0.0',
-    #     'ESMF>=8.0',
-    #     'udunits2==2.2.25',
-    # ],
-    #
 )
