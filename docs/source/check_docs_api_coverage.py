@@ -99,8 +99,7 @@ for core in ("", "_core"):
                 if count == 0:
                     n_undocumented_methods += 1
                     print(
-                        f"Method {method} not in "
-                        f"{os.path.join(source, 'class', rst_file)}"
+                        f"Method {method} not in {rst_file}"
                     )
                 elif count > 1:
                     # The method appears more than once, but may be a
