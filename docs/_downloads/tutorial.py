@@ -11,7 +11,7 @@ try:
     y = cf.read('$PWD')  # Raises Exception
 except Exception:
     pass
-y = cf.read('$PWD', file_type='netCDF')
+y = cf.read('$PWD', dataset_type='netCDF')
 len(y)
 x = cf.read('file.nc')
 x
@@ -765,7 +765,7 @@ print(q.creation_commands())
 import netCDF4
 nc = netCDF4.Dataset('file.nc', 'r')
 v = nc.variables['ta']
-netcdf_array = cf.NetCDF4Array(filename='file.nc', address='ta',
+netcdf_array = cf.XnetcdfArray(filename='file.nc', address='ta',
                               dtype=v.dtype, shape=v.shape)
 data_disk = cf.Data(netcdf_array)
 numpy_array = v[...]
@@ -828,7 +828,7 @@ cf.write(g, 'append-example-file.nc')
 cf.read('append-example-file.nc')
 h = cf.example_field(0)
 h
-cf.write(h, 'append-example-file.nc', mode='a')
+cf.write(h, 'append-example-file.nc', mode='a', backend='netCDF4')
 cf.read('append-example-file.nc')
 f = cf.read('q_file.nc')[0]
 q.equals(f)
@@ -1059,6 +1059,30 @@ list_variable = P.data.get_list()
 list_variable
 print(list_variable.array)
 cf.write(P, 'P_gathered.nc')
+f = cf.read('subsampled.nc')[0]
+print(f)
+lon = f.construct('longitude')
+lon
+lon.data.source()
+print(lon.array)
+lon.data.source().source()
+print(lon.data.source().source().array)
+g = f[0, 6, :]
+print(g)
+print(g.construct('longitude').array)
+lon = f.construct('longitude')
+d = lon.data.source()
+d.get_tie_point_indices()
+d.get_computational_precision()
+q, t = cf.read('file.nc')
+t.set_quantize_on_write(algorithm='bitgroom', quantization_nsd=1)
+cf.write(t, 'quantized.nc', backend='netCDF4')
+quantized = cf.read('quantized.nc')[0]
+c = quantized.get_quantization()
+c
+c.parameters()
+t[0, 0, 0].array
+quantized[0, 0, 0].array
 pp = cf.read('umfile.pp')
 pp
 print(pp[0])
