@@ -11,72 +11,32 @@ nonetheless be modified in memory.
 The `cf` package uses `dask` for all of its array manipulation and
 can:
 
-* read field constructs and domain constructs from netCDF, CDL,
-  Zarr, Kerchunk, PP and UM datasets with a choice of netCDF
-  backends,
-
-* read files from OPeNDAP servers and S3 object stores,
-
+* read field and domain constructs from netCDF, CDL, Zarr, Kerchunk, PP and UM datasets with a choice of netCDF backends, including from local, HTTP, OPeNDAP and S3 locations,
 * be fully flexible with respect to dataset storage chunking,
-
-* create new field constructs in memory,
-
-* write and append field and domain constructs to netCDF and
-  Zarr v3 datasets on disk, with control over HDF5 internal
-  file metadata,
-
+* create new field and domain constructs in memory,
+* write and append field and domain constructs to netCDF and Zarr v3 datasets on disk, with control over HDF5 internal file metadata,
 * read, write, and manipulate UGRID mesh topologies,
-
 * read, write, and manipulate HEALPix grids,
-
 * read, write, and create coordinates defined by geometry cells,
-
-* read netCDF and CDL datasets containing hierarchical groups,
-
+* read and write netCDF4 string data-type variables,
+* read, write, and create netCDF and CDL datasets containing hierarchical groups,
+* read, write, and create data that have been compressed by convention (i.e. ragged or gathered arrays, or coordinate arrays compressed by subsampling), whilst presenting a view of the data in its uncompressed form,
+* read and write data that are quantized to eliminate false precision,
+* convert field and domain constructs to `xarray` datasets in memory,
 * inspect field constructs,
-
 * test whether two field constructs are the same,
-
 * modify field construct metadata and data,
-
 * create subspaces of field constructs,
-
-* write field constructs to netCDF datasets on disk,
-
 * incorporate, and create, metadata stored in external files,
-
-* read, write, and create data that have been compressed by convention
-  (i.e. ragged or gathered arrays, or coordinate arrays compressed by
-  subsampling), whilst presenting a view of the data in its
-  uncompressed form,
-
 * combine field constructs arithmetically,
-
-* manipulate field construct data by arithmetical and trigonometrical
-  operations,
-
-* perform weighted statistical collapses on field constructs,
-  including those with geometry cells, UGRID mesh topologies, and
-  HEALPix grids,
-
-* perform histogram, percentile and binning operations on field
-  constructs,
-
-* regrid structured grid, UGRID, HEALPix, and DSG field constructs
-  with (multi-)linear, nearest neighbour, first- and second-order
-  conservative and higher order patch recovery methods, including 3-d
-  regridding, and large-grid support,
-
+* manipulate field construct data by arithmetical and trigonometrical operations,
+* perform weighted statistical collapses on field constructs, including those with geometry cells, UGRID mesh topologies, and HEALPix grids,
+* perform histogram, percentile and binning operations on field constructs,
+* regrid structured grid, UGRID, HEALPix, and DSG field constructs with (multi-)linear, nearest neighbour, first- and second-order conservative and higher order patch recovery methods, including 3-d regridding, and large-grid support,
 * apply convolution filters to field constructs,
-
 * create running means from field constructs,
-
-* apply differential operators to field constructs,
-
-* create derived quantities (such as relative vorticity),
-
-* read and write data that are quantized to eliminate false
-  precision.
+* apply differential operators to field constructs, and
+* create derived quantities (such as relative vorticity).
 
 
 **Visualisation**

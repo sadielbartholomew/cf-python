@@ -1,7 +1,7 @@
-Version NEXTVERSION
+Version 3.21.0
 --------------
 
-**2026-08-??**
+**2026-08-28**
 
 * New keywords to `cf.read`: ``backend``, ``backend_options``,
   ``cfa_filesystem``, ``cfa_backend``, ``cfa_backend_options``
@@ -35,6 +35,9 @@ Version NEXTVERSION
 * New output format for `cf.write` that creates an `xarray` dataset in
   memory: ``'XARRAY'``
   (https://github.com/NCAS-CMS/cf-python/issues/933)
+* Introduce use of cache files stored as
+  `~/.cf/standard_names*.pickle` to improve performance of CF
+  compliance checking (https://github.com/NCAS-CMS/cfdm/pull/411)
 * New optional dependency: ``umfive>=0.3.0``
 * New optional dependency: ``xarray>=2026.7.0``
 * Changed dependency: ``cfdm>=1.13.3.0, <1.13.4.0``
