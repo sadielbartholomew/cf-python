@@ -3142,6 +3142,12 @@ def environment(display=True, paths=True):
         ]
     )
 
+    # There are a lot of dependencies (compulsory + optional) to print so
+    # show them in asciibetical order, with the happy coincidence that the
+    # 'cf*' libraries, 'Platform' and 'Python' still come near the top (the
+    # (latter because of the capitalisation) so are easy to pick out.
+    out.sort()
+
     if display:
         print("\n".join(out))  # pragma: no cover
     else:
