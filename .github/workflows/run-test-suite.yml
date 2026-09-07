@@ -48,12 +48,6 @@ jobs:
         repository: NCAS-CMS/cfdm
         path: cfdm
 
-    # Prepare to run the test-suite on different versions of Python 3:
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
     # Setup conda, which is the simplest way to access all dependencies,
     # especially as some are C-based so otherwise difficult to setup.
     - name: Setup Miniconda
