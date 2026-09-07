@@ -26,7 +26,7 @@ jobs:
     # Need to checkout the repo in order to build the source dist from it,
     # but don't install codebase directly in this case, only test the sdist.
     - name: Checkout cf-python
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
       with:
         path: main
 
@@ -35,21 +35,15 @@ jobs:
       run: echo Now setting up the environment for cf-python...
 
     - name: Checkout the current cfdm main to use as the dependency
-      uses: actions/checkout@v3
+      uses: actions/checkout@v7
       with:
         repository: NCAS-CMS/cfdm
         path: cfdm
 
-    # Prepare to test the source dist using the given Python version
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
     # Setup conda, which is the simplest way to access all dependencies,
     # especially as some are C-based so otherwise difficult to setup.
     - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v2
+      uses: conda-incubator/setup-miniconda@v4
       with:
         auto-update-conda: true
         miniconda-version: "latest"
@@ -88,9 +82,9 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install cfunits
-        cd ${{ github.workspace }}/cfdm
+        cd cfdm
         pip install -e .
-        cd ${{ github.workspace }}/main
+        cd ../main
         # This next (very meta) command is needed to install requirements.txt
         # spec (next) in the conda env rather than globally to the PYTHONPATH:
         conda install pip
@@ -108,16 +102,16 @@ jobs:
     # they are created and used on-the-fly by 'run_tests_and_coverage'.
     - name: Create netCDF test files, e.g. test_file.nc
       shell: bash -l {0}
+      working-directory: ${{ github.workspace }}/main/cf/test
       run: |
-        cd ${{ github.workspace }}/main/cf/test
         python create_test_files.py
         python setup_create_field.py
         ls -la
 
     - name: Create the source distribution and store the version as an env var
       shell: bash -l {0}
+      working-directory: ${{ github.workspace }}/main
       run: |
-        cd ${{ github.workspace }}/main
         python setup.py sdist
         # Get the cf-python version and put it in an environment variable for
         # the next step (only available in steps subsequent to one set in).
@@ -125,6 +119,7 @@ jobs:
 
     - name: Test the source distribution
       shell: bash -l {0}
+      working-directory: ${{ github.workspace }}/main
       run: |
         cd ${{ github.workspace }}/main
         ./test_release $CF_VERSION
