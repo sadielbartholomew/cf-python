@@ -3126,7 +3126,7 @@ def environment(display=True, paths=True):
         "cf": (__version__, _os_path_abspath(__file__)),
         # Healpix module doesn't define a __version__, so can't as standard use
         # _get_module_info, but I have opened an Issue with them to define
-        # this (see: TODO)
+        # this (see: https://github.com/ntessore/healpix/issues/108)
         "healpix": (version("healpix"), find_spec("healpix").origin),
         "pyproj": _get_module_info("pyproj", try_except=True),
     }
