@@ -77,7 +77,7 @@ jobs:
     - name: Install dependencies excluding the NCAS CF Data Tools libraries
       shell: bash -l {0}
       run: |
-        conda install -c ncas -c conda-forge cf-plot udunits2=2.2.25
+        conda install -c ncas -c conda-forge cf-plot udunits2
         conda install -c conda-forge mpich esmpy
         conda install scipy matplotlib dask
         pip install pycodestyle
