@@ -112,7 +112,8 @@ jobs:
       shell: bash -l {0}
       working-directory: ${{ github.workspace }}/main
       run: |
-        python setup.py sdist
+        # Previously 'python setup.py sdist', but this is now deprecated
+        python -m build
         # Get the cf-python version and put it in an environment variable for
         # the next step (only available in steps subsequent to one set in).
         echo "CF_VERSION=$(python setup.py --version 2> /dev/null)" >> $GITHUB_ENV
