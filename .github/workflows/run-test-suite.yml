@@ -112,7 +112,10 @@ jobs:
       shell: bash -l {0}
       working-directory: ${{ github.workspace }}/main/cf/test
       run: |
-        python create_test_files.py
+        # Exit code 5 means no tests were found, which is expected for
+        # create_test_files.py. Allow that code but fail the workflow
+        # for any other non-zero exit code, to avoid hiding other failures.
+        python create_test_files.py || test $? -eq 5
         python setup_create_field.py
         ls -la
 
