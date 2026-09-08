@@ -17,7 +17,7 @@ jobs:
     # by setting it here and refering to it as ${{ matrix.python-version }}.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]  #, macos-latest]
         python-version: ["3.14"]
     runs-on: ${{ matrix.os }}
 

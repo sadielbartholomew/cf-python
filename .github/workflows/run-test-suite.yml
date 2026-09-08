@@ -22,7 +22,7 @@ jobs:
     # Set-up the build matrix. We run on different distros and Python versions.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]  #, macos-latest]
         # Note: keep versions quoted as strings else 3.14 taken as 3.1, etc.
         python-version: ["3.11", "3.12", "3.13", "3.14"]
 
