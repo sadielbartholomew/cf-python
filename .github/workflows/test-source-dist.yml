@@ -64,15 +64,23 @@ jobs:
         pip --version
         pip list
 
+    # Ensure release optional dependencies are installed. We can skip 'twine'
+    # which is only needed for uploading the final source tarball to PyPI
+    # which we don't want to do in testing. But do need 'build'.
+    - name: Install dependencies required for release processes
+      shell: bash -l {0}
+      run: |
+        # Not available for 3.12+ on conda at least at present so use pip
+        pip install build
+
     # Install cf-python dependencies, excluding cfunits and cfdm, pre-testing
     # We do so with conda (and pip) which was setup in a previous step.
     - name: Install dependencies excluding the NCAS CF Data Tools libraries
       shell: bash -l {0}
       run: |
         conda install -c ncas -c conda-forge cf-plot udunits2
-        conda install -c conda-forge mpich esmpy
+        conda install -c conda-forge mpich esmpy pycodestyle
         conda install scipy matplotlib dask
-        pip install pycodestyle
 
     # Install cfunits and cfdm (from development main branch) separately,
     # since it is most robust to test a no-dependency installation of cf, then

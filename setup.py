@@ -163,6 +163,10 @@ tests_require = (
 )
 extras_require = {
     "required C libraries": ["udunits2==2.2.25"],
+    "release": [
+        "build",
+        "twine",
+    ],
     "regridding": ["esmpy>=8.7.0", "ESMF>=8.0"],
     "convolution filters, derivatives, relative vorticity": ["scipy>=1.1.0"],
     "subspacing with multi-dimensional construct cells": ["matplotlib>=3.0.0"],
