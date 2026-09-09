@@ -1100,12 +1100,11 @@ class DataTest(unittest.TestCase):
 
         # ...when joining along axis=0 (the default)
         self.assertEqual(d.cyclic(), {0, 1})
-        with self.assertLogs(level=-1) as catch:
-            print("LOG OUTPUT", catch.output)
+        with self.assertLogs("cf.data.data", level="WARNING") as catch:
             f = cf.Data.concatenate([d, e])
             self.assertTrue(
                 any(
-                    "Concatenating along a cyclic axis" in log_msg
+                    "Concatenating along a cyclic axis (0)" in log_msg
                     for log_msg in catch.output
                 )
             )

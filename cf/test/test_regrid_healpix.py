@@ -16,7 +16,6 @@ try:
 except ImportError:
     esmpy_imported = False
 
-healpix_available = False
 # Note: here only need healpix for cf under-the-hood code, not in test
 # directly, so no need to actually import healpix, just test it is there.
 healpix_available = find_spec("healpix")
