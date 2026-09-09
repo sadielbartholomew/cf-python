@@ -126,8 +126,14 @@ jobs:
         # Previously 'python setup.py sdist', but this is now deprecated
         python -m build
         # Get the cf-python version and put it in an environment variable for
-        # the next step (only available in steps subsequent to one set in).
-        echo "CF_VERSION=$(python setup.py --version 2> /dev/null)" >> $GITHUB_ENV
+        # the next step (only available in steps subsequent to one set in)
+        # Use backticks here to avoid nested double quotes which break some
+        # syntax highlighting. More robust to query package metadata than
+        # the __version__ attribute.
+        CF_VERSION=`python -c 'from importlib.metadata import version; print(version("cf-python"))'`
+        echo "CF_VERSION=${CF_VERSION}" >> $GITHUB_ENV
+        cd /home/runner/work/cf-python/cf-python/main
+        ./test_release "$CF_VERSION"
 
     - name: Test the source distribution
       shell: bash -l {0}
