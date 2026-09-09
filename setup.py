@@ -163,6 +163,11 @@ tests_require = (
 )
 extras_require = {
     "required C libraries": ["udunits2==2.2.25"],
+    "test": [
+        "pytest",
+        "pycodestyle",
+        "coverage",
+    ],
     "release": [
         "build",
         "twine",
@@ -220,7 +225,6 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
-        "License :: OSI Approved :: MIT License",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Scientific/Engineering :: Physics",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
@@ -239,7 +243,6 @@ setup(
     scripts=["scripts/cfa"],
     python_requires=">=3.11",
     install_requires=install_requires,
-    tests_require=tests_require,
     extras_require=extras_require,
     include_package_data=True,
 )
