@@ -22,7 +22,8 @@ jobs:
     # Set-up the build matrix. We run on different distros and Python versions.
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # Test on macos-intel rather than macos (ARM64 architecture)
+        os: [ubuntu-latest, macos-15-intel]
         # Note: keep versions quoted as strings else 3.14 taken as 3.1, etc.
         python-version: ["3.11", "3.12", "3.13", "3.14"]
 
