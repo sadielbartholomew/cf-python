@@ -5,6 +5,7 @@ Version NEXTVERSION
 
 * Changed dependency: ``Python>=3.11.0``
 
+----
 
 Version 3.21.0
 --------------
