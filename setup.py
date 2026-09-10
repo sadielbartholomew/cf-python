@@ -154,13 +154,6 @@ The ``cf`` package can:
 requirements = open("requirements.txt", "r")
 install_requires = requirements.read().splitlines()
 
-tests_require = (
-    [
-        "pytest",
-        "pycodestyle",
-        "coverage",
-    ],
-)
 extras_require = {
     "required C libraries": ["udunits2==2.2.25"],
     "test": [
