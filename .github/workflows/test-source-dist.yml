@@ -17,7 +17,7 @@ jobs:
     # by setting it here and refering to it as ${{ matrix.python-version }}.
     strategy:
       matrix:
-        os: [ubuntu-latest]  #, macos-latest]
+        os: [ubuntu-latest, macos-15-intel]
         python-version: ["3.14"]
     runs-on: ${{ matrix.os }}
 
@@ -79,8 +79,10 @@ jobs:
       shell: bash -l {0}
       run: |
         conda install -c ncas -c conda-forge cf-plot udunits2
-        conda install -c conda-forge mpich esmpy pycodestyle
+        conda install -c conda-forge mpich esmpy
         conda install scipy matplotlib dask
+        # Avoid pip unless cannot get from conda
+        pip install PyActiveStorage healpix pytest pycodestyle coverage
 
     # Install cfunits and cfdm (from development main branch) separately,
     # since it is most robust to test a no-dependency installation of cf, then

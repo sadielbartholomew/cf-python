@@ -77,7 +77,8 @@ jobs:
           conda install -c ncas -c conda-forge cf-plot udunits2
           conda install -c conda-forge mpich esmpy
           conda install scipy matplotlib dask
-          pip install pycodestyle
+          # Avoid pip unless cannot get from conda
+          pip install PyActiveStorage healpix pytest pycodestyle coverage
 
       # Install cfunits and cfdm (from development main branch) separately,
       # since it is most robust to test a no-dependency installation of cf,
@@ -211,7 +212,8 @@ jobs:
           conda install -c ncas -c conda-forge cf-plot udunits2
           conda install -c conda-forge mpich esmpy
           conda install scipy matplotlib dask
-          pip install pycodestyle
+          # Avoid pip unless cannot get from conda
+          pip install PyActiveStorage healpix pytest pycodestyle coverage
 
       # Install cfunits and cfdm (from development main branch) separately,
       # since it is most robust to test a no-dependency installation of cf,
